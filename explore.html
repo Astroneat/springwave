@@ -115,6 +115,40 @@
                 <span class="material-symbols-outlined">close</span>
               </button>
             </div>
+            <!-- MY UNIVERSITY TOGGLE -->
+            <div class="sidebar-section-figma" id="myUniSection">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-lg bg-white/80 border border-primary/20 flex items-center justify-center shrink-0 shadow-xs text-primary">
+                    <span class="material-symbols-outlined text-lg">school</span>
+                  </div>
+                  <h3 class="sidebar-title-figma mb-0 text-[13px] leading-snug tracking-normal" data-i18n="explore.my_university">My University</h3>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0" id="toggleMyUniWrapper">
+                  <input type="checkbox" id="toggleMyUni" class="sr-only peer">
+                  <div class="w-10 h-5.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+              <p class="text-[11px] text-[#475569] font-medium leading-relaxed mt-2 break-words" id="myUniSubtitle" data-i18n="explore.my_university_desc">Only events from my school</p>
+            </div>
+
+            <!-- CERTIFICATE TOGGLE -->
+            <div class="sidebar-section-figma" id="certificateSection">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-lg bg-white/80 border border-amber-500/25 flex items-center justify-center shrink-0 shadow-xs text-amber-600">
+                    <span class="material-symbols-outlined text-lg">workspace_premium</span>
+                  </div>
+                  <h3 class="sidebar-title-figma mb-0 text-[13px] leading-snug tracking-normal" data-i18n="explore.has_certificate">Certificate</h3>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0" id="toggleCertificateWrapper">
+                  <input type="checkbox" id="toggleCertificate" class="sr-only peer">
+                  <div class="w-10 h-5.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
+              </div>
+              <p class="text-[11px] text-[#475569] font-medium leading-relaxed mt-2 break-words" data-i18n="explore.has_certificate_desc">Only events with certificates</p>
+            </div>
+
             <div class="sidebar-section-figma">
               <h3 class="sidebar-title-figma" data-i18n="explore.categories">Categories</h3>
               <div class="category-list-figma" id="categoryList">

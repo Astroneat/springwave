@@ -64,6 +64,27 @@
         </button>
       </div>
 
+      <!-- Verification Required Card -->
+      <div class="quiz-card hidden" id="quizVerifyRequired">
+        <div class="quiz-start-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706;">
+          <span class="material-symbols-outlined" style="font-size: 36px;">verified_user</span>
+        </div>
+        <h1 class="quiz-start-title" data-i18n="quiz.verify_required_title">Student Verification Required</h1>
+        <p class="quiz-start-desc" data-i18n="quiz.verify_required_desc">
+          You need to verify your student status before taking the AI Personality Quiz and generating your profile.
+        </p>
+        <div class="flex flex-col gap-3 w-full max-w-xs mx-auto mt-4">
+          <a href="/student-verify.html" class="quiz-btn-primary !w-full justify-center !bg-amber-600 hover:!bg-amber-700">
+            <span class="material-symbols-outlined">verified</span>
+            <span data-i18n="quiz.verify_now_btn">Verify Student Status Now</span>
+          </a>
+          <a href="/profile.html" class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 active:scale-95 transition-all">
+            <span class="material-symbols-outlined !text-[18px]">arrow_back</span>
+            <span data-i18n="quiz.back_to_profile">Back to Profile</span>
+          </a>
+        </div>
+      </div>
+
       <div class="quiz-card hidden" id="quizQuestion">
         <div class="quiz-progress">
           <div class="quiz-progress-bar" id="quizProgressBar" role="progressbar" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1" aria-label="Quiz progress"></div>

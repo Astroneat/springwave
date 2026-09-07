@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Expose for onclick handlers
     window.openReviewModal = openReviewModal;
 
-    // Re-render badges on language change
+    // Re-render badges and AI profile on language change
     window.addEventListener("language-changed", () => {
         if (badgeRenderData) {
             renderBadgesPanel(
@@ -250,6 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 badgeRenderData.participationsCount
             );
         }
+        loadAiProfile();
     });
 
     // Check hash for badges redirection scroll
@@ -684,9 +685,34 @@ async function renderAIProfile() {
   const container = document.getElementById("ai-profile-content");
   if (!card || !container) return;
 
+  const studentUser = currentUser || getUser();
+  const verified = isStudentVerified(studentUser);
+
+  card.style.display = "block";
+
+  if (!verified) {
+    card.querySelector("h2").innerHTML = `
+      <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;color:#8B5CF6">auto_awesome</span>
+      <span data-i18n="profile.ai_profile">${t("profile.ai_profile")}</span>
+    `;
+    container.innerHTML = `
+      <div class="py-4 text-center">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 mb-3">
+          <span class="material-symbols-outlined !text-[24px]">verified_user</span>
+        </div>
+        <p class="text-sm text-text-secondary mb-4 leading-relaxed max-w-sm mx-auto" data-i18n="profile.ai_verify_required_desc">${t("profile.ai_verify_required_desc")}</p>
+        <a href="/student-verify.html" class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold shadow-sm active:scale-95 transition-all spring-ease">
+          <span class="material-symbols-outlined !text-[18px]">verified</span>
+          <span data-i18n="profile.verify_student_btn">${t("profile.verify_student_btn")}</span>
+        </a>
+      </div>
+    `;
+    return;
+  }
+
   try {
-    const data = await getMyProfile();
-    card.style.display = "block";
+    const activeLang = getLang();
+    const data = await getMyProfile(activeLang);
 
     if (!data?.profile) {
       card.querySelector("h2").innerHTML = `
@@ -696,7 +722,7 @@ async function renderAIProfile() {
       container.innerHTML = `
         <div class="py-4 text-center">
           <p class="text-sm text-text-secondary mb-4" data-i18n="profile.no_ai_profile_desc">${t("profile.no_ai_profile_desc")}</p>
-          <a href="/quiz.html" class="inline-flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-600 text-white text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/20 active:scale-95 transition-all spring-ease">
+          <a href="/quiz.html" class="inline-flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-xl bg-[#23499b] hover:bg-[#1b3877] text-white text-sm font-semibold shadow-sm active:scale-95 transition-all spring-ease">
             <span class="material-symbols-outlined !text-[18px] animate-pulse">auto_awesome</span>
             <span data-i18n="profile.take_ai_quiz">${t("profile.take_ai_quiz")}</span>
           </a>
@@ -706,8 +732,9 @@ async function renderAIProfile() {
     }
 
     const p = data.profile;
-    const studentUser = currentUser || getUser();
-    const displayMajor = studentUser?.major || data.user?.major || p.major;
+    const currentLang = getLang();
+    const localized = p.translations?.[currentLang] || p;
+    const displayMajor = studentUser?.major || data.user?.major || localized.major || p.major;
     
     // Add Retake button to the header
     card.querySelector("h2").innerHTML = `
@@ -723,23 +750,58 @@ async function renderAIProfile() {
       </div>
     `;
 
+    const personaKey = localized.personaKey || p.personaKey || localStorage.getItem("springwave_persona_key");
+    if (personaKey && !localStorage.getItem("springwave_persona_key")) {
+      localStorage.setItem("springwave_persona_key", personaKey);
+    }
+    const rawPersonaTitle = personaKey ? t(`quiz.personas.${personaKey}.title`) : null;
+    const fallbackTitle = (rawPersonaTitle && rawPersonaTitle !== `quiz.personas.${personaKey}.title`) ? rawPersonaTitle : personaKey;
+    const displayTitle = localized.archetypeTitle || fallbackTitle;
+    const personaBadge = displayTitle ? `
+      <div class="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 text-[#8B5CF6] text-xs font-semibold">
+        <span class="material-symbols-outlined !text-[14px]">auto_awesome</span>
+        <span>${escapeHtml(displayTitle)}</span>
+      </div>
+    ` : '';
+    const taglineHtml = localized.tagline ? `
+      <p class="text-xs text-slate-500 font-medium italic mb-4">"${escapeHtml(localized.tagline)}"</p>
+    ` : '';
+
+    const displaySkills = localized.skills || p.skills || [];
+    const displayActivities = localized.preferredActivities || p.preferredActivities || [];
+    const displayNarrative = localized.profileText || p.profileText;
+    const displayGoal = localized.goal || p.goal;
+    const displayDesc = localized.description || p.description;
+
     container.innerHTML = `
+      ${personaBadge}
+      ${taglineHtml}
       <div class="ai-profile-section">
         ${displayMajor ? `<div class="ai-profile-field"><span class="ai-profile-label" data-i18n="profile.ai_major">${t("profile.ai_major", "Major")}</span><span class="ai-profile-value">${escapeHtml(displayMajor)}</span></div>` : ''}
-        ${p.goal ? `<div class="ai-profile-field"><span class="ai-profile-label" data-i18n="profile.ai_goal">${t("profile.ai_goal", "Goal")}</span><span class="ai-profile-value">${escapeHtml(p.goal)}</span></div>` : ''}
-        ${p.skills?.length ? `
+        ${displayGoal ? `<div class="ai-profile-field"><span class="ai-profile-label" data-i18n="profile.ai_goal">${t("profile.ai_goal", "Goal")}</span><span class="ai-profile-value">${escapeHtml(displayGoal)}</span></div>` : ''}
+        ${displaySkills?.length ? `
           <div class="ai-profile-field">
             <span class="ai-profile-label" data-i18n="profile.ai_skills">${t("profile.ai_skills", "Skills")}</span>
-            <div class="ai-profile-tags">${p.skills.map(s => `<span class="ai-profile-tag">${escapeHtml(s)}</span>`).join('')}</div>
+            <div class="ai-profile-tags">${displaySkills.map(s => `<span class="ai-profile-tag">${escapeHtml(s)}</span>`).join('')}</div>
           </div>
         ` : ''}
-        ${p.preferredActivities?.length ? `
+        ${displayActivities?.length ? `
           <div class="ai-profile-field">
             <span class="ai-profile-label" data-i18n="profile.ai_preferred_activities">${t("profile.ai_preferred_activities", "Preferred Activities")}</span>
-            <div class="ai-profile-tags">${p.preferredActivities.map(a => `<span class="ai-profile-tag">${escapeHtml(a)}</span>`).join('')}</div>
+            <div class="ai-profile-tags">${displayActivities.map(a => `<span class="ai-profile-tag">${escapeHtml(a)}</span>`).join('')}</div>
           </div>
         ` : ''}
-        ${p.description ? `<div class="ai-profile-field"><span class="ai-profile-label" data-i18n="profile.ai_about">${t("profile.ai_about", "About")}</span><p class="ai-profile-desc">${escapeHtml(p.description)}</p></div>` : ''}
+        ${displayNarrative ? `
+          <div class="ai-profile-field">
+            <span class="ai-profile-label" data-i18n="profile.ai_narrative">${t("profile.ai_narrative", "Bản sắc cá nhân")}</span>
+            <p class="ai-profile-desc leading-relaxed">${escapeHtml(displayNarrative)}</p>
+          </div>
+        ` : (displayDesc ? `
+          <div class="ai-profile-field">
+            <span class="ai-profile-label" data-i18n="profile.ai_about">${t("profile.ai_about", "About")}</span>
+            <p class="ai-profile-desc">${escapeHtml(displayDesc)}</p>
+          </div>
+        ` : '')}
       </div>
     `;
   } catch (error) {

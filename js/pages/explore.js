@@ -15,6 +15,7 @@ import { sanitizeHtml, escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard, isToday, isPastDate, isUpcomingDate, getEventStatus } from "../lib/utils.js";
 import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
 import { showExploreLoading, hideExploreLoading, bindLoadingLanguage, EXPLORE_SKELETON_OPTIONS } from "../lib/exploreLoading.js";
+import { getMyUniversity, getUniversities } from "../api/universities.js";
 
 let allActivities = [];
 let masterActivitiesList = [];
@@ -24,6 +25,9 @@ const pageSize = 20;
 let currentCategory = "all";
 let currentSort = "newest";
 let currentStatus = "upcoming";
+let currentMyUniOnly = false;
+let currentCertificateOnly = false;
+let myUniversity = null;
 let cachedTemplate = null;
 let participateQueue = [];
 let activeParticipations = 0;
@@ -443,6 +447,14 @@ function initSearchButton() {
         document.querySelector(".status-option[data-status='upcoming']")?.classList.add("active");
         currentStatus = "upcoming";
 
+        currentMyUniOnly = false;
+        const myUniToggle = document.getElementById("toggleMyUni");
+        if (myUniToggle) myUniToggle.checked = false;
+
+        currentCertificateOnly = false;
+        const certToggle = document.getElementById("toggleCertificate");
+        if (certToggle) certToggle.checked = false;
+
         const cardsContainer = document.getElementById("cards-container");
         showExploreLoading(cardsContainer, {
             messageKey: "explore.refreshing",
@@ -614,6 +626,42 @@ async function applyFiltersAndSort() {
         filtered = filtered.filter(a => getEventStatus(a) === 'registration_closed');
     }
 
+    if (currentCertificateOnly) {
+        filtered = filtered.filter(a => a.hasCertificate === true || a.hasCertificate === 'true');
+    }
+
+    if (currentMyUniOnly && myUniversity) {
+        const myUniId = String(myUniversity._id || "");
+        const myShort = (myUniversity.shortName || "").trim().toLowerCase();
+        const myName = (myUniversity.name || "").trim().toLowerCase();
+
+        filtered = filtered.filter(a => {
+            // 1. Matched by organization's university ObjectId
+            const orgUni = a.organization?.university;
+            const orgUniId = orgUni?._id || (typeof orgUni === "string" ? orgUni : null);
+            if (orgUniId && String(orgUniId) === myUniId) return true;
+
+            // 2. Matched by organization's university shortName or name
+            const orgUniShort = (orgUni?.shortName || "").trim().toLowerCase();
+            const orgUniName = (orgUni?.name || "").trim().toLowerCase();
+            if (myShort && orgUniShort && orgUniShort === myShort) return true;
+            if (myName && orgUniName && orgUniName === myName) return true;
+
+            // 3. Matched by scraped non-partner school name
+            const sourceSchool = (a.source?.school || "").trim().toLowerCase();
+            if (sourceSchool) {
+                if (myShort && sourceSchool.includes(myShort)) return true;
+                if (myName && (sourceSchool.includes(myName) || myName.includes(sourceSchool))) return true;
+            }
+
+            // 4. Matched by location if mentioning school
+            const loc = (a.location || "").toLowerCase();
+            if (loc && myShort && (loc.includes(`(${myShort})`) || loc.includes(` ${myShort} `) || loc.startsWith(`${myShort} `) || loc.endsWith(` ${myShort}`))) return true;
+
+            return false;
+        });
+    }
+
     switch (currentSort) {
         case "relevance":
             filtered.sort((a, b) => {
@@ -689,7 +737,10 @@ async function renderCardsDirect(activities) {
         const hostSpan = card.querySelector(".info-host");
         if (hostSpan) {
             const hostOrgName = typeof activity.organization === 'object' ? activity.organization?.name : null;
-            hostSpan.textContent = hostOrgName || activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
+            const orgUni = activity.organization?.university;
+            const uniShort = orgUni?.shortName || activity.source?.school;
+            const baseHost = hostOrgName || activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
+            hostSpan.textContent = uniShort ? `${baseHost} (${uniShort})` : baseHost;
         }
         
         const status = getEventStatus(activity);
@@ -698,6 +749,9 @@ async function renderCardsDirect(activities) {
         if (btn && status !== 'ended') {
             btn.textContent = t("explore.view_details") || "View Details";
         }
+
+        const topLeftBadges = document.createElement("div");
+        topLeftBadges.className = "absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-col items-start gap-1.5 z-10 pointer-events-none";
 
         if (status === 'ended') {
             card.classList.add("opacity-75", "grayscale-[0.5]");
@@ -708,29 +762,32 @@ async function renderCardsDirect(activities) {
                 btn.classList.remove("bg-primary", "text-white");
                 btn.style.pointerEvents = "none";
             }
-            const tagContainer = card.querySelector(".absolute");
-            if (tagContainer) {
-                const endedBadge = document.createElement("div");
-                endedBadge.className = "absolute top-3 left-3 bg-red-100 px-3 py-1 rounded-lg text-xs font-bold text-red-600 flex items-center gap-1.5 border border-red-200 z-10 shadow-sm";
-                endedBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[10px]"></i><span>${t("explore.ended") || "Ended"}</span>`;
-                card.appendChild(endedBadge);
-            }
+            const endedBadge = document.createElement("div");
+            endedBadge.className = "bg-red-100/95 backdrop-blur-sm px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold text-red-600 flex items-center gap-1.5 border border-red-200 shadow-xs";
+            endedBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[10px]"></i><span>${t("explore.ended") || "Ended"}</span>`;
+            topLeftBadges.appendChild(endedBadge);
         } else if (status === 'ongoing') {
-            const tagContainer = card.querySelector(".absolute");
-            if (tagContainer) {
-                const ongoingBadge = document.createElement("div");
-                ongoingBadge.className = "absolute top-3 left-3 bg-green-100 px-3 py-1 rounded-lg text-xs font-bold text-green-600 flex items-center gap-1.5 border border-green-200 z-10 shadow-sm";
-                ongoingBadge.innerHTML = `<i class="fa-solid fa-circle-play text-[10px] animate-pulse"></i><span>${t("explore.ongoing") || "Ongoing"}</span>`;
-                card.appendChild(ongoingBadge);
-            }
+            const ongoingBadge = document.createElement("div");
+            ongoingBadge.className = "bg-green-100/95 backdrop-blur-sm px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold text-green-600 flex items-center gap-1.5 border border-green-200 shadow-xs";
+            ongoingBadge.innerHTML = `<i class="fa-solid fa-circle-play text-[10px] animate-pulse"></i><span>${t("explore.ongoing") || "Ongoing"}</span>`;
+            topLeftBadges.appendChild(ongoingBadge);
         } else if (status === 'registration_closed') {
-            const tagContainer = card.querySelector(".absolute");
-            if (tagContainer) {
-                const closedBadge = document.createElement("div");
-                closedBadge.className = "absolute top-3 left-3 bg-amber-100 px-3 py-1 rounded-lg text-xs font-bold text-amber-700 flex items-center gap-1.5 border border-amber-200 z-10 shadow-sm";
-                closedBadge.innerHTML = `<i class="fa-solid fa-user-xmark text-[10px]"></i><span>${t("explore.registration_closed") || "Hết hạn đăng ký"}</span>`;
-                card.appendChild(closedBadge);
-            }
+            const closedBadge = document.createElement("div");
+            closedBadge.className = "bg-amber-100/95 backdrop-blur-sm px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold text-amber-700 flex items-center gap-1.5 border border-amber-200 shadow-xs";
+            closedBadge.innerHTML = `<i class="fa-solid fa-user-xmark text-[10px]"></i><span>${t("explore.registration_closed") || "Hết hạn đăng ký"}</span>`;
+            topLeftBadges.appendChild(closedBadge);
+        }
+
+        const hasCert = activity.hasCertificate === true || activity.hasCertificate === 'true';
+        if (hasCert) {
+            const certBadge = document.createElement("div");
+            certBadge.className = "bg-amber-50/95 backdrop-blur-sm text-amber-800 border border-amber-300/80 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[9.5px] sm:text-xs font-bold flex items-center gap-1 shadow-xs";
+            certBadge.innerHTML = `<i class="fa-solid fa-award text-amber-600 text-[10px] sm:text-xs"></i><span>${t("explore.certificate_badge") || "Certificate"}</span>`;
+            topLeftBadges.appendChild(certBadge);
+        }
+
+        if (topLeftBadges.children.length > 0) {
+            card.appendChild(topLeftBadges);
         }
         card.dataset.id = activity.activityID;
         frag.appendChild(card);
@@ -890,6 +947,23 @@ function initSidebar() {
         document.querySelectorAll(".status-option").forEach(b => b.classList.remove("active"));
         document.querySelector(".status-option[data-status='upcoming']")?.classList.add("active");
         currentStatus = "upcoming";
+
+        currentMyUniOnly = false;
+        const myUniToggle = document.getElementById("toggleMyUni");
+        if (myUniToggle) myUniToggle.checked = false;
+
+        currentCertificateOnly = false;
+        const certToggle = document.getElementById("toggleCertificate");
+        if (certToggle) certToggle.checked = false;
+
+        await applyFiltersAndSort();
+    });
+
+    initMyUniToggle();
+
+    const certToggle = document.getElementById("toggleCertificate");
+    certToggle?.addEventListener("change", async () => {
+        currentCertificateOnly = certToggle.checked;
         await applyFiltersAndSort();
     });
 
@@ -905,6 +979,69 @@ function initSidebar() {
     sidebar?.addEventListener("click", (e) => {
         if (e.target === sidebar) sidebar.classList.remove("open");
     });
+}
+
+async function initMyUniToggle() {
+    const toggleInput = document.getElementById("toggleMyUni");
+    const subtitle = document.getElementById("myUniSubtitle");
+    if (!toggleInput || !subtitle) return;
+
+    if (!isAuthenticated()) {
+        subtitle.textContent = t("explore.my_university_login_hint", "Log in to filter");
+        toggleInput.addEventListener("change", (e) => {
+            e.preventDefault();
+            toggleInput.checked = false;
+            alert(t("explore.my_university_login_prompt", "Please log in to view events from your university."));
+            window.location.href = `./login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        });
+        return;
+    }
+
+    const user = getUser();
+    try {
+        myUniversity = await getMyUniversity();
+    } catch (e) {
+        console.warn("Failed to fetch my university:", e);
+    }
+
+    // Fallback: match by user's school field if joinedUniversity isn't populated
+    if (!myUniversity && user?.school) {
+        try {
+            const allUnis = await getUniversities();
+            const schoolName = user.school.trim().toLowerCase();
+            myUniversity = allUnis.find(u =>
+                (u.shortName && u.shortName.toLowerCase() === schoolName) ||
+                (u.name && u.name.toLowerCase() === schoolName) ||
+                (u.name && u.name.toLowerCase().includes(schoolName)) ||
+                (schoolName.includes(u.name?.toLowerCase() || ""))
+            ) || null;
+        } catch (e) {
+            console.warn("Fallback university matching failed:", e);
+        }
+    }
+
+    if (myUniversity) {
+        const displayName = myUniversity.shortName
+            ? `${myUniversity.shortName} - ${myUniversity.name}`
+            : myUniversity.name;
+        subtitle.textContent = displayName;
+        subtitle.title = displayName;
+
+        toggleInput.addEventListener("change", async () => {
+            currentMyUniOnly = toggleInput.checked;
+            await applyFiltersAndSort();
+        });
+    } else {
+        // User logged in but has not verified student status / no school
+        subtitle.textContent = t("explore.my_university_verify_hint", "Verify student ID to filter");
+        toggleInput.addEventListener("change", (e) => {
+            e.preventDefault();
+            toggleInput.checked = false;
+            if (confirm(t("explore.my_university_verify_prompt", "Please verify your student status to view your school's events."))) {
+                window.location.href = "./student-verify.html";
+            }
+        });
+    }
 }
 
 function initializePage() {

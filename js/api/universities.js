@@ -12,6 +12,19 @@ export function clearUniversityCache() {
 }
 
 /**
+ * Get current user's joined university.
+ * @returns {Promise<Object|null>}
+ */
+export async function getMyUniversity() {
+  try {
+    const data = await get('/community/universities/me');
+    return data?.university || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
  * Get all active universities. Cached in sessionStorage.
  * @returns {Promise<Array>} Array of university objects {name, shortName, domains, logo, color}
  */

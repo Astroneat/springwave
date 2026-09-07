@@ -280,6 +280,15 @@
     "anything_you_like": "Anything you'd like",
     "search": "Search",
     "categories": "Categories",
+    "my_university": "My University",
+    "my_university_desc": "Only events from my school",
+    "my_university_login_hint": "Log in to filter",
+    "my_university_verify_hint": "Verify student ID to filter",
+    "my_university_verify_prompt": "Please verify your student status to view your school's events.",
+    "my_university_login_prompt": "Please log in to view events from your university.",
+    "has_certificate": "Certificate",
+    "has_certificate_desc": "Only events with certificates",
+    "certificate_badge": "Certificate",
     "all": "All",
     "sports": "Sports",
     "music": "Music",
@@ -516,11 +525,14 @@
     "ai_profile": "AI Profile",
     "ai_profile_desc": "Your AI-generated profile based on quiz answers and activity preferences.",
     "no_ai_profile_desc": "Take the AI Personality Quiz to discover your perfect activities and generate your profile.",
+    "ai_verify_required_desc": "Please verify your student status to unlock the AI Personality Quiz and generate your profile.",
+    "verify_student_btn": "Verify Student Status Now",
     "ai_major": "Major",
     "ai_goal": "Goal",
     "ai_skills": "Skills",
     "ai_preferred_activities": "Preferred Activities",
     "ai_about": "About",
+    "ai_narrative": "Personal Portrait",
     "badges": "Badges",
     "badges_desc": "Complete actions across the community to earn badges. Each badge has its own personality — collect them all.",
     "edit_modal_title": "Edit Profile",
@@ -624,10 +636,15 @@
     "persona_badge": "Your Persona",
     "strengths_title": "Key Strengths",
     "advice_title": "Growth Advice",
+    "portrait_narrative_title": "Personal Portrait & Thinking Mindset",
     "suggested_activities": "Suggested Activities",
     "register_explore": "Register to Explore Activities",
     "result_title": "Your Personality Profile",
     "result_desc": "Based on your responses, here's how you score across four key areas.",
+    "verify_required_title": "Student Verification Required",
+    "verify_required_desc": "You need to verify your student status before taking the AI Personality Quiz and generating your profile.",
+    "verify_now_btn": "Verify Student Status Now",
+    "back_to_profile": "Back to Profile",
     "categories": {
       "academic_stage": "Academic Stage",
       "core_interests": "Core Interests",
@@ -638,108 +655,116 @@
       "main_obstacle": "Main Obstacle",
       "environment": "Environment",
       "schedule": "Schedule",
-      "key_motivator": "Key Motivator"
+      "key_motivator": "Key Motivator",
+      "facing_challenges": "Facing Challenges",
+      "core_passion": "Core Passion",
+      "inspiring_activity": "Inspiring Activity",
+      "core_growth_goal": "Growth Goal",
+      "inner_hesitation": "Inner Hesitation",
+      "flow_state_space": "Flow State Space",
+      "daily_fulfillment": "Daily Fulfillment",
+      "key_spark": "Key Spark"
     },
     "q1": {
-      "question": "What academic year are you currently in?",
+      "question": "When facing a completely new problem or feeling stuck, what is your natural reaction?",
       "answers": [
-        "1st Year (Freshman - Exploring university life & opportunities)",
-        "2nd Year (Sophomore - Diving into major courses & student clubs)",
-        "3rd Year (Junior - Building skills & practical projects)",
-        "Final Year / Graduate (Senior - Resume, internship & career launch)"
+        "Dive deep, read documentation & tirelessly experiment until finding the solution",
+        "Reach out to peers, mentors or experienced seniors to discuss and brainstorm",
+        "Step away, take a walk, listen to music and let creative intuition spark",
+        "Break the problem down into a detailed checklist and tackle it step by step"
       ]
     },
     "q2": {
-      "question": "What is your primary field of interest or passion?",
+      "question": "Which domain naturally sparks your curiosity and makes you lose track of time?",
       "answers": [
-        "Information Technology, Software Engineering & AI",
-        "Business, Entrepreneurship & Marketing",
-        "Design, Fine Arts, Media & Content Creation",
-        "Social Sciences, Languages, Humanities & Psychology",
-        "Healthcare, Fitness & Sports",
-        "Natural Sciences & Academic Research"
+        "Technology, Software Engineering, AI & Digital Systems",
+        "Business Strategy, Entrepreneurship, Marketing & Management",
+        "Visual Arts, UI/UX Design, Media Production & Content Creation",
+        "Social Sciences, Psychology, Community Development & Humanities",
+        "Sports, Fitness, Physical Wellness & Outdoor Challenges",
+        "Fundamental Science, Academic Research & Theoretical Discovery"
       ]
     },
     "q3": {
-      "question": "What type of activity inspires you the most?",
+      "question": "What kind of extracurricular experience gives you the strongest sense of fulfillment?",
       "answers": [
-        "Intensive masterclasses / Practical hands-on workshops",
-        "Academic contests / Hackathons & Case challenges",
-        "Arts festivals, Music concerts & Creative exhibitions",
-        "Student club meetups & Social networking gatherings",
-        "Volunteering, Community charity & Environmental campaigns"
+        "Intensive Masterclasses & Hands-on Workshops with practical drills",
+        "Academic contests, Hackathons & Fast-paced Case Challenges",
+        "Arts exhibitions, Cultural festivals & Inspiring creative showcases",
+        "Club meetups, Leadership gatherings & Cross-university networking",
+        "Volunteer expeditions, Charity projects & Environmental campaigns"
       ]
     },
     "q4": {
-      "question": "In a team or project, which role do you feel most confident in?",
+      "question": "In a team or collective project, in which role do you feel most confident and valuable?",
       "answers": [
-        "Team Leader / Project planner & Coordinator",
-        "Technical Specialist / Core problem solver & Builder",
-        "Idea Generator / Creative designer & Content creator",
-        "Team Connector / Member care & Supportive facilitator"
+        "The Coordinator / Team leader defining vision and keeping everyone on schedule",
+        "The Specialist / Core builder solving tough technical problems and crafting the product",
+        "The Creative Catalyst / Idea generator breathing aesthetic and unique identity into the work",
+        "The Emotional Anchor / Caring facilitator listening, encouraging and maintaining harmony"
       ]
     },
     "q5": {
-      "question": "How do you recharge and learn most effectively?",
+      "question": "How do you recharge your mind and assimilate complex knowledge most effectively?",
       "answers": [
-        "Engaging in lively group debates and discussions",
-        "Deep solo study in a quiet, focused environment",
-        "Learning by doing through hands-on project work",
-        "Listening to expert insights and systematic note-taking"
+        "Engaging in energetic group debates, discussions and peer exchange",
+        "Deep solo contemplation in a quiet, undisturbed sanctuary",
+        "Immediate experiential practice — building, making mistakes and iterating",
+        "Listening to structured insights from masters and taking meticulous notes"
       ]
     },
     "q6": {
-      "question": "What is your primary goal from extracurricular activities right now?",
+      "question": "What is your biggest personal milestone or aspiration through student activities?",
       "answers": [
-        "Enhancing my CV for internships and job opportunities",
-        "Expanding my network and finding like-minded friends",
-        "Sharpening soft skills and boosting public confidence",
-        "Unwinding, relieving academic stress and having fun",
-        "Exploring my hidden potential and trying new things"
+        "Mastering deep expertise and building tangible products of real value",
+        "Polishing high-impact professional skills, boosting CV and accelerating career",
+        "Broadening meaningful relationships and finding lifelong like-minded allies",
+        "Cultivating emotional intelligence, public speaking charisma and personal confidence",
+        "Unwinding, relieving stress and embracing diverse youthful adventures"
       ]
     },
     "q7": {
-      "question": "What is your biggest hesitation when considering joining an event?",
+      "question": "What is your most frequent hesitation before committing to a new activity?",
       "answers": [
-        "Hesitant to go solo / Feeling shy in large unfamiliar crowds",
-        "Packed course schedules, assignments and tight deadlines",
-        "Imposter syndrome / Feeling underqualified or inexperienced",
-        "Commute distance or registration expenses",
-        "Haven't found events with truly practical value"
+        "Hesitant to attend alone / Feeling out of place in massive unfamiliar crowds",
+        "Overwhelmed by academic deadlines, assignments and demanding coursework",
+        "Imposter syndrome / Feeling underprepared or less qualified than peers",
+        "Concerned the event is superficial or formalistic with little practical value",
+        "Commute distance, rigid timing or registration financial costs"
       ]
     },
     "q8": {
-      "question": "Which event format is most convenient and comfortable for you?",
+      "question": "In what environment do you most easily enter your Flow State of deep immersion?",
       "answers": [
-        "Right on campus",
-        "Off-campus at city venues or corporate headquarters",
-        "Virtual / Online (Zoom, Google Meet)",
-        "Flexible, as long as the topic is engaging"
+        "A secluded corner or quiet café with noise-cancelling headphones, immersed in my zone",
+        "An open, flexible space close to nature without rigid clocks or micromanagement",
+        "A dynamic collaborative room with whiteboards, buzzing with passionate brainstorming",
+        "A structured, highly professional environment where everyone is focused and disciplined"
       ]
     },
     "q9": {
-      "question": "When are you most available to fully participate in activities?",
+      "question": "At the end of a long day, what gives you the most profound sense of pride and peace?",
       "answers": [
-        "Weekend mornings (Saturday / Sunday)",
-        "Weekend afternoons",
-        "Weekday evenings (6PM - 9PM)",
-        "Short intervals between lecture sessions"
+        "Having built or fixed something tangible that actually runs flawlessly",
+        "Discovering an illuminating insight or truly understanding a concept that was once obscure",
+        "Knowing I genuinely supported or brightened someone's day through empathy",
+        "Executing all planned priorities on my checklist with self-discipline and focus"
       ]
     },
     "q10": {
-      "question": "What factor motivates you to register immediately?",
+      "question": "What decisive spark makes you immediately hit Register without a second thought?",
       "answers": [
-        "Close friends or peers are going along",
-        "Renowned guest speakers and industry-leading mentors",
-        "Job/internship opportunities, recommendation letters, or prizes",
-        "Exciting, cutting-edge and curiosity-sparking topics",
-        "Free entry with valuable certificates and cool swags"
+        "The presence of industry-leading mentors and renowned guest thinkers to learn from",
+        "Clear gateways to prestigious internships, career recommendations or high-value prizes",
+        "A truly cutting-edge, avant-garde topic that sparks irresistible curiosity",
+        "Close, trusted friends or trusted teammates enthusiastically going along",
+        "A genuine, non-commercial initiative dedicated to real community empowerment"
       ]
     },
     "personas": {
       "tech_builder": {
-        "title": "Tech Builder",
-        "tagline": "Crafting solutions and building future systems through code and technology.",
+        "title": "The Practical Problem Solver",
+        "tagline": "Action-driven builder cracking complex technical riddles into working reality.",
         "strengths": [
           "Logical Thinking",
           "Software Architecture",
@@ -749,8 +774,8 @@
         "advice": "Keep challenging yourself with complex algorithm problems, build personal projects, and collaborate in hackathons to polish your engineering skills."
       },
       "community_leader": {
-        "title": "Community Leader",
-        "tagline": "Empowering teams, coordinating projects, and creating strong community bonds.",
+        "title": "The Empathetic Catalyst",
+        "tagline": "Radiating positive energy, aligning people and creating lasting bonds.",
         "strengths": [
           "Leadership",
           "Organization",
@@ -760,8 +785,8 @@
         "advice": "Take on coordination roles in student organizations, practice active listening, and guide teams towards shared objectives."
       },
       "creative_innovator": {
-        "title": "Creative Innovator",
-        "tagline": "Bringing unique ideas to life through design, content, and artistic expression.",
+        "title": "The Creative Visionary",
+        "tagline": "Expressive, boundary-breaking, infusing imagination into every creation.",
         "strengths": [
           "Visual Design",
           "Creative Thinking",
@@ -771,8 +796,8 @@
         "advice": "Keep building your creative portfolio, experiment with new design trends, and collaborate with tech partners to turn ideas into visual realities."
       },
       "career_strategist": {
-        "title": "Career Strategist",
-        "tagline": "Optimizing opportunities, refining professional skills, and mapping career success.",
+        "title": "The Purposeful Achiever",
+        "tagline": "Goal-oriented, disciplined, proactively architecting their future trajectory.",
         "strengths": [
           "Resume Writing",
           "Networking",
@@ -782,8 +807,8 @@
         "advice": "Attend corporate networking events, search for early internships, and refine your portfolio to showcase measurable accomplishments."
       },
       "deep_learner": {
-        "title": "Deep Learner",
-        "tagline": "Unlocking knowledge, investigating academic concepts, and researching details.",
+        "title": "The Deep Contemplator",
+        "tagline": "Patient, profoundly curious, seeking fundamental truth beneath the surface.",
         "strengths": [
           "Academic Research",
           "Critical Analysis",
@@ -793,8 +818,8 @@
         "advice": "Participate in university scientific research groups, read research papers in your field, and share study strategies with others."
       },
       "changemaker": {
-        "title": "Changemaker",
-        "tagline": "Creating positive community impact, supporting others, and driving social change.",
+        "title": "The Altruistic Changemaker",
+        "tagline": "Compassionate, socially conscious, finding joy in lifting others up.",
         "strengths": [
           "Empathy",
           "Social Responsibility",
@@ -804,8 +829,8 @@
         "advice": "Engage in social volunteer groups, coordinate community-driven events, and practice sustainable teamwork."
       },
       "dynamic_explorer": {
-        "title": "Dynamic Explorer",
-        "tagline": "Trying new things, welcoming diverse experiences, and enjoying student life.",
+        "title": "The Adaptive Explorer",
+        "tagline": "Open-minded, agile, embracing life as a rich tapestry of fresh discoveries.",
         "strengths": [
           "Adaptability",
           "Curiosity",
