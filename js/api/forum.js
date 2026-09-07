@@ -48,6 +48,21 @@ export async function getDiscussionsByCategory(category) {
   return [];
 }
 
+export async function getDiscussionById(id, options = {}) {
+  if (!id) return null;
+  try {
+    const query = options.skipIncrement ? "?increment=false" : "";
+    const data = await get(`/community/discussions/${id}${query}`);
+    if (data?.discussion) {
+      return data.discussion;
+    }
+    return data || null;
+  } catch (err) {
+    console.warn("Failed to fetch discussion details:", err);
+    return null;
+  }
+}
+
 const COMMENTS_KEY_PREFIX = "forum_comments_";
 
 function parseCommentTimestamp(c) {

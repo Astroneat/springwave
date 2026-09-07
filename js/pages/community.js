@@ -11,6 +11,7 @@ import {
   getPopularDiscussions,
   getAISuggestions,
   getDiscussionsByCategory,
+  getDiscussionById,
   getEventById,
   getEvents,
   getComments,
@@ -891,7 +892,7 @@ function buildDiscussionCardHTML(d) {
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
             ${Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0)} replies
           </button>
-          <span class="forum-discussion-stat">
+          <span class="forum-discussion-stat forum-view-stat">
             <span class="material-symbols-outlined text-sm">visibility</span>
             ${d.views || 0} views
           </span>
@@ -924,6 +925,22 @@ function updateFeedDiscussionReplyCount(discussionId, newCount) {
     }
   }
   renderPopularDiscussions(window._currentDiscussions).catch(() => {});
+}
+
+function updateFeedDiscussionViewCount(discussionId, newCount) {
+  const cards = document.querySelectorAll(`.forum-discussion-card[data-discussion-id="${discussionId}"]`);
+  cards.forEach(card => {
+    const viewStat = card.querySelector(".forum-view-stat");
+    if (viewStat) {
+      viewStat.innerHTML = `<span class="material-symbols-outlined text-sm">visibility</span> ${newCount} views`;
+    }
+  });
+  if (Array.isArray(window._currentDiscussions)) {
+    const item = window._currentDiscussions.find(d => String(d.id || d._id) === String(discussionId));
+    if (item) {
+      item.views = newCount;
+    }
+  }
 }
 
 function renderAvatar(avatar, name) {
@@ -1031,6 +1048,35 @@ function scrollToAndHighlightComment(container, targetCommentId) {
   setTimeout(() => tryScroll(0), 100);
 }
 
+const VIEWED_DISCUSSIONS_KEY = "springwave_viewed_discussions";
+
+function getViewedDiscussionsStorageKey() {
+  const user = getUser();
+  const uid = user?._id || user?.id || user?.username || "guest";
+  return `${VIEWED_DISCUSSIONS_KEY}_${uid}`;
+}
+
+function hasUserViewedDiscussion(id) {
+  try {
+    const key = getViewedDiscussionsStorageKey();
+    const list = JSON.parse(localStorage.getItem(key) || "[]");
+    return list.includes(String(id));
+  } catch {
+    return false;
+  }
+}
+
+function markUserViewedDiscussion(id) {
+  try {
+    const key = getViewedDiscussionsStorageKey();
+    const list = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!list.includes(String(id))) {
+      list.push(String(id));
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+  } catch {}
+}
+
 async function openDiscussionDetail(id, targetCommentId = null) {
   const overlay = document.getElementById("discussionPopupOverlay");
   const container = document.getElementById("discussionPopupContainer");
@@ -1053,13 +1099,24 @@ async function openDiscussionDetail(id, targetCommentId = null) {
     ...(discussionsCache || [])
   ];
   let discussion = localList.find((d) => String(d.id || d._id) === String(id));
+  let fetchedDetail = null;
+
+  const alreadyViewed = hasUserViewedDiscussion(id);
 
   // If not found in memory (e.g. direct link / refresh), fetch asynchronously
   if (!discussion) {
     container.innerHTML = `<div class="popup-loading"><div class="spinner"></div></div>`;
     try {
-      const allDiscussions = await getDiscussionsByCategory("all");
-      discussion = (allDiscussions || []).find((d) => String(d.id || d._id) === String(id));
+      fetchedDetail = await getDiscussionById(id, { skipIncrement: alreadyViewed });
+      if (fetchedDetail) {
+        discussion = fetchedDetail;
+        if (!alreadyViewed) {
+          markUserViewedDiscussion(id);
+        }
+      } else {
+        const allDiscussions = await getDiscussionsByCategory("all");
+        discussion = (allDiscussions || []).find((d) => String(d.id || d._id) === String(id));
+      }
     } catch {}
   }
 
@@ -1121,7 +1178,34 @@ async function openDiscussionDetail(id, targetCommentId = null) {
     updateFeedDiscussionReplyCount(id, comments.length);
   })();
 
-  await Promise.allSettled([fetchEventTask, fetchCommentsTask]);
+  const fetchDetailTask = (async () => {
+    try {
+      if (alreadyViewed && !fetchedDetail) {
+        // User has already viewed this discussion; avoid incrementing views again
+        return;
+      }
+      markUserViewedDiscussion(id);
+      const fresh = fetchedDetail || (await getDiscussionById(id));
+      if (fresh && typeof fresh.views === "number") {
+        discussion.views = fresh.views;
+        updateFeedDiscussionViewCount(id, fresh.views);
+        const detailStat = container.querySelector(".forum-detail-view-stat");
+        if (detailStat) {
+          detailStat.innerHTML = `<span class="material-symbols-outlined text-sm">visibility</span> ${fresh.views} views`;
+        }
+        [window._currentDiscussions, discussionsCache].forEach(list => {
+          if (Array.isArray(list)) {
+            const item = list.find(d => String(d.id || d._id) === String(id));
+            if (item) item.views = fresh.views;
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Failed to update discussion views:", err);
+    }
+  })();
+
+  await Promise.allSettled([fetchEventTask, fetchCommentsTask, fetchDetailTask]);
 
   if (targetCommentId) {
     scrollToAndHighlightComment(container, targetCommentId);
@@ -1709,6 +1793,10 @@ function buildDiscussionDetailHTML(d, comments) {
             <span class="forum-discussion-stat">
               <span class="material-symbols-outlined text-sm">chat_bubble</span>
               ${commentsCount} replies
+            </span>
+            <span class="forum-discussion-stat forum-detail-view-stat">
+              <span class="material-symbols-outlined text-sm">visibility</span>
+              ${d.views || 0} views
             </span>
           </div>
         </div>
