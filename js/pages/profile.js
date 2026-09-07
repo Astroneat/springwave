@@ -78,12 +78,62 @@ function getBadgeProgress(key, c, user, favoritesCount = 0, participationsCount 
   }
 }
 
+function hasUserCompletedQuiz(user) {
+  if (typeof window !== "undefined" && window._hasActiveAIProfile === true) return true;
+  try {
+    if (localStorage.getItem("springwave_quiz_completed") === "true") return true;
+    if (localStorage.getItem("springwave_persona_key")) return true;
+  } catch {}
+  if (!user) return false;
+  if (user.profile && (
+    user.profile.archetypeTitle ||
+    user.profile.personaKey ||
+    user.profile.profileText ||
+    user.profile.tagline ||
+    (Array.isArray(user.profile.skills) && user.profile.skills.length > 0)
+  )) return true;
+  if (user.surveyScores && Object.values(user.surveyScores).some(s => typeof s === "number" && s > 0)) return true;
+  if (Array.isArray(user.surveyAnswers) && user.surveyAnswers.length > 0) return true;
+  return false;
+}
+
+function awardSelfDiscoveryBadgeIfNeeded(user) {
+  try {
+    localStorage.setItem("springwave_quiz_completed", "true");
+  } catch {}
+  if (badgeRenderData && !badgeRenderData.earnedKeys.has("self_discovery")) {
+    badgeRenderData.earnedKeys.add("self_discovery");
+    const activeUser = user || currentUser || getUser();
+    const userId = activeUser?._id || activeUser?.id || 'guest';
+    const badgeStorageKey = `springwave_badges_${userId}`;
+    try {
+      const stored = JSON.parse(localStorage.getItem(badgeStorageKey) || "[]");
+      if (!stored.includes("self_discovery")) {
+        stored.push("self_discovery");
+        localStorage.setItem(badgeStorageKey, JSON.stringify(stored));
+      }
+    } catch {}
+    renderBadgesPanel(
+      badgeRenderData.earnedKeys,
+      badgeRenderData.c,
+      badgeRenderData.user || activeUser,
+      badgeRenderData.favoritesCount,
+      badgeRenderData.participationsCount
+    );
+  }
+}
+
 function computeLocalBadges(user, c = {}, favoritesCount = 0, participationsCount = 0) {
   const badges = [];
   if (user) badges.push("hello_world");
   if ((c.repliesGiven || 0) >= 1) badges.push("talk_is_silver");
   if ((c.discussionsStarted || 0) >= 1) badges.push("so_it_begins");
-  if (localStorage.getItem("springwave_quiz_completed") === "true") badges.push("self_discovery");
+  if (hasUserCompletedQuiz(user)) {
+    badges.push("self_discovery");
+    try {
+      localStorage.setItem("springwave_quiz_completed", "true");
+    } catch {}
+  }
   if ((c.discussionsStarted || 0) >= 5) badges.push("conversation_starter");
   if ((c.repliesGiven || 0) >= 10) badges.push("helper");
   if ((c.repliesGiven || 0) >= 50) badges.push("chatterbox");
@@ -312,10 +362,14 @@ async function loadUserProfile() {
         const fullUser = await getCurrentUser();
         if (fullUser && fullUser.user) {
             user = fullUser.user;
+            setUser(user);
         }
     } catch {} // fallback to localStorage
 
     currentUser = user;
+    if (hasUserCompletedQuiz(user)) {
+        awardSelfDiscoveryBadgeIfNeeded(user);
+    }
 
     document.getElementById("profile-name").textContent = user.username || user.fullname;
     document.getElementById("profile-email").textContent = user.email || "-";
@@ -744,6 +798,16 @@ async function renderAIProfile() {
       `;
       return;
     }
+
+    window._hasActiveAIProfile = true;
+    try {
+      localStorage.setItem("springwave_quiz_completed", "true");
+    } catch {}
+    if (currentUser) {
+      currentUser.profile = data.profile;
+      setUser(currentUser);
+    }
+    awardSelfDiscoveryBadgeIfNeeded(currentUser);
 
     const p = data.profile;
     const currentLang = getLang();
