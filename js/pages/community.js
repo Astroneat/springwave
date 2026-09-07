@@ -390,11 +390,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const discussionParam = getDiscussionParamFromURL();
     const commentParam = getCommentParamFromURL();
     if (discussionParam) {
-      setTimeout(() => openDiscussionDetail(discussionParam, commentParam), 200);
+      setTimeout(() => {
+        if (typeof window.scrollToAndOpenDiscussion === "function") {
+          window.scrollToAndOpenDiscussion(discussionParam, commentParam);
+        } else {
+          openDiscussionDetail(discussionParam, commentParam);
+        }
+      }, 200);
     }
   });
 
   window.openDiscussionDetail = openDiscussionDetail;
+  window.scrollToAndOpenDiscussion = scrollToAndOpenDiscussion;
 
   const discussParam = urlParams.get("discuss");
   if (discussParam === "event") {
@@ -437,6 +444,92 @@ function updatePageTitle(category) {
   document.title = `${config.label()} - SpringWave`;
 }
 
+function buildDiscussionSkeletonHTML(count = 5) {
+  let html = "";
+  const titleWidths = ["w-3/4", "w-4/5", "w-2/3", "w-5/6", "w-1/2"];
+  const previewWidths = ["w-full", "w-11/12", "w-4/5", "w-full", "w-3/4"];
+  for (let i = 0; i < count; i++) {
+    const tw = titleWidths[i % titleWidths.length];
+    const pw = previewWidths[i % previewWidths.length];
+    html += `
+      <div class="forum-discussion-skeleton" aria-hidden="true">
+        <div class="forum-skeleton-header">
+          <div class="forum-skeleton-avatar"></div>
+          <div class="forum-skeleton-author">
+            <div class="forum-skeleton-line" style="width: 120px; height: 13px;"></div>
+            <div class="forum-skeleton-line" style="width: 80px; height: 10px;"></div>
+          </div>
+          <div class="forum-skeleton-line ml-auto" style="width: 60px; height: 10px;"></div>
+        </div>
+        <div class="flex flex-col gap-2 my-1">
+          <div class="forum-skeleton-line ${tw}" style="height: 16px;"></div>
+          <div class="forum-skeleton-line ${pw}" style="height: 12px;"></div>
+          <div class="forum-skeleton-line w-3/5" style="height: 12px;"></div>
+        </div>
+        <div class="flex items-center gap-2 mt-1">
+          <div class="forum-skeleton-pill" style="width: 70px;"></div>
+          <div class="forum-skeleton-pill" style="width: 60px;"></div>
+          <div class="forum-skeleton-pill" style="width: 85px;"></div>
+        </div>
+        <div class="flex items-center justify-between pt-2 border-t border-slate-50 mt-1">
+          <div class="forum-skeleton-line" style="width: 100px; height: 12px;"></div>
+          <div class="flex items-center gap-2">
+            <div class="forum-skeleton-btn"></div>
+            <div class="forum-skeleton-btn"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  return html;
+}
+
+function buildUniSkeletonHTML(count = 6) {
+  let html = "";
+  for (let i = 0; i < count; i++) {
+    html += `
+      <div class="forum-uni-skeleton-card" aria-hidden="true">
+        <div class="p-6 bg-slate-50/80 flex flex-col items-center text-center gap-3 border-b border-slate-100">
+          <div class="w-14 h-14 rounded-2xl forum-skeleton-line"></div>
+          <div class="forum-skeleton-line w-32 h-4"></div>
+          <div class="forum-skeleton-line w-20 h-3"></div>
+        </div>
+        <div class="p-4 flex items-center justify-between">
+          <div class="forum-skeleton-line w-24 h-3"></div>
+          <div class="forum-skeleton-pill w-20 h-8"></div>
+        </div>
+      </div>
+    `;
+  }
+  return html;
+}
+
+function buildOrgSkeletonHTML(count = 6) {
+  let html = "";
+  for (let i = 0; i < count; i++) {
+    html += `
+      <div class="forum-org-skeleton-card" aria-hidden="true">
+        <div class="flex items-start gap-3">
+          <div class="w-14 h-14 rounded-2xl forum-skeleton-line shrink-0"></div>
+          <div class="flex flex-col gap-2 flex-1">
+            <div class="forum-skeleton-line w-36 h-4"></div>
+            <div class="forum-skeleton-line w-24 h-3"></div>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <div class="forum-skeleton-line w-full h-3"></div>
+          <div class="forum-skeleton-line w-4/5 h-3"></div>
+        </div>
+        <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+          <div class="forum-skeleton-line w-full h-8 rounded-xl"></div>
+          <div class="forum-skeleton-line w-full h-8 rounded-xl"></div>
+        </div>
+      </div>
+    `;
+  }
+  return html;
+}
+
 function showSections(category) {
   const trending = document.getElementById("trending");
   const universities = document.getElementById("universities");
@@ -449,40 +542,67 @@ function showSections(category) {
   const uniId = urlParams.get("uniId");
   const uniName = urlParams.get("uniName");
 
-  // Keep conversation heading and list hidden by default while loading data
-  if (trending) trending.style.display = "none";
-  if (universities) universities.style.display = "none";
-  if (orgSection) orgSection.style.display = "none";
-
   if (category === "uni") {
     if (uniId) {
       if (trending) {
+        trending.style.display = "";
         const title = trending.querySelector(".forum-section-title");
         const sub = trending.querySelector(".forum-section-subtitle");
         if (title) title.textContent = uniName ? `${uniName} Discussions` : config.sectionTitle;
         if (sub) sub.textContent = `Discussions from ${uniName || 'university'} community`;
       }
-      // Keep other components (publisher bar, feed tabs) visible
+      if (universities) universities.style.display = "none";
+      if (orgSection) orgSection.style.display = "none";
       if (statusBar) statusBar.style.display = "";
       if (feedTabs) feedTabs.style.display = "";
+
+      const container = document.getElementById("forumDiscussions");
+      if (container && !container.children.length) {
+        container.innerHTML = buildDiscussionSkeletonHTML(5);
+      }
     } else {
+      if (trending) trending.style.display = "none";
+      if (universities) {
+        universities.style.display = "";
+        const uniGrid = document.getElementById("forumUniGrid");
+        if (uniGrid && !uniGrid.children.length) {
+          uniGrid.innerHTML = buildUniSkeletonHTML(6);
+        }
+      }
+      if (orgSection) orgSection.style.display = "none";
       if (statusBar) statusBar.style.display = "none";
       if (feedTabs) feedTabs.style.display = "none";
     }
   } else if (category === "org") {
+    if (trending) trending.style.display = "none";
+    if (universities) universities.style.display = "none";
+    if (orgSection) {
+      orgSection.style.display = "";
+      const orgGrid = document.getElementById("forumOrgGrid");
+      if (orgGrid && !orgGrid.children.length) {
+        orgGrid.innerHTML = buildOrgSkeletonHTML(6);
+      }
+    }
     if (statusBar) statusBar.style.display = "none";
     if (feedTabs) feedTabs.style.display = "none";
   } else {
-    // "all", "event", "mine", "saved"
+    // "all", "general", "event", "mine", "saved"
+    if (universities) universities.style.display = "none";
+    if (orgSection) orgSection.style.display = "none";
     if (trending) {
+      trending.style.display = "";
       const title = trending.querySelector(".forum-section-title");
       const sub = trending.querySelector(".forum-section-subtitle");
       if (title) title.textContent = config.sectionTitle;
       if (sub) sub.textContent = config.sectionSubtitle;
     }
-    // Keep other components (publisher bar, feed tabs) visible during load
     if (statusBar) statusBar.style.display = "";
     if (feedTabs) feedTabs.style.display = "";
+
+    const container = document.getElementById("forumDiscussions");
+    if (container && !container.children.length) {
+      container.innerHTML = buildDiscussionSkeletonHTML(5);
+    }
   }
 }
 
@@ -1075,6 +1195,101 @@ function markUserViewedDiscussion(id) {
       localStorage.setItem(key, JSON.stringify(list));
     }
   } catch {}
+}
+
+async function scrollToAndOpenDiscussion(id, targetCommentId = null) {
+  if (!id) return;
+
+  // 1. Close any conflicting creation modals or overlays
+  const postOverlay = document.getElementById("forumPostOverlay");
+  if (postOverlay && (postOverlay.classList.contains("active") || postOverlay.style.display !== "none")) {
+    postOverlay.classList.remove("active");
+    postOverlay.style.display = "none";
+  }
+  const explorePostOverlay = document.getElementById("explorePostOverlay");
+  if (explorePostOverlay && (explorePostOverlay.classList.contains("active") || explorePostOverlay.style.display !== "none")) {
+    explorePostOverlay.classList.remove("active");
+    explorePostOverlay.style.display = "none";
+  }
+  const eventOverlay = document.getElementById("eventPopupOverlay");
+  if (eventOverlay && eventOverlay.classList.contains("active")) {
+    eventOverlay.classList.remove("active");
+    eventOverlay.setAttribute("hidden", "");
+  }
+
+  // 2. Ensure trending/discussions feed section is visible
+  const trending = document.getElementById("trending");
+  if (trending && trending.style.display === "none") {
+    trending.style.display = "";
+  }
+  const universities = document.getElementById("universities");
+  if (universities) universities.style.display = "none";
+  const orgSection = document.getElementById("organizations-section");
+  if (orgSection) orgSection.style.display = "none";
+  const feedTabs = document.getElementById("forumFeedTabs");
+  if (feedTabs) feedTabs.style.display = "";
+  const statusBar = document.querySelector(".forum-status-bar");
+  if (statusBar) statusBar.style.display = "";
+
+  // 3. Find discussion card in DOM
+  let card = document.querySelector(`.forum-discussion-card[data-discussion-id="${id}"]`);
+  
+  // If card is not in current DOM (e.g. user was on another category or pagination page)
+  if (!card) {
+    let disc = (window._currentDiscussions || []).find(d => String(d.id || d._id) === String(id));
+    if (!disc) {
+      try {
+        const stored = JSON.parse(localStorage.getItem("springwave_event_discussions") || "[]");
+        disc = stored.find(d => String(d.id || d._id) === String(id));
+      } catch {}
+    }
+    if (!disc) {
+      try {
+        const pending = JSON.parse(sessionStorage.getItem("springwave_pending_discussion") || "null");
+        if (pending && String(pending.id || pending._id) === String(id)) {
+          disc = pending;
+        }
+      } catch {}
+    }
+
+    if (disc) {
+      if (!Array.isArray(window._currentDiscussions)) window._currentDiscussions = [];
+      const idx = window._currentDiscussions.findIndex(d => String(d.id || d._id) === String(id));
+      if (idx !== -1) {
+        window._currentDiscussions.splice(idx, 1);
+      }
+      window._currentDiscussions.unshift(disc);
+    }
+
+    if (Array.isArray(window._currentDiscussions) && window._currentDiscussions.length > 0) {
+      renderDiscussions(window._currentDiscussions, getCategoryFromURL(), 1);
+      card = document.querySelector(`.forum-discussion-card[data-discussion-id="${id}"]`);
+    }
+  }
+
+  // 4. Smoothly scroll to the discussion card and highlight it
+  if (card) {
+    const navbar = document.getElementById("navbar");
+    const navHeight = navbar ? navbar.offsetHeight : 70;
+    const rect = card.getBoundingClientRect();
+    const scrollTop = window.scrollY + rect.top - navHeight - 30;
+    window.scrollTo({
+      top: Math.max(0, scrollTop),
+      behavior: "smooth"
+    });
+
+    card.classList.add("forum-discussion-card-highlight");
+    setTimeout(() => {
+      card.classList.remove("forum-discussion-card-highlight");
+    }, 3500);
+  }
+
+  // 5. Open discussion detail popup
+  setTimeout(() => {
+    openDiscussionDetail(id, targetCommentId);
+  }, card ? 350 : 50);
+}
+
 }
 
 async function openDiscussionDetail(id, targetCommentId = null) {
@@ -1930,6 +2145,9 @@ function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtm
 async function renderUniGrid() {
   const container = document.getElementById("forumUniGrid");
   if (!container) return;
+  if (!container.children.length) {
+    container.innerHTML = buildUniSkeletonHTML(6);
+  }
   const isAuthed = isAuthenticated();
   const [unis, myUni] = await Promise.all([
     getUniversityCommunities(),
@@ -2287,7 +2505,7 @@ function showToast(message, isError = false) {
   }, 6000);
 }
 
-function showSuccessToast(message, linkUrl, linkText) {
+function showSuccessToast(message, linkUrl, linkText = "View Discussion Detail") {
   const existing = document.querySelectorAll(".success-toast");
   const offset = existing.length * 80;
 
@@ -2301,33 +2519,56 @@ function showSuccessToast(message, linkUrl, linkText) {
     <div class="success-toast-body">
       <span class="success-toast-heading">Success!</span>
       <span class="success-toast-message">${message}</span>
-      ${linkUrl ? `<span class="success-toast-link">${linkText || "View Discussion"}</span>` : ""}
+      ${linkUrl ? `<span class="success-toast-link">${linkText || "View Discussion Detail"}</span>` : ""}
     </div>
-    <button class="success-toast-close">
+    <button class="success-toast-close" type="button" aria-label="Close notification">
       <span class="material-symbols-outlined">close</span>
     </button>
   `;
   document.body.appendChild(toast);
   requestAnimationFrame(() => toast.classList.add("show"));
 
+  const closeToast = () => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  };
+
+  const handleToastClick = () => {
+    closeToast();
+    if (!linkUrl) return;
+
+    const isCommunityPage = window.location.pathname.includes("community.html") || window.location.pathname.endsWith("/community") || window.location.pathname === "/community";
+    if (isCommunityPage) {
+      try {
+        const url = new URL(linkUrl, window.location.origin);
+        const discId = url.searchParams.get("discussion");
+        const commentId = url.searchParams.get("comment");
+        if (discId && typeof window.scrollToAndOpenDiscussion === "function") {
+          window.history.pushState({}, "", linkUrl);
+          window.scrollToAndOpenDiscussion(discId, commentId);
+          return;
+        }
+      } catch (err) {
+        console.warn("Failed to parse discussion URL in toast:", err);
+      }
+    }
+    window.location.href = linkUrl;
+  };
+
   if (linkUrl) {
     toast.addEventListener("click", (e) => {
       if (e.target.closest(".success-toast-close")) return;
-      window.location.href = linkUrl;
+      handleToastClick();
     });
     toast.style.cursor = "pointer";
   }
 
   toast.querySelector(".success-toast-close")?.addEventListener("click", (e) => {
     e.stopPropagation();
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 400);
+    closeToast();
   });
 
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 400);
-  }, 6000);
+  setTimeout(closeToast, 6000);
 }
 
 function initPostModal() {
@@ -2702,7 +2943,7 @@ function initPostModal() {
         }
 
         const discId = result._id || result.id;
-        showSuccessToast("Discussion posted successfully! Click here to view", discId ? `./community.html?discussion=${discId}` : null, "View Discussion");
+        showSuccessToast("Discussion posted successfully! Click here to view", discId ? `./community.html?discussion=${discId}` : null, "View Discussion Detail");
 
         const uniId = communityId || document.querySelector(".forum-uni-join-btn.joined")?.closest(".forum-uni-card")?.dataset.uniId;
         if (uniId) {
@@ -2795,6 +3036,9 @@ function initDiscussionPopupClose() {
 async function renderOrgGrid() {
   const container = document.getElementById("forumOrgGrid");
   if (!container) return;
+  if (!container.children.length) {
+    container.innerHTML = buildOrgSkeletonHTML(6);
+  }
   
   let orgsData = null;
   try {

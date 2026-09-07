@@ -7385,6 +7385,49 @@ textarea {
   animation: forum-shimmer 1.5s ease-in-out infinite;
 }
 
+.forum-discussion-skeleton {
+  @apply bg-white rounded-[16px] p-5 border border-slate-100 flex flex-col gap-3;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.forum-skeleton-header {
+  @apply flex items-center gap-3 mb-1;
+}
+
+.forum-skeleton-author {
+  @apply flex flex-col gap-1.5 flex-1;
+}
+
+.forum-skeleton-pill {
+  @apply h-6 rounded-full;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: forum-shimmer 1.5s ease-in-out infinite;
+}
+
+.forum-skeleton-btn {
+  @apply w-7 h-7 rounded-lg shrink-0;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: forum-shimmer 1.5s ease-in-out infinite;
+}
+
+.forum-uni-skeleton-card {
+  @apply bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm flex flex-col;
+}
+
+.forum-org-skeleton-card {
+  @apply bg-white rounded-3xl border border-[#ecedfa] p-5 flex flex-col gap-4 shadow-sm;
+}
+
+.forum-discussion-card-highlight {
+  box-shadow: 0 0 0 3.5px rgba(35, 73, 155, 0.45), 0 16px 36px rgba(35, 73, 155, 0.16) !important;
+  border-color: #23499b !important;
+  background-color: #f6f9ff !important;
+  transform: translateY(-2px) scale(1.01) !important;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
 /* ===== EXPLORE PAGE SKELETON ===== */
 
 .explore-loading {

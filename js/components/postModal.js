@@ -130,7 +130,7 @@ async function ensurePostModalElements() {
             showSuccessToast(
                 "Discussion posted successfully! Click here to view",
                 discId ? `./community.html?discussion=${discId}` : null,
-                "View Discussion"
+                "View Discussion Detail"
             );
 
             if (result?.newBadges && Array.isArray(result.newBadges) && result.newBadges.length > 0) {
@@ -189,7 +189,7 @@ function closePostModal() {
     }
 }
 
-function showSuccessToast(message, linkUrl, linkText) {
+function showSuccessToast(message, linkUrl, linkText = "View Discussion Detail") {
     const existing = document.querySelectorAll(".success-toast");
     const offset = existing.length * 80;
     const toast = document.createElement("div");
@@ -202,31 +202,61 @@ function showSuccessToast(message, linkUrl, linkText) {
       <div class="success-toast-body">
         <span class="success-toast-heading">Success!</span>
         <span class="success-toast-message">${message}</span>
-        ${linkUrl ? `<span class="success-toast-link">${linkText || "View Discussion"}</span>` : ""}
+        ${linkUrl ? `<span class="success-toast-link">${linkText || "View Discussion Detail"}</span>` : ""}
       </div>
-      <button class="success-toast-close">
+      <button class="success-toast-close" type="button" aria-label="Close notification">
         <span class="material-symbols-outlined">close</span>
       </button>
     `;
     document.body.appendChild(toast);
-  
-    const closeBtn = toast.querySelector(".success-toast-close");
-    closeBtn.addEventListener("click", () => {
+    requestAnimationFrame(() => toast.classList.add("show"));
+
+    const closeToast = () => {
       toast.classList.add("hiding");
+      toast.classList.remove("show");
       setTimeout(() => toast.remove(), 300);
+    };
+
+    const handleNavigate = () => {
+      closeToast();
+      if (!linkUrl) return;
+
+      const isCommunityPage = window.location.pathname.includes("community.html") || window.location.pathname.endsWith("/community") || window.location.pathname === "/community";
+      if (isCommunityPage) {
+        try {
+          const url = new URL(linkUrl, window.location.origin);
+          const discId = url.searchParams.get("discussion");
+          const commentId = url.searchParams.get("comment");
+          if (discId && typeof window.scrollToAndOpenDiscussion === "function") {
+            window.history.pushState({}, "", linkUrl);
+            window.scrollToAndOpenDiscussion(discId, commentId);
+            return;
+          }
+        } catch (err) {
+          console.warn("Failed to parse discussion URL in toast:", err);
+        }
+      }
+      window.location.href = linkUrl;
+    };
+
+    const closeBtn = toast.querySelector(".success-toast-close");
+    closeBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeToast();
     });
-  
+
     if (linkUrl) {
-      toast.querySelector(".success-toast-link").addEventListener("click", () => {
-        window.location.href = linkUrl;
+      toast.addEventListener("click", (e) => {
+        if (e.target.closest(".success-toast-close")) return;
+        handleNavigate();
       });
+      toast.style.cursor = "pointer";
     }
-  
-    // Auto remove after 5 seconds
+
+    // Auto remove after 6 seconds
     setTimeout(() => {
       if (document.body.contains(toast)) {
-        toast.classList.add("hiding");
-        setTimeout(() => toast.remove(), 300);
+        closeToast();
       }
-    }, 5000);
+    }, 6000);
 }

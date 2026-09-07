@@ -230,7 +230,7 @@ function renderCachedProfileAndBadges() {
         if (savedContrib) cachedContrib = { ...cachedContrib, ...JSON.parse(savedContrib) };
     } catch {}
 
-    let cachedCounts = { favoritesCount: 0, participationsCount: 0 };
+    let cachedCounts = { favoritesCount: 0, participationsCount: 0, hostedEventsCount: 0 };
     try {
         const savedCounts = localStorage.getItem(countsStorageKey);
         if (savedCounts) cachedCounts = { ...cachedCounts, ...JSON.parse(savedCounts) };
@@ -267,6 +267,25 @@ function renderCachedProfileAndBadges() {
     if (statDiscussions) statDiscussions.textContent = cachedContrib.discussionsStarted || 0;
     if (statCertificates) statCertificates.textContent = cachedContrib.certificatesEarned || 0;
     if (statEvents) statEvents.textContent = cachedCounts.participationsCount || 0;
+
+    // ⚡ Instant 0ms Render for Hosted Events Card (Host / Admin)
+    const isHost = user && user.role === "host";
+    const isAdmin = user && user.role === "admin";
+    const showHosted = isHost || isAdmin;
+    const statHosted = document.getElementById("stat-hosted");
+    const statHostedCard = document.getElementById("stat-hosted-card");
+    const statsContainer = document.getElementById("stats-grid-container");
+
+    if (showHosted && statsContainer && statHostedCard) {
+        statHostedCard.classList.remove("hidden");
+        statsContainer.classList.remove("sm:grid-cols-3");
+        statsContainer.classList.add("sm:grid-cols-4");
+        if (statHosted) statHosted.textContent = cachedCounts.hostedEventsCount || 0;
+    } else if (statsContainer && statHostedCard) {
+        statHostedCard.classList.add("hidden");
+        statsContainer.classList.remove("sm:grid-cols-4");
+        statsContainer.classList.add("sm:grid-cols-3");
+    }
 
     badgeRenderData = { earnedKeys, c: cachedContrib, user, favoritesCount: cachedCounts.favoritesCount, participationsCount: cachedCounts.participationsCount };
     renderBadgesPanel(earnedKeys, cachedContrib, user, cachedCounts.favoritesCount, cachedCounts.participationsCount);
@@ -339,6 +358,8 @@ document.addEventListener("DOMContentLoaded", () => {
         initChatbot(),
         loadUserProfile(),
         renderRoadmapSection(),
+        syncBadgesAndContribution(),
+        syncHostedEventsCount(),
         renderParticipatedEventsPanel(),
         renderAIProfile()
     ]);
@@ -908,219 +929,266 @@ async function renderAIProfile() {
   }
 }
 
-import { getUserTickets } from "../api/user.js";
+let myTicketsPromise = null;
+function fetchMyTicketsOnce() {
+  if (!myTicketsPromise) {
+    myTicketsPromise = getMyTickets().catch(() => ({ tickets: [] }));
+  }
+  return myTicketsPromise;
+}
+
+async function syncBadgesAndContribution() {
+  const user = currentUser || getUser();
+  if (!user) return;
+  const userId = user._id || user.id || 'guest';
+  const badgeStorageKey = `springwave_badges_${userId}`;
+  const contribStorageKey = `springwave_contrib_${userId}`;
+  const countsStorageKey = `springwave_counts_${userId}`;
+
+  let cachedCounts = { favoritesCount: 0, participationsCount: 0, hostedEventsCount: 0 };
+  try {
+    const saved = localStorage.getItem(countsStorageKey);
+    if (saved) cachedCounts = { ...cachedCounts, ...JSON.parse(saved) };
+  } catch {}
+
+  try {
+    const [contribResult, favsResult, ticketsResult] = await Promise.allSettled([
+      getUserContribution(),
+      getFavourites(),
+      fetchMyTicketsOnce()
+    ]);
+
+    let data = { contribution: { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, badges: [] } };
+    if (contribResult.status === "fulfilled" && contribResult.value) {
+      data = contribResult.value;
+    }
+
+    let favoritesCount = cachedCounts.favoritesCount || 0;
+    if (favsResult.status === "fulfilled" && favsResult.value?.activities) {
+      favoritesCount = favsResult.value.activities.length;
+    }
+
+    let participationsCount = cachedCounts.participationsCount || 0;
+    if (ticketsResult.status === "fulfilled" && ticketsResult.value?.tickets) {
+      const tickets = ticketsResult.value.tickets || [];
+      const checkedInTickets = tickets.filter(t => t.ticketStatus === 'checked_in' && t.event && t.event.organization);
+      participationsCount = checkedInTickets.length;
+    }
+
+    const c = data.contribution || {};
+    const serverBadges = c.badges || [];
+    const localBadges = computeLocalBadges(user, c, favoritesCount, participationsCount);
+    const mergedBadges = [...new Set([...serverBadges, ...localBadges])];
+    const earnedKeys = new Set(mergedBadges);
+
+    // Save to localStorage for instant 0ms loads on future visits
+    localStorage.setItem(badgeStorageKey, JSON.stringify(mergedBadges));
+    localStorage.setItem(contribStorageKey, JSON.stringify(c));
+
+    cachedCounts.favoritesCount = favoritesCount;
+    cachedCounts.participationsCount = participationsCount;
+    localStorage.setItem(countsStorageKey, JSON.stringify(cachedCounts));
+
+    // Update Contribute Score UI
+    const { level, current, next, progress } = calcContribLevel(c.score || 0);
+    const pct = Math.round(progress * 100);
+    const nextLabel = next !== null ? `${current} / ${next} pts` : `${c.score || 0} pts (Max)`;
+
+    const scoreVal = document.getElementById("contribute-score-val");
+    const levelEl = document.getElementById("contribute-level");
+    const progressBar = document.getElementById("contribute-progress-bar");
+    const scoreTarget = document.getElementById("contribute-score-target");
+    const statDiscussions = document.getElementById("stat-discussions");
+    const statEvents = document.getElementById("stat-events");
+    const statCertificates = document.getElementById("stat-certificates");
+
+    if (scoreVal) scoreVal.textContent = `${c.score || 0} pts`;
+    if (levelEl) levelEl.textContent = `Lv.${level}`;
+    if (progressBar) progressBar.style.width = `${pct}%`;
+    if (scoreTarget) scoreTarget.textContent = nextLabel;
+    if (statDiscussions) statDiscussions.textContent = c.discussionsStarted || 0;
+    if (statEvents) statEvents.textContent = participationsCount;
+    if (statCertificates) statCertificates.textContent = c.certificatesEarned || 0;
+
+    // Render badges panel immediately
+    badgeRenderData = { earnedKeys, c, user, favoritesCount, participationsCount };
+    renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCount);
+  } catch (err) {
+    console.warn("Failed to sync badges and contribution:", err);
+  }
+}
+
+async function syncHostedEventsCount() {
+  const user = currentUser || getUser();
+  if (!user) return;
+  const isHost = user.role === "host";
+  const isAdmin = user.role === "admin";
+  const showHosted = isHost || isAdmin;
+  if (!showHosted) return;
+
+  const statHosted = document.getElementById("stat-hosted");
+  const statHostedCard = document.getElementById("stat-hosted-card");
+  const statsContainer = document.getElementById("stats-grid-container");
+
+  if (statsContainer && statHostedCard) {
+    statHostedCard.classList.remove("hidden");
+    statsContainer.classList.remove("sm:grid-cols-3");
+    statsContainer.classList.add("sm:grid-cols-4");
+  }
+
+  const userId = user._id || user.id || 'guest';
+  const countsStorageKey = `springwave_counts_${userId}`;
+
+  try {
+    const orgData = isAdmin ? await getAllOrganizations() : await getMyOrganizations();
+    const orgs = orgData?.organizations || [];
+
+    // Parallel fetching across all organizations
+    const actResults = await Promise.allSettled(
+      orgs.map(org => getOrgActivities(org._id).catch(() => ({ events: [] })))
+    );
+
+    let hostedEventsCount = 0;
+    for (const res of actResults) {
+      if (res.status === "fulfilled" && res.value) {
+        const events = res.value.events || [];
+        hostedEventsCount += events.length;
+      }
+    }
+
+    if (statHosted) statHosted.textContent = hostedEventsCount;
+
+    // Cache updated hostedEventsCount
+    try {
+      let cachedCounts = { favoritesCount: 0, participationsCount: 0, hostedEventsCount: 0 };
+      const saved = localStorage.getItem(countsStorageKey);
+      if (saved) cachedCounts = { ...cachedCounts, ...JSON.parse(saved) };
+      cachedCounts.hostedEventsCount = hostedEventsCount;
+      localStorage.setItem(countsStorageKey, JSON.stringify(cachedCounts));
+    } catch {}
+  } catch (err) {
+    console.warn("Failed to sync hosted events count:", err);
+  }
+}
 
 async function renderParticipatedEventsPanel() {
   const container = document.getElementById("participated-list");
   if (!container) return;
 
   let globalCheckedInTickets = [];
-  
+
   try {
-    const [ticketsResult, contribResult, favsResult] = await Promise.allSettled([
-      getMyTickets(),
-      getUserContribution(),
-      getFavourites()
-    ]);
+    const ticketsResult = await fetchMyTicketsOnce();
+    const tickets = ticketsResult?.tickets || [];
+    globalCheckedInTickets = tickets.filter(t => t.ticketStatus === 'checked_in' && t.event && t.event.organization);
 
-    if (ticketsResult.status === "fulfilled" && ticketsResult.value?.tickets) {
-      const tickets = ticketsResult.value.tickets || [];
-      globalCheckedInTickets = tickets.filter(t => t.ticketStatus === 'checked_in' && t.event && t.event.organization);
-    }
+    window.changeParticipatedPage = (page) => {
+      renderParticipatedPage(page);
+    };
 
-  window.changeParticipatedPage = (page) => {
-    renderParticipatedPage(page);
-  };
-
-  function renderParticipatedPage(page) {
-    if (globalCheckedInTickets.length === 0) {
-      container.innerHTML = `<p class="text-sm text-text-secondary italic">${t("profile.no_participated_events") || "You haven't participated in any events yet."}</p>`;
-      return;
-    }
-
-    const EVENTS_PER_PAGE = 5;
-    const startIndex = (page - 1) * EVENTS_PER_PAGE;
-    const paginatedTickets = globalCheckedInTickets.slice(startIndex, startIndex + EVENTS_PER_PAGE);
-
-    const orgs = {};
-    paginatedTickets.forEach(t => {
-      let orgObj = t.event.organization;
-      if (typeof orgObj === 'string') {
-        orgObj = { _id: orgObj, name: 'Unknown Organization' };
+    function renderParticipatedPage(page) {
+      if (globalCheckedInTickets.length === 0) {
+        container.innerHTML = `<p class="text-sm text-text-secondary italic">${t("profile.no_participated_events") || "You haven't participated in any events yet."}</p>`;
+        return;
       }
-      const orgId = orgObj._id || orgObj;
-      if (!orgs[orgId]) {
-        orgs[orgId] = {
-          name: orgObj.name || 'Unknown Organization',
-          avatar: orgObj.avatar || '',
-          events: []
-        };
-      }
-      t.event.review = t.review;
-      orgs[orgId].events.push(t.event);
-    });
 
-    let html = '';
-    for (const orgId in orgs) {
-      const org = orgs[orgId];
-      html += `
-        <div class="org-group mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <div class="flex items-center gap-3 mb-3 border-b pb-2">
-            ${org.avatar ? `<img src="${org.avatar}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">${(org.name || '?').charAt(0)}</div>`}
-            <h3 class="font-bold text-gray-800 text-sm">${org.name || 'Unknown Organization'}</h3>
-          </div>
-          <div class="space-y-3">
-            ${org.events.map(e => {
-                let starsHtml = '';
-                if (e.review && e.review.rating) {
-                    starsHtml = `
-                    <div class="flex text-yellow-400 text-[10px] ml-2">
-                        ${Array.from({length: 5}, (_, i) => `<i class="fa-solid fa-star ${i < e.review.rating ? '' : 'text-gray-200'}"></i>`).join('')}
+      const EVENTS_PER_PAGE = 5;
+      const startIndex = (page - 1) * EVENTS_PER_PAGE;
+      const paginatedTickets = globalCheckedInTickets.slice(startIndex, startIndex + EVENTS_PER_PAGE);
+
+      const orgs = {};
+      paginatedTickets.forEach(t => {
+        let orgObj = t.event.organization;
+        if (typeof orgObj === 'string') {
+          orgObj = { _id: orgObj, name: 'Unknown Organization' };
+        }
+        const orgId = orgObj._id || orgObj;
+        if (!orgs[orgId]) {
+          orgs[orgId] = {
+            name: orgObj.name || 'Unknown Organization',
+            avatar: orgObj.avatar || '',
+            events: []
+          };
+        }
+        t.event.review = t.review;
+        orgs[orgId].events.push(t.event);
+      });
+
+      let html = '';
+      for (const orgId in orgs) {
+        const org = orgs[orgId];
+        html += `
+          <div class="org-group mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3 mb-3 border-b pb-2">
+              ${org.avatar ? `<img src="${org.avatar}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">${(org.name || '?').charAt(0)}</div>`}
+              <h3 class="font-bold text-gray-800 text-sm">${org.name || 'Unknown Organization'}</h3>
+            </div>
+            <div class="space-y-3">
+              ${org.events.map(e => {
+                  let starsHtml = '';
+                  if (e.review && e.review.rating) {
+                      starsHtml = `
+                      <div class="flex text-yellow-400 text-[10px] ml-2">
+                          ${Array.from({length: 5}, (_, i) => `<i class="fa-solid fa-star ${i < e.review.rating ? '' : 'text-gray-200'}"></i>`).join('')}
+                      </div>
+                      `;
+                  }
+                  return `
+                <div class="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors" data-id="${e._id}" data-title="${e.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}" data-thumb="${e.thumbnail || ''}" data-org="${org.name.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}">
+                  ${e.thumbnail ? `<img src="${e.thumbnail}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">` : `<div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400"><i class="fa-solid fa-image"></i></div>`}
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                      <h4 class="font-semibold text-gray-800 text-sm line-clamp-1">${e.title}</h4>
+                      ${starsHtml}
                     </div>
-                    `;
-                }
-                return `
-              <div class="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors" data-id="${e._id}" data-title="${e.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}" data-thumb="${e.thumbnail || ''}" data-org="${org.name.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}">
-                ${e.thumbnail ? `<img src="${e.thumbnail}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">` : `<div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400"><i class="fa-solid fa-image"></i></div>`}
-                <div class="flex-1">
-                  <div class="flex items-center justify-between">
-                    <h4 class="font-semibold text-gray-800 text-sm line-clamp-1">${e.title}</h4>
-                    ${starsHtml}
-                  </div>
-                  <div class="text-xs text-gray-500 mt-1 flex items-center gap-2">
-                    <span><i class="fa-regular fa-calendar mr-1"></i>${formatDate(e.heldDate)}</span>
+                    <div class="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                      <span><i class="fa-regular fa-calendar mr-1"></i>${formatDate(e.heldDate)}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            `}).join('')}
+              `}).join('')}
+            </div>
           </div>
-        </div>
-      `;
-    }
-
-    const totalPages = Math.ceil(globalCheckedInTickets.length / EVENTS_PER_PAGE);
-    if (totalPages > 1) {
-      html += `
-        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-          <button type="button" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${page === 1 ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-primary bg-primary/10 hover:bg-primary/20'}" ${page === 1 ? 'disabled' : ''} data-action="participated-page" data-page="${page - 1}">
-            <i class="fa-solid fa-chevron-left mr-1"></i> Prev
-          </button>
-          <span class="text-sm font-medium text-gray-500">Page ${page} of ${totalPages}</span>
-          <button type="button" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${page === totalPages ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-primary bg-primary/10 hover:bg-primary/20'}" ${page === totalPages ? 'disabled' : ''} data-action="participated-page" data-page="${page + 1}">
-            Next <i class="fa-solid fa-chevron-right ml-1"></i>
-          </button>
-        </div>
-      `;
-    }
-
-    container.innerHTML = html;
-  }
-
-  // Click delegation for the participated events panel
-  container.addEventListener("click", (e) => {
-    const reviewRow = e.target.closest("[data-id][data-title]");
-    if (reviewRow) {
-      const { id, title, thumb, org } = reviewRow.dataset;
-      openReviewModal(id, title, thumb, org);
-      return;
-    }
-    const pageBtn = e.target.closest("[data-action='participated-page']");
-    if (pageBtn && !pageBtn.disabled) {
-      const page = parseInt(pageBtn.dataset.page, 10);
-      if (page >= 1) renderParticipatedPage(page);
-    }
-  });
-
-  renderParticipatedPage(1);
-
-  let data = { contribution: { score: 0, discussionsStarted: 0, repliesGiven: 0, likesReceived: 0, likesGiven: 0, badges: [] } };
-  if (contribResult.status === "fulfilled" && contribResult.value) {
-    data = contribResult.value;
-  }
-
-  let favoritesCount = 0;
-  if (favsResult.status === "fulfilled" && favsResult.value?.activities) {
-    favoritesCount = favsResult.value.activities.length;
-  }
-  // Calculate Events Attended directly from the checked in tickets
-  const participationsCount = globalCheckedInTickets ? globalCheckedInTickets.length : 0;
-
-  const c = data.contribution;
-  const user = currentUser || getUser();
-  const serverBadges = c.badges || [];
-  const localBadges = computeLocalBadges(user, c, favoritesCount, participationsCount);
-  const mergedBadges = [...new Set([...serverBadges, ...localBadges])];
-  const earnedKeys = new Set(mergedBadges);
-
-  const userId = user?._id || user?.id || 'guest';
-  const badgeStorageKey = `springwave_badges_${userId}`;
-  const contribStorageKey = `springwave_contrib_${userId}`;
-  const countsStorageKey = `springwave_counts_${userId}`;
-  localStorage.setItem(badgeStorageKey, JSON.stringify(mergedBadges));
-  localStorage.setItem(contribStorageKey, JSON.stringify(c));
-  localStorage.setItem(countsStorageKey, JSON.stringify({ favoritesCount, participationsCount }));
-
-  const isHost = user && user.role === "host";
-  const isAdmin = user && user.role === "admin";
-  const showHosted = isHost || isAdmin;
-  let hostedEventsCount = 0;
-  if (showHosted) {
-    try {
-      const orgData = isAdmin ? await getAllOrganizations() : await getMyOrganizations();
-      const orgs = orgData.organizations || [];
-      for (const org of orgs) {
-        const actData = await getOrgActivities(org._id);
-        const events = actData.events || [];
-        hostedEventsCount += events.length;
+        `;
       }
-    } catch (err) {
-      console.warn("Failed to fetch hosted events count:", err);
+
+      const totalPages = Math.ceil(globalCheckedInTickets.length / EVENTS_PER_PAGE);
+      if (totalPages > 1) {
+        html += `
+          <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
+            <button type="button" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${page === 1 ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-primary bg-primary/10 hover:bg-primary/20'}" ${page === 1 ? 'disabled' : ''} data-action="participated-page" data-page="${page - 1}">
+              <i class="fa-solid fa-chevron-left mr-1"></i> Prev
+            </button>
+            <span class="text-sm font-medium text-gray-500">Page ${page} of ${totalPages}</span>
+            <button type="button" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${page === totalPages ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-primary bg-primary/10 hover:bg-primary/20'}" ${page === totalPages ? 'disabled' : ''} data-action="participated-page" data-page="${page + 1}">
+              Next <i class="fa-solid fa-chevron-right ml-1"></i>
+            </button>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
     }
-  }
 
-  const { level, current, next, progress } = calcContribLevel(c.score);
-  const pct = Math.round(progress * 100);
-  const nextLabel = next !== null ? `${current} / ${next} pts` : `${c.score} pts (Max)`;
+    // Click delegation for the participated events panel
+    container.addEventListener("click", (e) => {
+      const reviewRow = e.target.closest("[data-id][data-title]");
+      if (reviewRow) {
+        const { id, title, thumb, org } = reviewRow.dataset;
+        openReviewModal(id, title, thumb, org);
+        return;
+      }
+      const pageBtn = e.target.closest("[data-action='participated-page']");
+      if (pageBtn && !pageBtn.disabled) {
+        const page = parseInt(pageBtn.dataset.page, 10);
+        if (page >= 1) renderParticipatedPage(page);
+      }
+    });
 
-  // Update Contribute Score UI
-  const scoreVal = document.getElementById("contribute-score-val");
-  const levelEl = document.getElementById("contribute-level");
-  const progressBar = document.getElementById("contribute-progress-bar");
-  const scoreTarget = document.getElementById("contribute-score-target");
-  const statDiscussions = document.getElementById("stat-discussions");
-  const statEvents = document.getElementById("stat-events");
-  const statCertificates = document.getElementById("stat-certificates");
-  const statHosted = document.getElementById("stat-hosted");
-  const statHostedCard = document.getElementById("stat-hosted-card");
-  const statsContainer = document.getElementById("stats-grid-container");
-
-  if (scoreVal) scoreVal.textContent = `${c.score || 0} pts`;
-  if (levelEl) levelEl.textContent = `Lv.${level}`;
-  if (progressBar) progressBar.style.width = `${pct}%`;
-  if (scoreTarget) scoreTarget.textContent = nextLabel;
-  if (statDiscussions) statDiscussions.textContent = c.discussionsStarted || 0;
-  if (statEvents) statEvents.textContent = participationsCount || 0;
-  if (statCertificates) statCertificates.textContent = c.certificatesEarned || 0;
-
-  if (showHosted && statsContainer && statHostedCard) {
-    statHostedCard.classList.remove("hidden");
-    statsContainer.classList.remove("sm:grid-cols-3");
-    statsContainer.classList.add("sm:grid-cols-4");
-    if (statHosted) statHosted.textContent = hostedEventsCount;
-  }
-
-  // Store data for language change re-render
-  badgeRenderData = { earnedKeys, c, user, favoritesCount, participationsCount };
-
-  // Badges rendering
-  renderBadgesPanel(earnedKeys, c, user, favoritesCount, participationsCount);
-
+    renderParticipatedPage(1);
   } catch (err) {
     console.error("CRITICAL ERROR in renderParticipatedEventsPanel:", err);
-    const grid = document.getElementById("badges-grid");
-    if (grid) {
-      grid.innerHTML = `<div style="color:red; padding:20px; font-weight:bold;">Error rendering badges: ${err.message}<br><pre>${err.stack}</pre></div>`;
-    }
+    container.innerHTML = `<p class="text-sm text-text-secondary italic">${t("profile.no_participated_events") || "You haven't participated in any events yet."}</p>`;
   }
 }
 
