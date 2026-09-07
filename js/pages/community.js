@@ -1290,8 +1290,6 @@ async function scrollToAndOpenDiscussion(id, targetCommentId = null) {
   }, card ? 350 : 50);
 }
 
-}
-
 async function openDiscussionDetail(id, targetCommentId = null) {
   const overlay = document.getElementById("discussionPopupOverlay");
   const container = document.getElementById("discussionPopupContainer");
