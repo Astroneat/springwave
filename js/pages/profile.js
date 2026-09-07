@@ -17,7 +17,7 @@ import { openReviewModal } from "../components/reviewModal.js";
 import { openEventPopup } from "../components/eventPopup.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { escapeHtml, escapeAttr } from "../lib/sanitize.js";
-import { t } from "../lib/i18n.js";
+import { t, getLang } from "../lib/i18n.js";
 import { populateUniversitySelect } from "../api/universities.js";
 import { triggerBadgeCelebration, BADGE_DEFINITIONS } from "../components/badgeCelebration.js";
 
@@ -250,7 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 badgeRenderData.participationsCount
             );
         }
-        loadAiProfile();
+        renderAIProfile();
     });
 
     // Check hash for badges redirection scroll
@@ -714,16 +714,30 @@ async function renderAIProfile() {
     const activeLang = getLang();
     const data = await getMyProfile(activeLang);
 
-    if (!data?.profile) {
+    // Check if the user has actually generated an AI profile
+    const hasProfile = !!(
+      data?.profile && (
+        data.profile.archetypeTitle ||
+        data.profile.personaKey ||
+        data.profile.profileText ||
+        (Array.isArray(data.profile.skills) && data.profile.skills.length > 0)
+      )
+    );
+
+    if (!hasProfile) {
+      card.style.display = "block";
       card.querySelector("h2").innerHTML = `
         <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;color:#8B5CF6">auto_awesome</span>
         <span data-i18n="profile.ai_profile">${t("profile.ai_profile")}</span>
       `;
       container.innerHTML = `
         <div class="py-4 text-center">
-          <p class="text-sm text-text-secondary mb-4" data-i18n="profile.no_ai_profile_desc">${t("profile.no_ai_profile_desc")}</p>
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#8B5CF6]/10 text-[#8B5CF6] mb-3">
+            <span class="material-symbols-outlined !text-[24px]">auto_awesome</span>
+          </div>
+          <p class="text-sm text-text-secondary mb-4 leading-relaxed max-w-sm mx-auto" data-i18n="profile.no_ai_profile_desc">${t("profile.no_ai_profile_desc")}</p>
           <a href="/quiz.html" class="inline-flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-xl bg-[#23499b] hover:bg-[#1b3877] text-white text-sm font-semibold shadow-sm active:scale-95 transition-all spring-ease">
-            <span class="material-symbols-outlined !text-[18px] animate-pulse">auto_awesome</span>
+            <span class="material-symbols-outlined !text-[18px]">psychology</span>
             <span data-i18n="profile.take_ai_quiz">${t("profile.take_ai_quiz")}</span>
           </a>
         </div>
@@ -806,7 +820,27 @@ async function renderAIProfile() {
     `;
   } catch (error) {
     console.error("Failed to load AI profile:", error);
-    card.style.display = "none";
+    if (verified) {
+      card.style.display = "block";
+      card.querySelector("h2").innerHTML = `
+        <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;color:#8B5CF6">auto_awesome</span>
+        <span data-i18n="profile.ai_profile">${t("profile.ai_profile")}</span>
+      `;
+      container.innerHTML = `
+        <div class="py-4 text-center">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#8B5CF6]/10 text-[#8B5CF6] mb-3">
+            <span class="material-symbols-outlined !text-[24px]">auto_awesome</span>
+          </div>
+          <p class="text-sm text-text-secondary mb-4 leading-relaxed max-w-sm mx-auto" data-i18n="profile.no_ai_profile_desc">${t("profile.no_ai_profile_desc")}</p>
+          <a href="/quiz.html" class="inline-flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-xl bg-[#23499b] hover:bg-[#1b3877] text-white text-sm font-semibold shadow-sm active:scale-95 transition-all spring-ease">
+            <span class="material-symbols-outlined !text-[18px]">psychology</span>
+            <span data-i18n="profile.take_ai_quiz">${t("profile.take_ai_quiz")}</span>
+          </a>
+        </div>
+      `;
+    } else {
+      card.style.display = "none";
+    }
   }
 }
 
