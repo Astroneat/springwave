@@ -379,16 +379,54 @@ function updateHostBtn() {
     }
 }
 
+function prefetchProfileData() {
+    if (!isAuthenticated()) return;
+    const user = getUser();
+    if (!user) return;
+    const userId = user._id || user.id || 'guest';
+    const contribStorageKey = `springwave_contrib_${userId}`;
+    const countsStorageKey = `springwave_counts_${userId}`;
+
+    import("../api/user.js").then(({ getUserContribution, getFavourites, getMyTickets }) => {
+        Promise.allSettled([
+            getUserContribution(),
+            getFavourites(),
+            getMyTickets()
+        ]).then(([cRes, fRes, tRes]) => {
+            if (cRes.status === "fulfilled" && cRes.value?.contribution) {
+                localStorage.setItem(contribStorageKey, JSON.stringify(cRes.value.contribution));
+            }
+            let curCounts = { favoritesCount: 0, participationsCount: 0, hostedEventsCount: 0 };
+            try {
+                const s = localStorage.getItem(countsStorageKey);
+                if (s) curCounts = { ...curCounts, ...JSON.parse(s) };
+            } catch {}
+            if (fRes.status === "fulfilled" && fRes.value?.activities) {
+                curCounts.favoritesCount = fRes.value.activities.length;
+            }
+            if (tRes.status === "fulfilled" && tRes.value?.tickets) {
+                const checked = (tRes.value.tickets || []).filter(t => t.ticketStatus === 'checked_in' && t.event && t.event.organization);
+                curCounts.participationsCount = checked.length;
+            }
+            localStorage.setItem(countsStorageKey, JSON.stringify(curCounts));
+        }).catch(() => {});
+    }).catch(() => {});
+}
+
 function initUserDropdown() {
     const userMenu = document.querySelector(".user-menu");
     const userChip = document.getElementById("user-chip");
     const logoutBtn = document.getElementById("logout-btn");
     if (!userMenu || !userChip) return;
 
+    // Prefetch on hover before user clicks
+    userChip.addEventListener("mouseenter", prefetchProfileData, { once: true });
+
     const setUserMenuOpen = (open) => {
         userMenu.classList.toggle("active", open);
         userChip.setAttribute("aria-expanded", open ? "true" : "false");
         if (open) {
+            prefetchProfileData();
             const notif = document.getElementById("notif-dropdown");
             if (notif) {
                 notif.classList.remove("active");
