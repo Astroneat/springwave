@@ -714,7 +714,9 @@ function renderNotifDropdown() {
                         const link = getNotifLink(n);
                         if (window.location.pathname.includes("community.html")) {
                             window.history.pushState({}, "", link);
-                            if (typeof window.openDiscussionDetail === "function") {
+                            if (typeof window.scrollToAndOpenDiscussion === "function") {
+                                window.scrollToAndOpenDiscussion(n.discussionId, n.commentId);
+                            } else if (typeof window.openDiscussionDetail === "function") {
                                 window.openDiscussionDetail(n.discussionId, n.commentId);
                             } else {
                                 window.location.href = link;
