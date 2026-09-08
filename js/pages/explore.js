@@ -761,7 +761,7 @@ async function renderCardsDirect(activities) {
             const hostOrgName = typeof activity.organization === 'object' ? activity.organization?.name : null;
             const orgUni = activity.organization?.university;
             const uniShort = orgUni?.shortName || activity.source?.school;
-            const baseHost = hostOrgName || activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
+            const baseHost = hostOrgName || activity.hostName || (activity.organization ? t("common.organization", "Organization") : activity.createdByName) || t("common.unknown") || "Unknown";
             hostSpan.textContent = uniShort ? `${baseHost} (${uniShort})` : baseHost;
         }
         
@@ -1217,7 +1217,7 @@ function buildPopupHTML(a, backText) {
     }).join("");
 
     const hostOrgName = typeof a.organization === 'object' ? a.organization?.name : null;
-    const displayHost = hostOrgName || a.hostName || a.createdByName || t("common.unknown");
+    const displayHost = hostOrgName || a.hostName || (a.organization ? t("common.organization", "Organization") : a.createdByName) || t("common.unknown");
 
     const safeTitle = escapeHtml(a.title || "");
     const safeBack = escapeHtml(backText);

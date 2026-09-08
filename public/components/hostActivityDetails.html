@@ -226,6 +226,16 @@
                 <p class="sub-text" id="org-field-hint" data-i18n="host.org_field_hint">The organization hosting this event.</p>
             </div>
 
+            <!-- SLOTS / CAPACITY -->
+            <div style="margin-bottom: 25px;" id="slots-field-container">
+                <label class="label">
+                    <span data-i18n="host.slots">Participants</span>
+                    <span style="font-size: 11px; font-weight: normal; color: #94a3b8; margin-left: 4px;" data-i18n="host.slots_optional">(Tùy chọn)</span>
+                </label>
+                <input id="slots" name="slots" type="number" min="1" step="1" class="input" placeholder="Ví dụ: 50, 100... (để trống nếu không giới hạn)" data-i18n-placeholder="host.slots_placeholder">
+                <p class="sub-text" data-i18n="host.slots_desc">Số lượng người tham gia tối đa cho sự kiện. Để trống nếu không giới hạn số slot.</p>
+            </div>
+
             <!-- LOCATION -->
             <div>
                 <label class="label" data-i18n="host.location">Location</label>
