@@ -105,16 +105,16 @@ function renderActionCardFromJSON(data) {
     const event = data.event || {};
     const ticket = data.ticket || {};
     const cleanId = escapeHtml(event.id || "");
-    const cleanTitle = escapeHtml(event.title || "Sự kiện");
+    const cleanTitle = escapeHtml(event.title || t("chatbot.event", "Sự kiện"));
     const cleanTime = escapeHtml(formatCardDate(event.heldDate || ""));
-    const cleanLocation = escapeHtml(event.location || "Chưa cập nhật");
+    const cleanLocation = escapeHtml(event.location || t("common.unknown", "Chưa cập nhật"));
     const ticketCode = escapeHtml(ticket.ticketCode || "TICKET");
     const qrImageUrl = escapeHtml(ticket.qrImageUrl || "");
 
     return `
     <div class="chatbot-action-card card-ticket" data-event-id="${cleanId}">
       <div class="action-card-header">
-        <span class="action-card-badge-ticket"><i class="fa-solid fa-ticket"></i> VÉ THAM GIA HỢP LỆ</span>
+        <span class="action-card-badge-ticket"><i class="fa-solid fa-ticket"></i> ${t("chatbot.actions.ticket_valid", "VÉ THAM GIA HỢP LỆ")}</span>
         <span class="action-ticket-code">#${ticketCode}</span>
       </div>
       <div class="action-card-body">
@@ -127,12 +127,12 @@ function renderActionCardFromJSON(data) {
       <div class="action-card-actions">
         ${qrImageUrl ? `
           <button type="button" class="action-btn-primary" data-action-qr="${qrImageUrl}" data-ticket-code="${ticketCode}" data-event-title="${cleanTitle}">
-            <i class="fa-solid fa-qrcode"></i> <span>Mở mã QR Check-in</span>
+            <i class="fa-solid fa-qrcode"></i> <span>${t("chatbot.actions.open_qr", "Mở mã QR Check-in")}</span>
           </button>
         ` : ''}
         ${cleanId ? `
           <button type="button" class="action-btn-secondary" data-event-id="${cleanId}">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>Chi tiết sự kiện</span>
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>${t("chatbot.actions.event_details", "Chi tiết sự kiện")}</span>
           </button>
         ` : ''}
       </div>
@@ -143,16 +143,16 @@ function renderActionCardFromJSON(data) {
   if (cardType === "non_partner_card" || data.isNonPartner) {
     const event = data.event || {};
     const cleanId = escapeHtml(event.id || "");
-    const cleanTitle = escapeHtml(event.title || "Sự kiện");
-    const cleanHost = escapeHtml(event.hostName || "Đơn vị ngoài");
+    const cleanTitle = escapeHtml(event.title || t("chatbot.event", "Sự kiện"));
+    const cleanHost = escapeHtml(event.hostName || t("chatbot.actions.external_unit", "Đơn vị ngoài"));
     const cleanTime = escapeHtml(formatCardDate(event.heldDate || ""));
-    const cleanLocation = escapeHtml(event.location || "Chưa cập nhật");
+    const cleanLocation = escapeHtml(event.location || t("common.unknown", "Chưa cập nhật"));
     const regLink = escapeHtml(event.registrationLink || "");
 
     return `
     <div class="chatbot-action-card card-non-partner" data-event-id="${cleanId}">
       <div class="action-card-header header-non-partner">
-        <span class="action-card-badge-non-partner"><i class="fa-solid fa-arrow-up-right-from-square"></i> ĐỐI TÁC NGOÀI</span>
+        <span class="action-card-badge-non-partner"><i class="fa-solid fa-arrow-up-right-from-square"></i> ${t("chatbot.actions.non_partner", "ĐỐI TÁC NGOÀI")}</span>
         <span class="action-host-name">${cleanHost}</span>
       </div>
       <div class="action-card-body">
@@ -161,17 +161,17 @@ function renderActionCardFromJSON(data) {
           ${cleanTime ? `<div class="meta-item"><i class="fa-regular fa-calendar text-indigo-500"></i> <span>${cleanTime}</span></div>` : ''}
           ${cleanLocation ? `<div class="meta-item"><i class="fa-solid fa-location-dot text-red-500"></i> <span>${cleanLocation}</span></div>` : ''}
         </div>
-        <p class="non-partner-notice"><i class="fa-solid fa-circle-info text-indigo-500"></i> Sự kiện đăng ký trực tiếp qua cổng của Ban tổ chức (không dùng mã QR điểm danh của SpringWave).</p>
+        <p class="non-partner-notice"><i class="fa-solid fa-circle-info text-indigo-500"></i> ${t("chatbot.actions.non_partner_notice", "Sự kiện đăng ký trực tiếp qua cổng của Ban tổ chức (không dùng mã QR điểm danh của SpringWave).")}</p>
       </div>
       <div class="action-card-actions">
         ${regLink ? `
           <a href="${regLink}" target="_blank" rel="noopener noreferrer" class="action-btn-external">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>Mở link đăng ký gốc của BTC</span>
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>${t("chatbot.actions.open_external_reg", "Mở link đăng ký gốc của BTC")}</span>
           </a>
         ` : ''}
         ${cleanId ? `
           <button type="button" class="action-btn-secondary" data-event-id="${cleanId}">
-            <i class="fa-solid fa-eye"></i> <span>Xem chi tiết bài viết</span>
+            <i class="fa-solid fa-eye"></i> <span>${t("chatbot.actions.view_post_details", "Xem chi tiết bài viết")}</span>
           </button>
         ` : ''}
       </div>
@@ -183,35 +183,35 @@ function renderActionCardFromJSON(data) {
     const target = data.targetEvent || {};
     const conflict = data.conflictingEvent || {};
     const targetId = escapeHtml(target.id || "");
-    const targetTitle = escapeHtml(target.title || "Sự kiện mới");
+    const targetTitle = escapeHtml(target.title || t("chatbot.event", "Sự kiện mới"));
     const targetTime = escapeHtml(formatCardDate(target.heldDate || ""));
-    const conflictTitle = escapeHtml(conflict.title || "Sự kiện đã đăng ký");
+    const conflictTitle = escapeHtml(conflict.title || t("chatbot.event", "Sự kiện đã đăng ký"));
     const conflictTime = escapeHtml(formatCardDate(conflict.heldDate || ""));
 
     return `
     <div class="chatbot-action-card card-conflict">
       <div class="action-card-header header-warning">
-        <span class="action-card-badge-warning"><i class="fa-solid fa-triangle-exclamation"></i> CẢNH BÁO TRÙNG LỊCH</span>
+        <span class="action-card-badge-warning"><i class="fa-solid fa-triangle-exclamation"></i> ${t("chatbot.actions.conflict_warning", "CẢNH BÁO TRÙNG LỊCH")}</span>
       </div>
       <div class="action-card-body">
-        <p class="conflict-desc">Mốc thời gian của sự kiện mới bị trùng với sự kiện bạn đã đăng ký trước đó:</p>
+        <p class="conflict-desc">${t("chatbot.actions.conflict_desc", "Mốc thời gian của sự kiện mới bị trùng với sự kiện bạn đã đăng ký trước đó:")}</p>
         <div class="conflict-item target">
-          <div class="conflict-tag">Sự kiện mới:</div>
+          <div class="conflict-tag">${t("chatbot.actions.new_event_tag", "Sự kiện mới:")}</div>
           <div class="conflict-title font-semibold">${targetTitle}</div>
           <div class="conflict-time text-xs text-slate-500">${targetTime}</div>
         </div>
         <div class="conflict-item existing">
-          <div class="conflict-tag">Đã đăng ký trước:</div>
+          <div class="conflict-tag">${t("chatbot.actions.existing_event_tag", "Đã đăng ký trước:")}</div>
           <div class="conflict-title font-semibold">${conflictTitle}</div>
           <div class="conflict-time text-xs text-slate-500">${conflictTime}</div>
         </div>
       </div>
       <div class="action-card-actions">
         <button type="button" class="action-btn-confirm" data-action-conflict-confirm="true" data-event-id="${targetId}">
-          <i class="fa-solid fa-bolt"></i> <span>Vẫn muốn đăng ký</span>
+          <i class="fa-solid fa-bolt"></i> <span>${t("chatbot.actions.conflict_confirm", "Vẫn muốn đăng ký")}</span>
         </button>
         <button type="button" class="action-btn-cancel" data-action-conflict-cancel="true">
-          <i class="fa-solid fa-xmark"></i> <span>Bỏ qua</span>
+          <i class="fa-solid fa-xmark"></i> <span>${t("chatbot.actions.conflict_cancel", "Bỏ qua")}</span>
         </button>
       </div>
     </div>`.replace(/\n/g, " ");
@@ -224,7 +224,7 @@ function renderActionCardFromJSON(data) {
       return `
       <div class="chatbot-action-card card-empty">
         <i class="fa-solid fa-ticket-simple text-3xl text-slate-300 mb-2"></i>
-        <p class="text-xs text-slate-600 font-medium">${escapeHtml(data.message || "Bạn chưa có vé tham gia sự kiện nào còn hiệu lực.")}</p>
+        <p class="text-xs text-slate-600 font-medium">${escapeHtml(data.message || t("chatbot.actions.no_tickets", "Bạn chưa có vé tham gia sự kiện nào còn hiệu lực."))}</p>
       </div>`.replace(/\n/g, " ");
     }
 
@@ -253,7 +253,7 @@ function renderActionCardFromJSON(data) {
     return `
     <div class="chatbot-action-card card-tickets-list">
       <div class="action-card-header">
-        <span class="action-card-badge-ticket"><i class="fa-solid fa-list-check"></i> VÉ ĐÃ ĐĂNG KÝ (${tickets.length})</span>
+        <span class="action-card-badge-ticket"><i class="fa-solid fa-list-check"></i> ${t("chatbot.actions.registered_tickets", { n: tickets.length }, `VÉ ĐÃ ĐĂNG KÝ (${tickets.length})`)}</span>
       </div>
       <div class="tickets-list-scroll">
         ${itemsHtml}
@@ -285,24 +285,24 @@ function renderActionCardFromJSON(data) {
     return `
     <div class="chatbot-action-card card-stats">
       <div class="action-card-header">
-        <span class="action-card-badge-ticket"><i class="fa-solid fa-chart-pie"></i> THỐNG KÊ HOẠT ĐỘNG</span>
+        <span class="action-card-badge-ticket"><i class="fa-solid fa-chart-pie"></i> ${t("chatbot.actions.activity_stats", "THỐNG KÊ HOẠT ĐỘNG")}</span>
       </div>
       <div class="stats-grid">
         <div class="stat-box">
           <div class="stat-val text-blue-600">${stats.activeTickets || 0}</div>
-          <div class="stat-label">Vé hiệu lực</div>
+          <div class="stat-label">${t("chatbot.actions.active_tickets", "Vé hiệu lực")}</div>
         </div>
         <div class="stat-box">
           <div class="stat-val text-emerald-600">${stats.attendedEvents || 0}</div>
-          <div class="stat-label">Đã tham gia</div>
+          <div class="stat-label">${t("chatbot.actions.attended_events", "Đã tham gia")}</div>
         </div>
         <div class="stat-box">
           <div class="stat-val text-purple-600">${stats.certificates || 0}</div>
-          <div class="stat-label">Chứng nhận</div>
+          <div class="stat-label">${t("chatbot.actions.certificates_count", "Chứng nhận")}</div>
         </div>
         <div class="stat-box">
           <div class="stat-val text-rose-500">${stats.favoritesCount || 0}</div>
-          <div class="stat-label">Yêu thích</div>
+          <div class="stat-label">${t("chatbot.actions.favorites_count", "Yêu thích")}</div>
         </div>
       </div>
     </div>`.replace(/\n/g, " ");
@@ -323,28 +323,28 @@ function renderActionCardFromJSON(data) {
       return `
       <div class="chatbot-action-card card-empty">
         <i class="fa-solid fa-award text-3xl text-amber-400 mb-2"></i>
-        <p class="text-xs text-slate-600 font-medium">${escapeHtml(data.message || "Bạn chưa có chứng nhận nào được cấp trên SpringWave.")}</p>
+        <p class="text-xs text-slate-600 font-medium">${escapeHtml(data.message || t("chatbot.actions.no_certs", "Bạn chưa có chứng nhận nào được cấp trên SpringWave."))}</p>
       </div>`.replace(/\n/g, " ");
     }
 
     return `
     <div class="chatbot-action-card card-certificate ${isRevoked ? 'cert-revoked' : ''}">
       <div class="action-card-header ${isRevoked ? 'header-revoked' : 'header-cert'}">
-        <span class="action-card-badge-cert"><i class="fa-solid fa-award"></i> ${isRevoked ? 'CHỨNG NHẬN ĐÃ THU HỒI' : 'CHỨNG NHẬN HOÀN THÀNH'}</span>
+        <span class="action-card-badge-cert"><i class="fa-solid fa-award"></i> ${isRevoked ? t("chatbot.actions.revoked_cert", 'CHỨNG NHẬN ĐÃ THU HỒI') : t("chatbot.actions.completed_cert", 'CHỨNG NHẬN HOÀN THÀNH')}</span>
         ${certCode ? `<span class="action-cert-code">#${certCode}</span>` : ''}
       </div>
       <div class="action-card-body">
         <h4 class="action-card-title">${cleanTitle}</h4>
         <div class="action-card-meta">
           ${orgName ? `<div class="meta-item"><i class="fa-solid fa-building-columns text-amber-500"></i> <span>${orgName}</span></div>` : ''}
-          ${issuedDate ? `<div class="meta-item"><i class="fa-regular fa-calendar-check text-emerald-500"></i> <span>Cấp ngày: ${issuedDate}</span></div>` : ''}
+          ${issuedDate ? `<div class="meta-item"><i class="fa-regular fa-calendar-check text-emerald-500"></i> <span>${t("chatbot.actions.issued_on", "Cấp ngày:")} ${issuedDate}</span></div>` : ''}
         </div>
         ${isRevoked ? `<p class="cert-revocation-msg text-xs text-rose-600 mt-1 font-medium"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(cert.revocationReason || 'Chứng chỉ đã bị thu hồi bởi BTC.')}</p>` : ''}
       </div>
       <div class="action-card-actions">
         ${verifyUrl ? `
           <a href="${verifyUrl}" class="action-btn-cert" target="_blank" rel="noopener noreferrer">
-            <i class="fa-solid fa-certificate"></i> <span>Mở xem chứng chỉ số</span>
+            <i class="fa-solid fa-certificate"></i> <span>${t("chatbot.actions.view_digital_cert", "Mở xem chứng chỉ số")}</span>
           </a>
         ` : ''}
       </div>
@@ -358,7 +358,7 @@ function renderActionCardFromJSON(data) {
       return `
       <div class="chatbot-action-card card-empty">
         <i class="fa-solid fa-award text-3xl text-amber-400 mb-2"></i>
-        <p class="text-xs text-slate-600 font-medium">${escapeHtml(data.message || "Bạn chưa có chứng chỉ nào được cấp.")}</p>
+        <p class="text-xs text-slate-600 font-medium">${escapeHtml(data.message || t("chatbot.actions.no_certs", "Bạn chưa có chứng chỉ nào được cấp."))}</p>
       </div>`.replace(/\n/g, " ");
     }
 
@@ -387,7 +387,7 @@ function renderActionCardFromJSON(data) {
     return `
     <div class="chatbot-action-card card-certs-list">
       <div class="action-card-header header-cert">
-        <span class="action-card-badge-cert"><i class="fa-solid fa-award"></i> CHỨNG NHẬN ĐÃ ĐẠT (${certs.length})</span>
+        <span class="action-card-badge-cert"><i class="fa-solid fa-award"></i> ${t("chatbot.actions.achieved_certs", { n: certs.length }, `CHỨNG NHẬN ĐÃ ĐẠT (${certs.length})`)}</span>
       </div>
       <div class="tickets-list-scroll">
         ${itemsHtml}
@@ -407,13 +407,13 @@ function renderActionCardFromJSON(data) {
     <div class="chatbot-action-card card-attendance ${isPresent ? 'att-present' : 'att-absent'}">
       <div class="action-card-header ${isPresent ? 'header-success' : 'header-warning'}">
         <span class="${isPresent ? 'action-card-badge-success' : 'action-card-badge-warning'}">
-          <i class="fa-solid ${isPresent ? 'fa-circle-check' : 'fa-circle-question'}"></i> ${isPresent ? 'ĐÃ ĐIỂM DANH' : 'CHƯA ĐIỂM DANH'}
+          <i class="fa-solid ${isPresent ? 'fa-circle-check' : 'fa-circle-question'}"></i> ${isPresent ? t("chatbot.actions.checked_in", 'ĐÃ ĐIỂM DANH') : t("chatbot.actions.not_checked_in", 'CHƯA ĐIỂM DANH')}
         </span>
       </div>
       <div class="action-card-body">
         <h4 class="action-card-title">${cleanTitle}</h4>
         <p class="text-xs text-slate-600 leading-relaxed mt-1">
-          ${isPresent ? `Điểm danh thành công lúc <strong>${checkInTime}</strong>.` : 'Chưa ghi nhận mã check-in của bạn tại sự kiện này.'}
+          ${isPresent ? t("chatbot.actions.checked_in_at", { time: checkInTime }, `Điểm danh thành công lúc <strong>${checkInTime}</strong>.`) : t("chatbot.actions.not_checked_in_msg", 'Chưa ghi nhận mã check-in của bạn tại sự kiện này.')}
         </p>
       </div>
     </div>`.replace(/\n/g, " ");
@@ -424,7 +424,7 @@ function renderActionCardFromJSON(data) {
     return `
     <div class="chatbot-action-card card-error">
       <div class="action-card-header header-error">
-        <span class="action-card-badge-error"><i class="fa-solid fa-circle-exclamation"></i> THÔNG BÁO</span>
+        <span class="action-card-badge-error"><i class="fa-solid fa-circle-exclamation"></i> ${t("chatbot.actions.action_notice", "THÔNG BÁO")}</span>
       </div>
       <div class="action-card-body">
         <p class="text-xs leading-relaxed text-rose-800">${escapeHtml(data.message || "Không thể thực hiện hành động này.")}</p>
@@ -436,10 +436,10 @@ function renderActionCardFromJSON(data) {
   return `
   <div class="chatbot-action-card card-success">
     <div class="action-card-header header-success">
-      <span class="action-card-badge-success"><i class="fa-solid fa-circle-check"></i> THỰC HIỆN THÀNH CÔNG</span>
+      <span class="action-card-badge-success"><i class="fa-solid fa-circle-check"></i> ${t("chatbot.actions.action_success", "THỰC HIỆN THÀNH CÔNG")}</span>
     </div>
     <div class="action-card-body">
-      <p class="text-xs leading-relaxed text-emerald-800">${escapeHtml(data.message || "Hành động đã hoàn tất.")}</p>
+      <p class="text-xs leading-relaxed text-emerald-800">${escapeHtml(data.message || t("chatbot.actions.action_done", "Hành động đã hoàn tất."))}</p>
     </div>
   </div>`.replace(/\n/g, " ");
 }
@@ -580,8 +580,8 @@ function openQrModal(qrImageUrl, ticketCode, eventTitle) {
   if (!modal || !img) return;
 
   img.src = qrImageUrl || "";
-  if (codeText) codeText.textContent = `Mã vé: #${ticketCode || "------"}`;
-  if (titleText) titleText.textContent = eventTitle || "Sự kiện SpringWave";
+  if (codeText) codeText.textContent = t("chatbot.qr_modal.ticket_code", { code: ticketCode || "------" }, `Mã vé: #${ticketCode || "------"}`);
+  if (titleText) titleText.textContent = eventTitle || t("chatbot.event", "Sự kiện SpringWave");
 
   if (downloadBtn) {
     downloadBtn.onclick = () => {
@@ -731,10 +731,11 @@ export async function initChatbot() {
   if (suggestionsContainer) {
     suggestionsContainer.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-suggest]");
-      if (btn && btn.dataset.suggest) {
+      if (btn) {
+        const text = (btn.dataset.suggestKey ? t(btn.dataset.suggestKey) : null) || btn.dataset.suggest;
         const input = document.getElementById("chatbot-input");
-        if (input) {
-          input.value = btn.dataset.suggest;
+        if (input && text) {
+          input.value = text;
           sendMessage();
         }
       }
@@ -968,4 +969,13 @@ function addMessage(role, content) {
     conversationHistory.push({ role, content });
   }
   return div;
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("language-changed", () => {
+    const widget = document.getElementById("chatbot-widget");
+    if (widget) {
+      applyTranslation(widget);
+    }
+  });
 }

@@ -268,3 +268,37 @@ export function closeVerificationModal() {
         verificationModalOpen = false;
     }, 300);
 }
+
+if (typeof window !== "undefined") {
+    window.addEventListener("language-changed", () => {
+        const profileCard = document.getElementById("profile-complete-banner");
+        if (profileCard) {
+            const h4 = profileCard.querySelector("h4");
+            const p = profileCard.querySelector("p");
+            const btn = profileCard.querySelector("a");
+            if (h4) h4.textContent = t('verification.profile_banner_title', 'Profile Incomplete');
+            if (p) p.textContent = t('verification.profile_banner_desc', 'Complete your profile (DOB, class, major, phone) to register.');
+            if (btn) btn.textContent = t('verification.profile_btn', 'Complete Now');
+        }
+        const readonlyCard = document.getElementById("read-only-banner");
+        if (readonlyCard) {
+            const h4 = readonlyCard.querySelector("h4");
+            const p = readonlyCard.querySelector("p");
+            const btn = readonlyCard.querySelector("a");
+            if (h4) h4.textContent = t('verification.readonly_banner_title', 'Student Verification Required');
+            if (p) p.textContent = t('verification.readonly_banner_desc', 'Verify your student status to participate in activities.');
+            if (btn) btn.textContent = t('verification.modal_verify_btn', 'Verify Now');
+        }
+        const modal = document.getElementById("verification-guard-modal");
+        if (modal) {
+            const h3 = modal.querySelector("h3");
+            const p = modal.querySelector("p");
+            const verifyLink = modal.querySelector("a span:last-child");
+            const cancelBtn = modal.querySelector("#close-verification-modal-btn");
+            if (h3) h3.textContent = t('verification.modal_title', 'Student Verification Required');
+            if (p) p.textContent = t('verification.modal_desc', 'You are currently in Read-Only mode. Please verify your student status to participate in events and join communities.');
+            if (verifyLink) verifyLink.textContent = t('verification.modal_verify_btn', 'Verify Now');
+            if (cancelBtn) cancelBtn.textContent = t('verification.modal_cancel_btn', 'Explore More');
+        }
+    });
+}

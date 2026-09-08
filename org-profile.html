@@ -92,15 +92,15 @@
         <div class="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center mb-6 shadow-sm">
             <span class="material-symbols-outlined text-4xl">domain_disabled</span>
         </div>
-        <h1 class="text-2xl md:text-3xl font-bold text-[#191b22] mb-2" id="org-error-title">Organization Not Found</h1>
-        <p class="text-[#64748b] max-w-md mb-8 text-sm md:text-base" id="org-error-desc">
+        <h1 class="text-2xl md:text-3xl font-bold text-[#191b22] mb-2" id="org-error-title" data-i18n="org_profile.error_title">Organization Not Found</h1>
+        <p class="text-[#64748b] max-w-md mb-8 text-sm md:text-base" id="org-error-desc" data-i18n="org_profile.error_desc">
             The organization you are looking for does not exist, has been removed, or the link is incorrect.
         </p>
         <div class="flex flex-wrap gap-4 justify-center">
-            <a href="/explore.html" class="px-6 py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-md hover:bg-primary/90 transition-all">
+            <a href="/explore.html" class="px-6 py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-md hover:bg-primary/90 transition-all" data-i18n="org_profile.btn_explore">
                 Explore Activities
             </a>
-            <a href="/community.html" class="px-6 py-3 rounded-xl bg-white border border-[#ecedfa] text-[#191b22] font-semibold text-sm hover:bg-slate-50 transition-all">
+            <a href="/community.html" class="px-6 py-3 rounded-xl bg-white border border-[#ecedfa] text-[#191b22] font-semibold text-sm hover:bg-slate-50 transition-all" data-i18n="org_profile.btn_community">
                 Join Community
             </a>
         </div>
@@ -157,7 +157,7 @@
                                 <p class="font-semibold text-xs sm:text-sm text-[#64748b] flex items-center gap-1.5">
                                     <span class="material-symbols-outlined text-lg text-primary"
                                         style="font-variation-settings: 'FILL' 1;">verified</span>
-                                    <span id="org-verified-label" class="text-primary font-semibold">Verified Organization</span>
+                                    <span id="org-verified-label" class="text-primary font-semibold" data-i18n="org_profile.verified_org">Verified Organization</span>
                                 </p>
                                 <span id="org-university-badge" class="hidden inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
                                     <span class="material-symbols-outlined text-[15px]">school</span>
@@ -169,7 +169,7 @@
                             <!-- Follow Button -->
                             <button id="follow-btn" class="follow-btn flex items-center gap-2 font-semibold text-sm bg-primary text-white px-7 py-2.5 rounded-full shadow-md hover:shadow-primary/25 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer" data-following="false">
                                 <span id="follow-icon" class="material-symbols-outlined text-lg">add</span>
-                                <span id="follow-label" class="follow-label">Follow</span>
+                                <span id="follow-label" class="follow-label" data-i18n="org_profile.follow_btn">Follow</span>
                             </button>
                             <!-- Share Button -->
                             <button id="share-org-btn" title="Share Organization Profile"
@@ -191,7 +191,7 @@
                     <div class="bg-white border border-[#ecedfa] p-6 sm:p-8 rounded-[24px] shadow-sm">
                         <h2 class="font-bold text-lg sm:text-xl text-[#191b22] mb-3 flex items-center gap-2">
                             <span class="material-symbols-outlined text-primary">info</span>
-                            About Organization
+                            <span data-i18n="org_profile.about_title">About Organization</span>
                         </h2>
                         <p id="org-bio" class="text-sm sm:text-base text-[#64748b] mb-8 leading-relaxed whitespace-pre-line">
                             Loading organization details...
@@ -206,7 +206,7 @@
                                     <span class="material-symbols-outlined text-xl">mail</span>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-semibold text-xs text-[#64748b]">Email Contact</p>
+                                    <p class="font-semibold text-xs text-[#64748b]" data-i18n="org_profile.email_contact">Email Contact</p>
                                     <p id="org-email" class="font-semibold text-sm text-[#191b22] truncate">-</p>
                                 </div>
                             </div>
@@ -218,7 +218,7 @@
                                     <span class="material-symbols-outlined text-xl">call</span>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-semibold text-xs text-[#64748b]">Phone Number</p>
+                                    <p class="font-semibold text-xs text-[#64748b]" data-i18n="org_profile.phone_number">Phone Number</p>
                                     <p id="org-phone" class="font-semibold text-sm text-[#191b22] truncate">-</p>
                                 </div>
                             </div>
@@ -230,7 +230,7 @@
                                     <span class="material-symbols-outlined text-xl">language</span>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-semibold text-xs text-[#64748b]">Official Website</p>
+                                    <p class="font-semibold text-xs text-[#64748b]" data-i18n="org_profile.official_website">Official Website</p>
                                     <a id="org-website" href="#" target="_blank" class="font-semibold text-sm text-primary hover:underline transition-colors block truncate">-</a>
                                 </div>
                             </div>
@@ -238,7 +238,7 @@
 
                         <!-- Social Media Links -->
                         <div id="org-socials-container" class="flex flex-wrap items-center gap-3 pt-2">
-                            <p class="font-semibold text-xs sm:text-sm text-[#191b22]">Connect with us:</p>
+                            <p class="font-semibold text-xs sm:text-sm text-[#191b22]" data-i18n="org_profile.connect_with_us">Connect with us:</p>
                             <div class="flex items-center gap-2">
                                 <a class="w-9 h-9 rounded-full flex items-center justify-center border border-[#ecedfa] text-[#64748b] hover:text-[#0077b5] hover:border-[#0077b5] hover:bg-[#0077b5]/5 transition-all" data-social="linkedin" href="#" target="_blank" title="LinkedIn">
                                     <svg class="w-4 h-4 fill-current" viewbox="0 0 24 24">
@@ -268,20 +268,20 @@
                             <div>
                                 <h2 class="font-bold text-xl text-[#191b22] flex items-center gap-2">
                                     <span class="material-symbols-outlined text-primary">event</span>
-                                    Organization Activities
+                                    <span data-i18n="org_profile.activities_title">Organization Activities</span>
                                 </h2>
-                                <p class="text-xs text-[#64748b] mt-0.5" id="events-count-hint">Discover and register for activities organized by this host</p>
+                                <p class="text-xs text-[#64748b] mt-0.5" id="events-count-hint" data-i18n="org_profile.activities_desc">Discover and register for activities organized by this host</p>
                             </div>
                             <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                                 <!-- Filter Tabs -->
                                 <div class="flex p-1 bg-[#ecedfa]/60 rounded-xl text-xs font-semibold text-[#64748b]">
-                                    <button class="event-tab-btn px-3 py-1.5 rounded-lg active transition-all cursor-pointer" data-tab="all">All</button>
-                                    <button class="event-tab-btn px-3 py-1.5 rounded-lg transition-all cursor-pointer" data-tab="upcoming">Upcoming</button>
-                                    <button class="event-tab-btn px-3 py-1.5 rounded-lg transition-all cursor-pointer" data-tab="past">Past</button>
+                                    <button class="event-tab-btn px-3 py-1.5 rounded-lg active transition-all cursor-pointer" data-tab="all" data-i18n="org_profile.tab_all">All</button>
+                                    <button class="event-tab-btn px-3 py-1.5 rounded-lg transition-all cursor-pointer" data-tab="upcoming" data-i18n="org_profile.tab_upcoming">Upcoming</button>
+                                    <button class="event-tab-btn px-3 py-1.5 rounded-lg transition-all cursor-pointer" data-tab="past" data-i18n="org_profile.tab_past">Past</button>
                                 </div>
                                 <a class="text-primary font-semibold text-xs sm:text-sm flex items-center gap-1 hover:underline shrink-0"
                                     href="/explore.html">
-                                    Explore All
+                                    <span data-i18n="org_profile.explore_all">Explore All</span>
                                     <span class="material-symbols-outlined text-sm">arrow_forward</span>
                                 </a>
                             </div>
@@ -299,14 +299,14 @@
                     <!-- Stats Card -->
                     <div
                         class="bg-white border border-[#ecedfa] p-6 rounded-[24px] shadow-sm border-t-4 border-t-primary">
-                        <h3 class="font-bold text-sm text-[#191b22] mb-4 uppercase tracking-wider text-slate-500">Activity Overview</h3>
+                        <h3 class="font-bold text-sm text-[#191b22] mb-4 uppercase tracking-wider text-slate-500" data-i18n="org_profile.overview_title">Activity Overview</h3>
                         <div class="space-y-4">
                             <!-- Events Hosted -->
                             <div class="flex items-center justify-between p-3.5 rounded-2xl bg-[#faf8ff] border border-[#ecedfa]/50">
                                 <div class="flex flex-col">
                                     <span id="org-stats-events"
                                         class="font-display-lg text-2xl font-bold text-primary">0</span>
-                                    <span class="font-semibold text-xs text-[#64748b]">Events Hosted</span>
+                                    <span class="font-semibold text-xs text-[#64748b]" data-i18n="org_profile.events_hosted">Events Hosted</span>
                                 </div>
                                 <div
                                     class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
@@ -318,7 +318,7 @@
                                 <div class="flex flex-col">
                                     <span id="org-stats-followers"
                                         class="font-display-lg text-2xl font-bold text-primary">0</span>
-                                    <span class="font-semibold text-xs text-[#64748b]">Followers</span>
+                                    <span class="font-semibold text-xs text-[#64748b]" data-i18n="org_profile.followers">Followers</span>
                                 </div>
                                 <div
                                     class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
@@ -349,8 +349,8 @@
                                 <span class="material-symbols-outlined text-lg">verified_user</span>
                             </div>
                             <div>
-                                <h4 class="font-bold text-xs sm:text-sm text-[#191b22]">SpringWave Verified</h4>
-                                <p class="text-xs text-[#64748b] mt-1 leading-relaxed">
+                                <h4 class="font-bold text-xs sm:text-sm text-[#191b22]" data-i18n="org_profile.springwave_verified">SpringWave Verified</h4>
+                                <p class="text-xs text-[#64748b] mt-1 leading-relaxed" data-i18n="org_profile.verified_desc">
                                     This organization's credentials and hosting authority have been reviewed and approved by the SpringWave Community Board.
                                 </p>
                             </div>

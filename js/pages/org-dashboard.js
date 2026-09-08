@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { CDN_DOMAIN } from "../config.js";
-import { t, getLang } from "../lib/i18n.js";
+import { t, getLang, applyTranslation } from "../lib/i18n.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar } from "../components/navbar.js";
@@ -6871,3 +6871,14 @@ async function loadOrgAnalytics() {
     console.error("Load Org Analytics error:", err);
   }
 }
+
+window.addEventListener("language-changed", () => {
+  applyTranslation();
+  renderOrgDropdown();
+  if (typeof renderEventsTable === "function") {
+    renderEventsTable();
+  }
+  if (typeof loadOrgAnalytics === "function" && currentSection === "analytics") {
+    loadOrgAnalytics();
+  }
+});

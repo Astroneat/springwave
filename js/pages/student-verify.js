@@ -9,7 +9,7 @@ import { getMyVerificationStatus, autoVerifyStudent } from "../api/studentVerifi
 import { checkSchoolEmail } from "../api/universities.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
 import { isSchoolEmail } from "../lib/utils.js";
-import { t } from "../lib/i18n.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 
 let turnstileWidgetId = null;
 
@@ -29,15 +29,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Check if user has a school email AND university has autoVerify enabled
     const user = getUser();
     let isSchoolEmailUser = false;
-    if (user && user.email) {
-        try {
-            const schoolCheck = await checkSchoolEmail(user.email);
-            isSchoolEmailUser = Boolean(schoolCheck.isSchool && schoolCheck.university && schoolCheck.university.autoVerify !== false);
-        } catch (e) {}
-    }
+    let cachedStatusData = null;
 
-    if (isSchoolEmailUser) {
-        // Show auto-verify notice — same form, but instant approval
+    function renderAutoVerifyBanner() {
         const banner = document.getElementById("status-banner");
         if (banner) {
             banner.classList.remove("hidden");
@@ -48,11 +42,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </div>
                     <div>
                         <h3 class="font-semibold text-emerald-800 text-sm">${t("student_verify.auto_verify_title")}</h3>
-                        <p class="text-sm text-emerald-700 mt-1">${t("student_verify.auto_verify_desc", { email: user.email })}</p>
+                        <p class="text-sm text-emerald-700 mt-1">${t("student_verify.auto_verify_desc", { email: user?.email || '' })}</p>
                     </div>
                 </div>
             `;
         }
+    }
+
+    if (user && user.email) {
+        try {
+            const schoolCheck = await checkSchoolEmail(user.email);
+            isSchoolEmailUser = Boolean(schoolCheck.isSchool && schoolCheck.university && schoolCheck.university.autoVerify !== false);
+        } catch (e) {}
+    }
+
+    if (isSchoolEmailUser) {
+        renderAutoVerifyBanner();
     }
 
     initTurnstile();
@@ -282,60 +287,93 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    function renderStatusBanner(data) {
+        const banner = document.getElementById("status-banner");
+        if (!banner || !data) return;
+
+        if (data.status === 'approved') {
+            banner.classList.remove("hidden");
+            banner.innerHTML = `
+                <div class="rounded-xl bg-green-50 border border-green-200 p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-green-600 text-2xl">verified</span>
+                    </div>
+                    <div>
+                        <h3 class="font-headline-md text-headline-md text-green-800">${t("student_verify.status_approved")}</h3>
+                        <p class="text-sm text-green-700">${t("student_verify.status_approved_desc", { id: data.verifiedStudentId || '' })}</p>
+                    </div>
+                </div>
+            `;
+            document.querySelector('form')?.classList.add('hidden');
+        } else if (data.status === 'pending') {
+            banner.classList.remove("hidden");
+            banner.innerHTML = `
+                <div class="rounded-xl bg-yellow-50 border border-yellow-200 p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-yellow-600 text-2xl">hourglass_top</span>
+                    </div>
+                    <div>
+                        <h3 class="font-headline-md text-headline-md text-yellow-800">${t("student_verify.status_pending")}</h3>
+                        <p class="text-sm text-yellow-700">${t("student_verify.status_pending_desc")}</p>
+                    </div>
+                </div>
+            `;
+            document.querySelector('form')?.classList.add('hidden');
+        } else if (data.status === 'rejected') {
+            banner.classList.remove("hidden");
+            banner.innerHTML = `
+                <div class="rounded-xl bg-red-50 border border-red-200 p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-red-600 text-2xl">gpp_bad</span>
+                    </div>
+                    <div>
+                        <h3 class="font-headline-md text-headline-md text-red-800">${t("student_verify.status_rejected")}</h3>
+                        <p class="text-sm text-red-700">${data.reviewNote ? t("student_verify.status_rejected_desc", { note: data.reviewNote }) : t("student_verify.status_rejected_fallback")}</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
     async function checkExistingStatus() {
         try {
             const data = await getMyVerificationStatus();
-            const banner = document.getElementById("status-banner");
-            if (!banner) return;
-
-            if (data.status === 'approved') {
+            cachedStatusData = data;
+            if (data?.status === 'approved') {
                 try {
                     const meRes = await getCurrentUser();
                     if (meRes?.user) setUser(meRes.user);
                 } catch {}
-                banner.classList.remove("hidden");
-                banner.innerHTML = `
-                    <div class="rounded-xl bg-green-50 border border-green-200 p-6 flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                            <span class="material-symbols-outlined text-green-600 text-2xl">verified</span>
-                        </div>
-                        <div>
-                            <h3 class="font-headline-md text-headline-md text-green-800">${t("student_verify.status_approved")}</h3>
-                            <p class="text-sm text-green-700">${t("student_verify.status_approved_desc", { id: data.verifiedStudentId || '' })}</p>
-                        </div>
-                    </div>
-                `;
-                document.querySelector('form')?.classList.add('hidden');
-            } else if (data.status === 'pending') {
-                banner.classList.remove("hidden");
-                banner.innerHTML = `
-                    <div class="rounded-xl bg-yellow-50 border border-yellow-200 p-6 flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                            <span class="material-symbols-outlined text-yellow-600 text-2xl">hourglass_top</span>
-                        </div>
-                        <div>
-                            <h3 class="font-headline-md text-headline-md text-yellow-800">${t("student_verify.status_pending")}</h3>
-                            <p class="text-sm text-yellow-700">${t("student_verify.status_pending_desc")}</p>
-                        </div>
-                    </div>
-                `;
-                document.querySelector('form')?.classList.add('hidden');
-            } else if (data.status === 'rejected') {
-                banner.classList.remove("hidden");
-                banner.innerHTML = `
-                    <div class="rounded-xl bg-red-50 border border-red-200 p-6 flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                            <span class="material-symbols-outlined text-red-600 text-2xl">gpp_bad</span>
-                        </div>
-                        <div>
-                            <h3 class="font-headline-md text-headline-md text-red-800">${t("student_verify.status_rejected")}</h3>
-                            <p class="text-sm text-red-700">${data.reviewNote ? t("student_verify.status_rejected_desc", { note: data.reviewNote }) : t("student_verify.status_rejected_fallback")}</p>
-                        </div>
-                    </div>
-                `;
             }
+            renderStatusBanner(data);
         } catch (err) {
             console.warn("Check status error:", err);
         }
     }
+
+    window.addEventListener("language-changed", () => {
+        applyTranslation();
+        if (isSchoolEmailUser) {
+            const submitText = document.getElementById('verify-submit-text');
+            if (submitText) submitText.textContent = t("student_verify.submit_auto");
+            const subtitle = document.getElementById('verify-page-subtitle');
+            if (subtitle) subtitle.textContent = t("student_verify.subtitle_auto");
+            if (!cachedStatusData || !cachedStatusData.status) {
+                renderAutoVerifyBanner();
+            }
+        }
+        if (cachedStatusData) {
+            renderStatusBanner(cachedStatusData);
+        }
+        const frontInput = document.getElementById("studentCardFront");
+        const backInput = document.getElementById("studentCardBack");
+        if (frontInput && (!frontInput.files || frontInput.files.length === 0)) {
+            const frontLabel = document.getElementById("frontLabel");
+            if (frontLabel) frontLabel.textContent = t("student_verify.upload_front");
+        }
+        if (backInput && (!backInput.files || backInput.files.length === 0)) {
+            const backLabel = document.getElementById("backLabel");
+            if (backLabel) backLabel.textContent = t("student_verify.upload_back");
+        }
+    });
 });

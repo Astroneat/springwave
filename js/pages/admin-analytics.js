@@ -2,6 +2,7 @@ import "../../src/style.css";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { loadNavbar } from "../components/navbar.js";
 import { getAdminAnalytics, downloadAdminExcelReport } from "../api/analytics.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 
 let categoryChart = null;
 let verificationChart = null;
@@ -76,7 +77,7 @@ async function loadAnalytics() {
       verificationChart = new Chart(verCtx, {
         type: "doughnut",
         data: {
-          labels: ["Verified Students", "Unverified"],
+          labels: [t("admin_analytics.verified_students", "Verified Students"), t("admin_analytics.unverified_students", "Unverified")],
           datasets: [{
             data: [verification.verified || 0, verification.unverified || 0],
             backgroundColor: ["#10b981", "#cbd5e1"]
@@ -93,11 +94,11 @@ async function loadAnalytics() {
     // Leaderboard Table
     const tbody = document.getElementById("org-leaderboard-body");
     const countLabel = document.getElementById("org-count-label");
-    if (countLabel) countLabel.textContent = `${leaderboard.length} top organization(s)`;
+    if (countLabel) countLabel.textContent = `${leaderboard.length} ${t("admin_analytics.orgs_count", "top organization(s)")}`;
 
     if (tbody) {
       if (!leaderboard.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-[#94a3b8]">No organizations registered yet.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-[#94a3b8]">${t("admin_analytics.no_orgs", "No organizations registered yet.")}</td></tr>`;
       } else {
         tbody.innerHTML = leaderboard.map((org, index) => `
           <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc]">
@@ -119,3 +120,8 @@ async function loadAnalytics() {
     console.error("Load Admin Analytics error:", err);
   }
 }
+
+window.addEventListener("language-changed", () => {
+  applyTranslation();
+  loadAnalytics();
+});
