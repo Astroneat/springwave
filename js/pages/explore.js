@@ -1120,8 +1120,22 @@ function initCardClickHandlers() {
                 if (active) await removeFavourite(id);
                 else {
                     await addFavourite(id);
-                    if (cachedFavIds && cachedFavIds.size >= 5 && !localStorage.getItem("springwave_has_earned_explorer")) {
-                        localStorage.setItem("springwave_has_earned_explorer", "true");
+                    const currentUserId = user?._id || user?.id || "guest";
+                    const explorerKey = `springwave_has_earned_explorer_${currentUserId}`;
+
+                    let alreadyHasBadge = false;
+                    try {
+                        const contribRaw = localStorage.getItem(`springwave_contrib_${currentUserId}`);
+                        if (contribRaw) {
+                            const contrib = JSON.parse(contribRaw);
+                            if (contrib?.badges?.includes("active_explorer")) {
+                                alreadyHasBadge = true;
+                            }
+                        }
+                    } catch {}
+
+                    if (cachedFavIds && cachedFavIds.size >= 5 && !localStorage.getItem(explorerKey) && !alreadyHasBadge) {
+                        localStorage.setItem(explorerKey, "true");
                         setTimeout(() => {
                             triggerBadgeCelebration("active_explorer");
                         }, 500);
