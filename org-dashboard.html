@@ -1531,6 +1531,18 @@
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0">
+                    <!-- Undo & Forward (Redo) Controls -->
+                    <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+                        <button type="button" id="cert-designer-undo-btn" title="Undo (Ctrl+Z)" class="px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-white hover:shadow-2xs text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none" disabled>
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span class="hidden sm:inline">Undo</span>
+                        </button>
+                        <button type="button" id="cert-designer-redo-btn" title="Forward (Ctrl+Y)" class="px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-white hover:shadow-2xs text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none" disabled>
+                            <i class="fa-solid fa-rotate-right"></i>
+                            <span class="hidden sm:inline">Forward</span>
+                        </button>
+                    </div>
+
                     <button type="button" id="cert-designer-sample-btn" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-2xs">
                         <i class="fa-solid fa-eye text-slate-500"></i>
                         <span id="cert-sample-btn-text">Sample Student</span>
