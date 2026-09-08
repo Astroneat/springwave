@@ -9,12 +9,10 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/google-sans-flex@5.2.5/index.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Great+Vibes&family=Cinzel:wght@400;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
-
   <style>
     .font-certificate-serif {
       font-family: 'Playfair Display', Georgia, Cambria, serif;
@@ -253,102 +251,101 @@
           <!-- Soft Contrast Scrim (Visible on Dark Themes) -->
           <div class="cert-glass-scrim absolute inset-0 pointer-events-none"></div>
 
-          <!-- Standard Outer/Inner Borders -->
-          <div id="cert-inner-border-1" class="absolute inset-4 border-2 border-[#d4af37] pointer-events-none"></div>
-          <div id="cert-inner-border-2" class="absolute inset-6 border border-[#d4af37]/40 pointer-events-none"></div>
+          <!-- Standard Outer/Inner Borders & Classic Decorations -->
+          <div id="cert-classic-decorations">
+            <div id="cert-inner-border-1" class="absolute inset-4 border-2 border-[#d4af37] pointer-events-none"></div>
+            <div id="cert-inner-border-2" class="absolute inset-6 border border-[#d4af37]/40 pointer-events-none"></div>
 
-          <!-- 4-Corner Ornaments -->
-          <div class="cert-ornament absolute top-8 left-8 text-[#d4af37] text-2xl font-serif">✦</div>
-          <div class="cert-ornament absolute top-8 right-8 text-[#d4af37] text-2xl font-serif">✦</div>
-          <div class="cert-ornament absolute bottom-8 left-8 text-[#d4af37] text-2xl font-serif">✦</div>
-          <div class="cert-ornament absolute bottom-8 right-8 text-[#d4af37] text-2xl font-serif">✦</div>
+            <!-- 4-Corner Ornaments -->
+            <div class="cert-ornament absolute top-8 left-8 text-[#d4af37] text-2xl font-serif">✦</div>
+            <div class="cert-ornament absolute top-8 right-8 text-[#d4af37] text-2xl font-serif">✦</div>
+            <div class="cert-ornament absolute bottom-8 left-8 text-[#d4af37] text-2xl font-serif">✦</div>
+            <div class="cert-ornament absolute bottom-8 right-8 text-[#d4af37] text-2xl font-serif">✦</div>
 
-          <!-- Revoked Watermark Overlay (Only when revoked) -->
-          <div id="cert-revoked-stamp" class="hidden absolute inset-0 z-30 flex items-center justify-center pointer-events-none bg-red-900/10">
-            <div class="border-8 border-red-600/90 rounded-2xl px-12 py-4 -rotate-12 select-none shadow-2xl backdrop-blur-[1px]">
-              <span id="cert-revoked-stamp-text" class="text-6xl font-extrabold uppercase tracking-[0.2em] text-red-600 font-certificate-serif" data-i18n="certificate_view.revoked_stamp">
-                REVOKED / ĐÃ THU HỒI
-              </span>
+            <!-- Watermark Background Logo -->
+            <div id="cert-watermark" class="absolute inset-0 flex items-center justify-center opacity-[0.035] pointer-events-none">
+              <svg width="440" height="440" style="width: 440px; height: 440px; fill: #0f172a;" viewBox="0 0 24 24" fill="#0f172a">
+                <path d="M12 2a6 6 0 0 0-6 6c0 1.94.93 3.67 2.38 4.77L7 22l5-3 5 3-1.38-9.23A5.99 5.99 0 0 0 18 8a6 6 0 0 0-6-6zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 13.5l-2.4 1.44.64-4.24c.56.2 1.15.3 1.76.3s1.2-.1 1.76-.3l.64 4.24L12 17.5z"/>
+              </svg>
             </div>
           </div>
 
-          <!-- Watermark Background Logo -->
-          <div id="cert-watermark" class="absolute inset-0 flex items-center justify-center opacity-[0.035] pointer-events-none">
-            <svg width="440" height="440" style="width: 440px; height: 440px; fill: #0f172a;" viewBox="0 0 24 24" fill="#0f172a">
-              <path d="M12 2a6 6 0 0 0-6 6c0 1.94.93 3.67 2.38 4.77L7 22l5-3 5 3-1.38-9.23A5.99 5.99 0 0 0 18 8a6 6 0 0 0-6-6zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 13.5l-2.4 1.44.64-4.24c.56.2 1.15.3 1.76.3s1.2-.1 1.76-.3l.64 4.24L12 17.5z"/>
-            </svg>
-          </div>
+          <!-- Dynamic Custom Canva Overlay (When certificateConfig is configured) -->
+          <div id="cert-custom-overlay" class="hidden absolute inset-0 z-20 pointer-events-none"></div>
 
-          <!-- 1. HEADER SECTION (Clean Title, No duplicate top org name) -->
-          <div class="relative z-10 text-center mt-3">
-            <h1 id="cert-title-main" class="text-4xl font-extrabold uppercase tracking-[0.14em] font-certificate-serif" data-i18n="certificate_view.title_main">
-              Giấy Chứng Nhận Hoàn Thành
-            </h1>
-            <p id="cert-title-sub" class="text-xs uppercase tracking-[0.3em] font-semibold mt-1.5 font-certificate-sans" data-i18n="certificate_view.title_sub">
-              Certificate of Completion
-            </p>
-          </div>
-
-          <!-- 2. RECIPIENT SECTION -->
-          <div class="relative z-10 text-center my-auto">
-            <p id="cert-presented-to" class="text-sm italic font-serif mb-2" data-i18n="certificate_view.presented_to">
-              Chứng nhận này được trân trọng trao tặng cho
-            </p>
-            <div class="inline-block relative">
-              <h2 id="cert-user-name" class="text-5xl font-bold font-certificate-serif tracking-wide px-8 py-2">
-                Họ Tên Người Dùng
-              </h2>
-              <div class="cert-name-line h-0.5 w-full bg-gradient-to-r from-transparent via-[#d4af37] to-transparent mt-1"></div>
-            </div>
-            
-            <!-- 3. ACTIVITY DETAILS -->
-            <div class="max-w-2xl mx-auto mt-6">
-              <p id="cert-completed-desc" class="text-sm leading-relaxed font-certificate-sans" data-i18n="certificate_view.completed_desc">
-                Đã tham gia tích cực và hoàn thành xuất sắc hoạt động:
-              </p>
-              <p id="cert-event-title" class="text-2xl font-bold mt-2 font-certificate-sans">
-                Tên Sự Kiện / Hoạt Động
+          <!-- Classic Hardcoded Certificate Body -->
+          <div id="cert-classic-body" class="relative z-10 flex flex-col justify-between h-full">
+            <!-- 1. HEADER SECTION (Clean Title, No duplicate top org name) -->
+            <div class="relative z-10 text-center mt-3">
+              <h1 id="cert-title-main" class="text-4xl font-extrabold uppercase tracking-[0.14em] font-certificate-serif" data-i18n="certificate_view.title_main">
+                Giấy Chứng Nhận Hoàn Thành
+              </h1>
+              <p id="cert-title-sub" class="text-xs uppercase tracking-[0.3em] font-semibold mt-1.5 font-certificate-sans" data-i18n="certificate_view.title_sub">
+                Certificate of Completion
               </p>
             </div>
-          </div>
 
-          <!-- 4. FOOTER & VERIFICATION -->
-          <div id="cert-footer-divider" style="border-top: 1px solid rgba(203, 213, 225, 0.8);" class="relative z-10 flex items-end justify-between pt-6 px-4">
-            
-            <!-- Left: QR Code & ID -->
-            <div class="flex items-center gap-3.5">
-              <div id="cert-qrcode-container" style="border: 1px solid rgba(226, 232, 240, 0.9);" class="w-20 h-20 bg-white p-1 rounded-lg shadow-md flex items-center justify-center">
-                <!-- QR canvas injected by JS -->
+            <!-- 2. RECIPIENT SECTION -->
+            <div class="relative z-10 text-center my-auto">
+              <p id="cert-presented-to" class="text-sm italic font-serif mb-2" data-i18n="certificate_view.presented_to">
+                Chứng nhận này được trân trọng trao tặng cho
+              </p>
+              <div class="inline-block relative">
+                <h2 id="cert-user-name" class="text-5xl font-bold font-certificate-serif tracking-wide px-8 py-2">
+                  Họ Tên Người Dùng
+                </h2>
+                <div class="cert-name-line h-0.5 w-full bg-gradient-to-r from-transparent via-[#d4af37] to-transparent mt-1"></div>
               </div>
-              <div class="text-left font-certificate-sans">
-                <p id="cert-code-label" class="text-[10px] uppercase tracking-wider font-semibold" data-i18n="certificate_view.cert_code_label">Mã chứng nhận</p>
-                <p id="cert-code-text" class="text-xs font-mono font-bold mt-0.5">SW-202608-XXXXXX</p>
-                <div id="cert-badge-status" class="flex items-center gap-1.5 text-[11px] text-emerald-600 font-semibold mt-1">
-                  <svg width="14" height="14" style="display: inline-block; vertical-align: middle; width: 14px; height: 14px; min-width: 14px; min-height: 14px; fill: #059669;" viewBox="0 0 20 20" fill="#059669">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
-                  </svg>
-                  <span id="cert-badge-status-text" data-i18n="certificate_view.verified_badge">Xác thực bởi SpringWave</span>
+              
+              <!-- 3. ACTIVITY DETAILS -->
+              <div class="max-w-2xl mx-auto mt-6">
+                <p id="cert-completed-desc" class="text-sm leading-relaxed font-certificate-sans" data-i18n="certificate_view.completed_desc">
+                  Đã tham gia tích cực và hoàn thành xuất sắc hoạt động:
+                </p>
+                <p id="cert-event-title" class="text-2xl font-bold mt-2 font-certificate-sans">
+                  Tên Sự Kiện / Hoạt Động
+                </p>
+              </div>
+            </div>
+
+            <!-- 4. FOOTER & VERIFICATION -->
+            <div id="cert-footer-divider" style="border-top: 1px solid rgba(203, 213, 225, 0.8);" class="relative z-10 flex items-end justify-between pt-6 px-4">
+              
+              <!-- Left: QR Code & ID -->
+              <div class="flex items-center gap-3.5">
+                <div id="cert-qrcode-container" style="border: 1px solid rgba(226, 232, 240, 0.9);" class="w-20 h-20 bg-white p-1 rounded-lg shadow-md flex items-center justify-center">
+                  <!-- QR canvas injected by JS -->
+                </div>
+                <div class="text-left font-certificate-sans">
+                  <p id="cert-code-label" class="text-[10px] uppercase tracking-wider font-semibold" data-i18n="certificate_view.cert_code_label">Mã chứng nhận</p>
+                  <p id="cert-code-text" class="text-xs font-mono font-bold mt-0.5">SW-202608-XXXXXX</p>
+                  <div id="cert-badge-status" class="flex items-center gap-1.5 text-[11px] text-emerald-600 font-semibold mt-1">
+                    <svg width="14" height="14" style="display: inline-block; vertical-align: middle; width: 14px; height: 14px; min-width: 14px; min-height: 14px; fill: #059669;" viewBox="0 0 20 20" fill="#059669">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                    </svg>
+                    <span id="cert-badge-status-text" data-i18n="certificate_view.verified_badge">Xác thực bởi SpringWave</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Right: Issued by + Org + Date -->
-            <div class="text-right font-certificate-sans">
-              <p id="cert-issued-by-label" class="text-[11px] uppercase tracking-[0.2em] font-semibold mb-1" data-i18n="certificate_view.issued_by_label">
-                Issued by
-              </p>
-              <h3 id="cert-issued-by-org" class="text-xl font-bold font-certificate-serif tracking-wide">
-                Tổ Chức Hoạt Động
-              </h3>
-              <div id="cert-org-line" style="background-color: #cbd5e1;" class="w-48 h-0.5 ml-auto my-1.5"></div>
-              <p class="text-xs font-medium" id="cert-org-subtext" data-i18n="certificate_view.org_role">
-                Ban Tổ Chức Hoạt Động
-              </p>
-              <p class="text-[11px] font-medium mt-1 opacity-80" id="cert-date">
-                Cấp ngày: 15 tháng 08 năm 2026
-              </p>
-            </div>
+              <!-- Right: Issued by + Org + Date -->
+              <div class="text-right font-certificate-sans">
+                <p id="cert-issued-by-label" class="text-[11px] uppercase tracking-[0.2em] font-semibold mb-1" data-i18n="certificate_view.issued_by_label">
+                  Issued by
+                </p>
+                <h3 id="cert-issued-by-org" class="text-xl font-bold font-certificate-serif tracking-wide">
+                  Tổ Chức Hoạt Động
+                </h3>
+                <div id="cert-org-line" style="background-color: #cbd5e1;" class="w-48 h-0.5 ml-auto my-1.5"></div>
+                <p class="text-xs font-medium" id="cert-org-subtext" data-i18n="certificate_view.org_role">
+                  Ban Tổ Chức Hoạt Động
+                </p>
+                <p class="text-[11px] font-medium mt-1 opacity-80" id="cert-date">
+                  Cấp ngày: 15 tháng 08 năm 2026
+                </p>
+              </div>
 
+            </div>
           </div>
         </div>
 

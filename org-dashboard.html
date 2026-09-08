@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/google-sans-flex@5.2.5/index.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Cinzel:wght@400;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
@@ -741,6 +741,10 @@
                         <button type="button" id="upload-cert-bg-btn" class="px-3.5 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold border-none cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95">
                             <i class="fa-solid fa-upload"></i>
                             <span>Upload Background</span>
+                        </button>
+                        <button type="button" id="open-cert-designer-btn" class="px-3.5 py-2 rounded-xl bg-primary text-white hover:bg-primary-hover text-xs font-bold border-none cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95 shadow-xs">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Customize Canva Layout</span>
                         </button>
                         <button type="button" id="reset-cert-bg-btn" class="hidden px-3.5 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold border border-red-200 cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95">
                             <i class="fa-solid fa-rotate-left"></i>
@@ -1497,6 +1501,489 @@
                     <i class="fa-solid fa-ban text-xs"></i> <span>Confirm Revoke</span>
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         CANVA CERTIFICATE LAYOUT DESIGNER MODAL
+         ========================================== -->
+    <div class="popup-overlay p-2 sm:p-4 flex items-center justify-center" hidden id="cert-designer-overlay" role="dialog" aria-modal="true" aria-labelledby="cert-designer-title">
+        <div class="popup-backdrop" id="cert-designer-backdrop"></div>
+        <div class="popup-container !max-w-7xl w-full h-[94vh] max-h-[920px] bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden !p-0">
+            
+            <!-- Modal Header -->
+            <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/80 flex items-center justify-between gap-4 shrink-0">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-base shrink-0">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div class="truncate">
+                        <div class="flex items-center gap-2">
+                            <h3 id="cert-designer-title" class="text-sm sm:text-base font-extrabold text-slate-900 truncate">
+                                Certificate Layout Designer
+                            </h3>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">Canva Phôi Mapper</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 truncate mt-0.5">
+                            Kéo thả các trường dữ liệu lên phôi Canva (tỷ lệ chuẩn 1200 x 850 px). Tọa độ lưu tự động theo phần trăm (%).
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" id="cert-designer-sample-btn" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                        <i class="fa-solid fa-eye text-slate-500"></i>
+                        <span id="cert-sample-btn-text">Sample Student</span>
+                    </button>
+                    <button type="button" id="cert-designer-reset-btn" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Reset</span>
+                    </button>
+                    <button type="button" id="cert-designer-save-btn" class="px-4 py-1.5 rounded-xl bg-primary text-white hover:bg-primary-hover text-xs font-bold border-none spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Save Layout</span>
+                    </button>
+                    <button type="button" id="cert-designer-close-btn" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/70 border-none bg-transparent cursor-pointer transition-colors ml-1" aria-label="Close">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body (Split: Left Viewport Canvas + Right Inspector) -->
+            <div class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+                
+                <!-- Left Stage: Canvas Viewport -->
+                <div id="cert-canvas-stage" class="flex-1 relative bg-slate-100/90 flex items-center justify-center p-3 sm:p-6 overflow-hidden select-none bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:18px_18px]">
+                    
+                    <!-- Floating Canvas Controls Toolbar (Grid & Magnet) -->
+                    <div class="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 p-1.5 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 text-xs select-none">
+                        <!-- Toggle Grid Button -->
+                        <button type="button" id="cert-toggle-grid-btn" class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                            <i class="fa-solid fa-border-all text-slate-400"></i>
+                            <span>Lưới: <strong id="cert-grid-status-text" class="text-slate-500">TẮT</strong></span>
+                        </button>
+                        
+                        <!-- Custom Grid Spacing Select -->
+                        <div id="cert-grid-options" class="flex items-center gap-1 pr-1.5 border-r border-slate-200">
+                            <select id="cert-grid-size-select" class="px-2 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-700 outline-none cursor-pointer hover:border-primary">
+                                <option value="20">Lưới 20px (Mịn)</option>
+                                <option value="50" selected>Lưới 50px (Chuẩn)</option>
+                                <option value="100">Lưới 100px (Thưa)</option>
+                                <option value="thirds">Quy tắc 1/3 (3x3)</option>
+                                <option value="5pct">Tỷ lệ 5% (%)</option>
+                            </select>
+                        </div>
+
+                        <!-- Magnet Snapping Toggle Button -->
+                        <button type="button" id="cert-toggle-magnet-btn" class="px-3 py-1.5 rounded-xl bg-primary text-white font-bold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                            <i class="fa-solid fa-magnet text-xs"></i>
+                            <span>Nam châm: <strong id="cert-magnet-status-text">BẬT</strong></span>
+                        </button>
+                    </div>
+
+                    <!-- Scale Container for 1200 x 850 Artboard -->
+                    <div id="cert-artboard-wrapper" class="relative transition-transform duration-75 ease-out shadow-2xl rounded-sm">
+                        
+                        <!-- 1200 x 850 Canvas Artboard -->
+                        <div id="cert-artboard" style="width: 1200px; height: 850px;" class="relative overflow-hidden bg-cover bg-center select-none bg-[#faf9f6]">
+                            
+                            <!-- Canva Background Image -->
+                            <img id="cert-artboard-bg-img" src="" alt="Canva Phôi Background" class="absolute inset-0 w-full h-full object-cover pointer-events-none hidden" />
+                            
+                            <!-- Fallback Blank Artboard Notice when no background uploaded yet -->
+                            <div id="cert-artboard-no-bg-notice" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 border-4 border-dashed border-slate-300 m-8 rounded-2xl pointer-events-none">
+                                <i class="fa-solid fa-image text-5xl mb-3 text-slate-300"></i>
+                                <p class="text-xl font-bold text-slate-500">Chưa có phôi nền Canva</p>
+                                <p class="text-sm text-slate-400 mt-1">Hãy upload ảnh phôi từ Canva ở bảng quản lý bên ngoài để căn chỉnh trực quan</p>
+                            </div>
+
+                            <!-- Alignment Grid Overlay -->
+                            <div id="cert-artboard-grid" class="absolute inset-0 pointer-events-none hidden z-10 opacity-75"></div>
+
+                            <!-- Smart Center & Alignment Guide Lines -->
+                            <div id="cert-guide-line-x" class="absolute inset-y-0 w-0.5 bg-sky-400 z-20 pointer-events-none hidden shadow-[0_0_8px_#38bdf8] -translate-x-1/2"></div>
+                            <div id="cert-guide-line-y" class="absolute inset-x-0 h-0.5 bg-sky-400 z-20 pointer-events-none hidden shadow-[0_0_8px_#38bdf8] -translate-y-1/2"></div>
+
+                            <!-- Smart Inter-Element Magnet Alignment Lines -->
+                            <div id="cert-magnet-line-x" class="absolute inset-y-0 w-0.5 bg-amber-400 z-20 pointer-events-none hidden shadow-[0_0_8px_#f59e0b] -translate-x-1/2"></div>
+                            <div id="cert-magnet-line-y" class="absolute inset-x-0 h-0.5 bg-amber-400 z-20 pointer-events-none hidden shadow-[0_0_8px_#f59e0b] -translate-y-1/2"></div>
+
+                            <!-- Snap Badge Tooltip -->
+                            <div id="cert-snap-badge" class="absolute z-30 px-2 py-0.5 rounded-md bg-sky-600 text-white font-mono text-[10px] font-bold shadow-lg pointer-events-none hidden -translate-x-1/2 -translate-y-full whitespace-nowrap mb-1">
+                                Trục giữa 50%
+                            </div>
+
+                            <!-- Fixed System Draggable Fields -->
+                            <div id="field-box-userName" class="cert-draggable-field group absolute cursor-move p-2 rounded-lg border-2 border-transparent hover:border-primary/50 transition-colors flex items-center gap-1.5" style="left: 50%; top: 42%; transform: translate(-50%, -50%);">
+                                <span class="cert-field-content font-bold whitespace-nowrap">Nguyễn Văn A</span>
+                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">Tên người nhận</span>
+                            </div>
+
+                            <div id="field-box-qrCode" class="cert-draggable-field group absolute cursor-move p-0.5 rounded-xl border-2 border-transparent hover:border-primary/50 transition-colors flex flex-col items-center justify-center shadow-md" style="left: 10%; top: 82%; transform: translate(-50%, -50%); width: 80px; height: 80px;">
+                                <div class="w-full h-full flex items-center justify-center overflow-hidden rounded-lg" id="cert-artboard-qr-wrap">
+                                    <canvas id="cert-artboard-qr-canvas" class="w-full h-full object-contain pointer-events-none"></canvas>
+                                </div>
+                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Mã QR</span>
+                            </div>
+
+                            <div id="field-box-certCode" class="cert-draggable-field group absolute cursor-move p-1.5 rounded-lg border-2 border-transparent hover:border-primary/50 transition-colors flex items-center" style="left: 18%; top: 85%; transform: translate(-50%, -50%);">
+                                <span class="cert-field-content font-mono font-bold whitespace-nowrap">SW-202609-SAMPLE</span>
+                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Mã số chứng chỉ</span>
+                            </div>
+
+                            <div id="field-box-issueDate" class="cert-draggable-field group absolute cursor-move p-1.5 rounded-lg border-2 border-transparent hover:border-primary/50 transition-colors flex items-center" style="left: 88%; top: 85%; transform: translate(-50%, -50%);">
+                                <span class="cert-field-content font-medium whitespace-nowrap">Cấp ngày: 15/09/2026</span>
+                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ngày cấp</span>
+                            </div>
+
+                            <div id="field-box-eventTitle" class="cert-draggable-field group absolute cursor-move p-2 rounded-lg border-2 border-transparent hover:border-primary/50 transition-colors flex items-center hidden" style="left: 50%; top: 54%; transform: translate(-50%, -50%);">
+                                <span class="cert-field-content font-bold whitespace-nowrap">Tên Sự Kiện / Hoạt Động</span>
+                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Tên sự kiện</span>
+                            </div>
+
+                            <!-- Dynamic Custom Fields Container (Injected by JS) -->
+                            <div id="cert-artboard-custom-fields"></div>
+
+                        </div>
+                    </div>
+
+                    <!-- Canvas Scale Info & Shortcuts Indicator -->
+                    <div class="absolute bottom-3 left-3 px-2.5 py-1.5 rounded-xl bg-white/90 border border-slate-200 shadow-sm backdrop-blur-xs text-[11px] font-mono text-slate-500 pointer-events-none flex flex-wrap items-center gap-2">
+                        <span>Canvas: 1200 x 850 px (<span id="cert-scale-indicator">100%</span>)</span>
+                        <span class="text-slate-300">•</span>
+                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">G</kbd> Lưới</span>
+                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">M</kbd> Nam châm</span>
+                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">Alt</kbd> Bỏ hút</span>
+                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">←↑→↓</kbd> Tinh chỉnh</span>
+                    </div>
+                </div>
+
+                <!-- Right Stage: Inspector Sidebar -->
+                <div class="w-full lg:w-96 shrink-0 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col h-auto lg:h-full overflow-y-auto p-4 sm:p-5">
+                    
+                    <!-- Bảng Layer (Layers Panel) Header & Quick Presets -->
+                    <div class="mb-4" id="cert-layers-panel">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-layer-group text-primary text-xs"></i>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Bảng Layer</label>
+                                <span id="cert-layers-total-count" class="px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 font-mono text-[10px] font-bold">5 lớp</span>
+                            </div>
+                            <button type="button" id="btn-add-custom-text" class="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary-hover text-white text-[11px] font-bold spring-ease active:scale-95 cursor-pointer flex items-center gap-1 shadow-2xs">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                <span>Thêm Text</span>
+                            </button>
+                        </div>
+
+                        <!-- Quick Add Preset Buttons -->
+                        <div class="flex items-center gap-1 mb-2.5 overflow-x-auto pb-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-0.5">Tạo nhanh:</span>
+                            <button type="button" data-preset="heading" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0">+ Tiêu đề</button>
+                            <button type="button" data-preset="award" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0">+ Danh hiệu</button>
+                            <button type="button" data-preset="body" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0">+ Nội dung</button>
+                            <button type="button" data-preset="signature" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0">+ Chữ ký</button>
+                        </div>
+
+                        <!-- Unified Layers List Container -->
+                        <div class="space-y-2 max-h-56 overflow-y-auto pr-1" id="cert-layers-container">
+                            <!-- Populated dynamically by renderLayersPanel() -->
+                        </div>
+                    </div>
+
+                    <!-- Inspector Form Controls for Active Field -->
+                    <div class="space-y-4 border-t border-slate-100 pt-3 flex-1">
+                        
+                        <!-- Active Field Indicator Banner -->
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-2 h-2 rounded-full bg-primary shrink-0"></span>
+                                <div class="min-w-0">
+                                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-0.5">Đang chỉnh sửa</div>
+                                    <div id="field-active-name" class="text-xs font-bold text-slate-800 truncate">Họ và tên</div>
+                                </div>
+                            </div>
+                            <span id="field-active-type-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-primary/10 text-primary shrink-0">Hệ thống</span>
+                        </div>
+
+                        <!-- Toggle Visibility -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 block">Hiển thị phần tử này</span>
+                                <span class="text-[10px] text-slate-500 block">Bật/Tắt trường trên chứng chỉ</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="field-ctrl-enabled" class="sr-only peer" checked>
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                            </label>
+                        </div>
+
+                        <!-- Custom Text Input, Tokens & Actions (Only when Custom Text is selected) -->
+                        <div id="field-ctrl-customtext-group" class="space-y-2.5 hidden p-3 rounded-xl bg-amber-50/50 border border-amber-200/80">
+                            <div class="flex items-center justify-between">
+                                <label for="field-ctrl-custom-val" class="block text-xs font-bold text-slate-800">Nội dung văn bản</label>
+                                <span class="text-[10px] text-slate-400 font-mono">Multiline</span>
+                            </div>
+                            <textarea id="field-ctrl-custom-val" rows="3" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary shadow-2xs resize-y" placeholder="Nhập nội dung văn bản (hỗ trợ xuống dòng Enter)..."></textarea>
+                            
+                            <!-- Dynamic Tokens Bar -->
+                            <div class="space-y-1">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Chèn biến tự động:</span>
+                                <div class="flex flex-wrap gap-1" id="custom-text-tokens">
+                                    <button type="button" class="token-insert-btn px-2 py-0.5 rounded-md bg-white hover:bg-sky-50 hover:text-sky-700 text-[10px] font-mono font-semibold text-slate-700 border border-slate-200 cursor-pointer" data-token="{{fullName}}">+ {{fullName}}</button>
+                                    <button type="button" class="token-insert-btn px-2 py-0.5 rounded-md bg-white hover:bg-amber-50 hover:text-amber-700 text-[10px] font-mono font-semibold text-slate-700 border border-slate-200 cursor-pointer" data-token="{{eventTitle}}">+ {{eventTitle}}</button>
+                                    <button type="button" class="token-insert-btn px-2 py-0.5 rounded-md bg-white hover:bg-emerald-50 hover:text-emerald-700 text-[10px] font-mono font-semibold text-slate-700 border border-slate-200 cursor-pointer" data-token="{{issueDate}}">+ {{issueDate}}</button>
+                                    <button type="button" class="token-insert-btn px-2 py-0.5 rounded-md bg-white hover:bg-purple-50 hover:text-purple-700 text-[10px] font-mono font-semibold text-slate-700 border border-slate-200 cursor-pointer" data-token="{{certificateCode}}">+ {{certificateCode}}</button>
+                                </div>
+                            </div>
+
+                            <!-- Quick Presets -->
+                            <div class="space-y-1 pt-1">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Mẫu nhanh:</span>
+                                <div class="flex flex-wrap gap-1" id="custom-text-presets">
+                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer">GIẢI NHẤT</button>
+                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer">GIẢI NHÌ</button>
+                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer">Tình nguyện viên xuất sắc</button>
+                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer">Trưởng Ban Tổ Chức</button>
+                                </div>
+                            </div>
+
+                            <!-- Duplicate & Delete Custom Field Buttons -->
+                            <div class="flex items-center gap-2 pt-1.5">
+                                <button type="button" id="field-ctrl-duplicate-btn" class="flex-1 py-1.5 px-3 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200 cursor-pointer spring-ease flex items-center justify-center gap-1.5 active:scale-95">
+                                    <i class="fa-regular fa-copy text-xs text-primary"></i>
+                                    <span>Nhân bản text</span>
+                                </button>
+                                <button type="button" id="field-ctrl-delete-btn" class="py-1.5 px-3 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold border border-red-200 cursor-pointer spring-ease flex items-center justify-center gap-1.5 active:scale-95">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                    <span>Xóa</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dedicated QR Code Styler Controls (Only when QR is active) -->
+                        <div id="field-ctrl-qrcode-group" class="space-y-3.5 hidden p-3 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                <div class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-qrcode text-primary text-xs"></i>
+                                    <span class="text-xs font-bold text-slate-800">Tùy biến Mã QR</span>
+                                </div>
+                                <span class="text-[10px] font-mono text-slate-400">QR Engine</span>
+                            </div>
+
+                            <!-- QR Size Slider -->
+                            <div class="space-y-1">
+                                <div class="flex items-center justify-between text-xs">
+                                    <label for="field-ctrl-qr-size" class="font-bold text-slate-700">Kích thước (Size)</label>
+                                    <span id="field-ctrl-qr-size-val" class="font-mono font-bold text-primary">80px</span>
+                                </div>
+                                <input type="range" id="field-ctrl-qr-size" min="50" max="180" value="80" class="w-full accent-primary cursor-pointer" />
+                            </div>
+
+                            <!-- QR Pattern / Style (standard, dots, smooth, 8bit, diamond) -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">Kiểu dáng hạt QR (Style)</label>
+                                <div class="grid grid-cols-5 gap-1" id="field-ctrl-qr-style-group">
+                                    <button type="button" data-style="standard" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all active border-primary bg-primary/10 text-primary" title="Vuông cổ điển">
+                                        <i class="fa-solid fa-square text-xs pointer-events-none"></i>
+                                        <span class="text-[9px] font-medium leading-none pointer-events-none">Vuông</span>
+                                    </button>
+                                    <button type="button" data-style="dots" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Chấm tròn Art">
+                                        <i class="fa-solid fa-circle text-xs pointer-events-none"></i>
+                                        <span class="text-[9px] font-medium leading-none pointer-events-none">Chấm</span>
+                                    </button>
+                                    <button type="button" data-style="smooth" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Bo góc mượt">
+                                        <i class="fa-solid fa-square-full text-xs rounded-sm pointer-events-none"></i>
+                                        <span class="text-[9px] font-medium leading-none pointer-events-none">Bo góc</span>
+                                    </button>
+                                    <button type="button" data-style="8bit" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Retro Pixel 8-Bit">
+                                        <i class="fa-solid fa-gamepad text-xs pointer-events-none"></i>
+                                        <span class="text-[9px] font-medium leading-none pointer-events-none">8-Bit</span>
+                                    </button>
+                                    <button type="button" data-style="diamond" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Kim cương quý phái">
+                                        <i class="fa-solid fa-gem text-xs pointer-events-none"></i>
+                                        <span class="text-[9px] font-medium leading-none pointer-events-none">Thoi</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- QR Frame Style (None, Box, Bordered, Double, Dots-Corner) -->
+                            <div class="space-y-1.5">
+                                <label for="field-ctrl-qr-frame" class="block text-xs font-bold text-slate-700">Khung & Viền QR (Frame)</label>
+                                <select id="field-ctrl-qr-frame" class="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary">
+                                    <option value="none">Không viền (Trong suốt / Nổi trực tiếp trên phôi)</option>
+                                    <option value="box" selected>Khung thẻ tiêu chuẩn (Card Box)</option>
+                                    <option value="bordered">Viền đơn thanh lịch (Bordered)</option>
+                                    <option value="double">Viền đôi Hoàng gia (Royal Double)</option>
+                                    <option value="dots-corner">Khung góc 8-Bit (Corner Brackets)</option>
+                                </select>
+                            </div>
+
+                            <!-- QR Dark Color Picker & Swatches -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">Màu hạt mã QR (Màu chính)</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="field-ctrl-qr-color" value="#0f172a" class="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer p-0.5 shrink-0" />
+                                    <input type="text" id="field-ctrl-qr-color-hex" value="#0f172a" class="flex-1 px-2.5 py-1.5 rounded-xl border border-slate-200 font-mono text-xs text-slate-800 uppercase" />
+                                </div>
+                                <div class="flex items-center gap-1.5 pt-1">
+                                    <button type="button" class="qr-color-swatch w-5 h-5 rounded-md bg-[#0f172a] border border-slate-300 cursor-pointer" data-color="#0f172a" title="Đen tuyền"></button>
+                                    <button type="button" class="qr-color-swatch w-5 h-5 rounded-md bg-[#1e3a8a] border border-slate-300 cursor-pointer" data-color="#1e3a8a" title="Xanh Navy"></button>
+                                    <button type="button" class="qr-color-swatch w-5 h-5 rounded-md bg-[#b45309] border border-slate-300 cursor-pointer" data-color="#b45309" title="Vàng đồng"></button>
+                                    <button type="button" class="qr-color-swatch w-5 h-5 rounded-md bg-[#047857] border border-slate-300 cursor-pointer" data-color="#047857" title="Xanh Ngọc"></button>
+                                    <button type="button" class="qr-color-swatch w-5 h-5 rounded-md bg-[#991b1b] border border-slate-300 cursor-pointer" data-color="#991b1b" title="Đỏ Rượu"></button>
+                                    <button type="button" class="qr-color-swatch w-5 h-5 rounded-md bg-[#ffffff] border border-slate-300 cursor-pointer" data-color="#ffffff" title="Trắng sáng"></button>
+                                </div>
+                            </div>
+
+                            <!-- Frame Border Color & Transparent Bg Options -->
+                            <div id="field-ctrl-qr-frame-options" class="space-y-2 pt-2 border-t border-slate-200/80">
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-bold text-slate-700">Màu viền khung</label>
+                                    <div class="flex items-center gap-1.5">
+                                        <input type="color" id="field-ctrl-qr-border-color" value="#cbd5e1" class="w-6 h-6 rounded-md border border-slate-200 cursor-pointer p-0.5" />
+                                        <input type="text" id="field-ctrl-qr-border-hex" value="#cbd5e1" class="w-20 px-2 py-1 rounded-lg border border-slate-200 font-mono text-[11px] text-slate-700 uppercase" />
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-1">
+                                    <div>
+                                        <span class="text-xs font-bold text-slate-800 block">Nền trong suốt</span>
+                                        <span class="text-[10px] text-slate-500 block">Hòa trực tiếp vào phôi</span>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="field-ctrl-qr-transparent" class="sr-only peer">
+                                        <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Font Family (For Text Fields) -->
+                        <div id="field-ctrl-font-group" class="space-y-1.5">
+                            <label for="field-ctrl-font" class="block text-xs font-bold text-slate-700">Font Chữ</label>
+                            <select id="field-ctrl-font" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary">
+                                <option value="Playfair Display" style="font-family: 'Playfair Display', serif;">Playfair Display (Serif Cổ Điển)</option>
+                                <option value="Great Vibes" style="font-family: 'Great Vibes', cursive;">Great Vibes (Chữ Ký / Thư Pháp)</option>
+                                <option value="Plus Jakarta Sans" style="font-family: 'Plus Jakarta Sans', sans-serif;">Plus Jakarta Sans (Hiện Đại)</option>
+                                <option value="Be Vietnam Pro" style="font-family: 'Be Vietnam Pro', sans-serif;">Be Vietnam Pro (Chuẩn Tiếng Việt)</option>
+                                <option value="Cinzel" style="font-family: 'Cinzel', serif;">Cinzel (Hoàng Gia Sang Trọng)</option>
+                                <option value="Montserrat" style="font-family: 'Montserrat', sans-serif;">Montserrat (Mạnh Mẽ)</option>
+                                <option value="monospace">Monospace (Mã Kỹ Thuật)</option>
+                            </select>
+                        </div>
+
+                        <!-- Font Size Slider (For Text Fields) -->
+                        <div id="field-ctrl-size-group" class="space-y-1.5">
+                            <div class="flex items-center justify-between text-xs">
+                                <label for="field-ctrl-size" id="field-ctrl-size-label" class="font-bold text-slate-700">Cỡ chữ (Font Size)</label>
+                                <span id="field-ctrl-size-val" class="font-mono font-bold text-primary">44px</span>
+                            </div>
+                            <input type="range" id="field-ctrl-size" min="10" max="90" value="44" class="w-full accent-primary cursor-pointer" />
+                        </div>
+
+                        <!-- Text Color Picker + Swatches (For Text Fields) -->
+                        <div id="field-ctrl-color-group" class="space-y-2">
+                            <label for="field-ctrl-color" class="block text-xs font-bold text-slate-700">Màu Chữ (Color)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" id="field-ctrl-color" value="#0f172a" class="w-9 h-9 rounded-lg border border-slate-200 cursor-pointer p-0.5 shrink-0" />
+                                <input type="text" id="field-ctrl-color-hex" value="#0f172a" class="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 font-mono text-xs text-slate-800 uppercase" />
+                            </div>
+                            <div class="flex items-center gap-1.5 pt-1">
+                                <button type="button" class="color-swatch-btn w-6 h-6 rounded-md bg-[#0f172a] border border-slate-300" data-color="#0f172a" title="Đen tuyền"></button>
+                                <button type="button" class="color-swatch-btn w-6 h-6 rounded-md bg-[#ffffff] border border-slate-300" data-color="#ffffff" title="Trắng sáng"></button>
+                                <button type="button" class="color-swatch-btn w-6 h-6 rounded-md bg-[#d4af37] border border-slate-300" data-color="#d4af37" title="Vàng kim"></button>
+                                <button type="button" class="color-swatch-btn w-6 h-6 rounded-md bg-[#1e3a8a] border border-slate-300" data-color="#1e3a8a" title="Xanh Navy"></button>
+                                <button type="button" class="color-swatch-btn w-6 h-6 rounded-md bg-[#b45309] border border-slate-300" data-color="#b45309" title="Đồng cổ"></button>
+                                <button type="button" class="color-swatch-btn w-6 h-6 rounded-md bg-[#047857] border border-slate-300" data-color="#047857" title="Xanh Ngọc"></button>
+                            </div>
+                        </div>
+
+                        <!-- Typography Advanced (Letter Spacing & Uppercase) -->
+                        <div id="field-ctrl-typography-group" class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1.5">
+                                <label for="field-ctrl-spacing" class="block text-xs font-bold text-slate-700">Giãn chữ (Spacing)</label>
+                                <select id="field-ctrl-spacing" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary">
+                                    <option value="0">Mặc định (0px)</option>
+                                    <option value="1">Nhẹ (1px)</option>
+                                    <option value="2">Vừa (2px)</option>
+                                    <option value="4">Rộng (4px)</option>
+                                    <option value="6">Rất rộng (6px)</option>
+                                    <option value="8">Đặc biệt (8px)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">In hoa</label>
+                                <button type="button" id="field-ctrl-uppercase-btn" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 spring-ease cursor-pointer flex items-center justify-center gap-1.5">
+                                    <span class="font-mono">UPPERCASE</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Font Weight & Text Align (For Text Fields) -->
+                        <div id="field-ctrl-style-group" class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1.5">
+                                <label for="field-ctrl-weight" class="block text-xs font-bold text-slate-700">Độ đậm (Weight)</label>
+                                <select id="field-ctrl-weight" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary">
+                                    <option value="400">Regular (400)</option>
+                                    <option value="500">Medium (500)</option>
+                                    <option value="600">SemiBold (600)</option>
+                                    <option value="700" selected>Bold (700)</option>
+                                    <option value="800">ExtraBold (800)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">Căn lề (Align)</label>
+                                <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200" id="field-ctrl-align-group">
+                                    <button type="button" data-align="left" class="align-btn p-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-white text-center cursor-pointer">
+                                        <i class="fa-solid fa-align-left"></i>
+                                    </button>
+                                    <button type="button" data-align="center" class="align-btn active p-1.5 rounded-lg text-xs font-semibold bg-white text-primary shadow-2xs text-center cursor-pointer">
+                                        <i class="fa-solid fa-align-center"></i>
+                                    </button>
+                                    <button type="button" data-align="right" class="align-btn p-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-white text-center cursor-pointer">
+                                        <i class="fa-solid fa-align-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coordinates X / Y (%) & Quick Center Buttons -->
+                        <div class="space-y-2 pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-700">Tọa độ (%)</label>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" id="btn-quick-center-x" class="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center gap-1" title="Căn giữa trục X">
+                                        <i class="fa-solid fa-arrows-left-right-to-line text-[10px]"></i>
+                                        <span>Giữa X</span>
+                                    </button>
+                                    <span class="text-slate-300">•</span>
+                                    <button type="button" id="btn-quick-center-y" class="text-[11px] font-bold text-sky-600 hover:underline cursor-pointer flex items-center gap-1" title="Căn giữa trục Y">
+                                        <i class="fa-solid fa-arrows-up-down-to-line text-[10px]"></i>
+                                        <span>Giữa Y</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50">
+                                    <span class="text-[11px] font-mono font-bold text-slate-500">X:</span>
+                                    <input type="number" id="field-ctrl-x" step="0.5" min="0" max="100" class="w-full bg-transparent font-mono text-xs font-bold text-slate-800 outline-none" />
+                                    <span class="text-[11px] text-slate-400">%</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50">
+                                    <span class="text-[11px] font-mono font-bold text-slate-500">Y:</span>
+                                    <input type="number" id="field-ctrl-y" step="0.5" min="0" max="100" class="w-full bg-transparent font-mono text-xs font-bold text-slate-800 outline-none" />
+                                    <span class="text-[11px] text-slate-400">%</span>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 italic">Mẹo: Bạn có thể dùng phím mũi tên ← ↑ → ↓ để di chuyển tinh chỉnh.</p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
     </div>
 

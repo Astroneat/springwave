@@ -14,6 +14,7 @@ import { getOrgAnalytics, getEventAnalytics, downloadOrgExcelReport, downloadEve
 import { populateOrgUniversitySelect } from "../api/universities.js";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
+import { drawStyledQR } from "../lib/qr-styler.js";
 
 let currentOrgId = null;
 let currentOrgs = [];
@@ -57,6 +58,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initAttendanceEventSelect();
   initCertEventSelect();
   initCertBackgroundManager();
+  initCertLayoutDesigner();
   initAddParticipantsModal();
   initEditExternalModal();
 
@@ -4252,6 +4254,1521 @@ function initCertBackgroundManager() {
       resetBtn.innerHTML = origText;
     }
   });
+}
+
+// ─── Canva Certificate Layout Designer ───
+
+const DEFAULT_CERT_CONFIG = {
+  isCustom: true,
+  fields: {
+    userName: {
+      enabled: true,
+      x: 50.0,
+      y: 42.0,
+      fontFamily: 'Playfair Display',
+      fontSize: 44,
+      fontWeight: '700',
+      color: '#0f172a',
+      align: 'center',
+      letterSpacing: 0,
+      uppercase: false,
+    },
+    qrCode: {
+      enabled: true,
+      x: 10.0,
+      y: 82.0,
+      size: 80,
+      qrStyle: 'standard',
+      qrFrame: 'box',
+      qrColorDark: '#0f172a',
+      qrColorLight: '#ffffff',
+      qrTransparentBg: false,
+      qrBorderColor: '#cbd5e1',
+      qrBorderWidth: 1,
+      qrRadius: 8,
+    },
+    certCode: {
+      enabled: true,
+      x: 18.0,
+      y: 85.0,
+      fontFamily: 'monospace',
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#334155',
+      align: 'left',
+      letterSpacing: 1,
+      uppercase: true,
+    },
+    issueDate: {
+      enabled: true,
+      x: 88.0,
+      y: 85.0,
+      fontFamily: 'Plus Jakarta Sans',
+      fontSize: 12,
+      fontWeight: '500',
+      color: '#475569',
+      align: 'right',
+      letterSpacing: 0,
+      uppercase: false,
+    },
+    eventTitle: {
+      enabled: false,
+      x: 50.0,
+      y: 54.0,
+      fontFamily: 'Plus Jakarta Sans',
+      fontSize: 22,
+      fontWeight: '700',
+      color: '#0f172a',
+      align: 'center',
+      letterSpacing: 0,
+      uppercase: false,
+    },
+    customText: {
+      enabled: false,
+      isCustomText: true,
+      text: 'Đã hoàn thành xuất sắc hoạt động',
+      x: 50.0,
+      y: 49.0,
+      fontFamily: 'Plus Jakarta Sans',
+      fontSize: 14,
+      fontWeight: '500',
+      color: '#475569',
+      align: 'center',
+      letterSpacing: 0,
+      uppercase: false,
+    },
+  },
+};
+
+function initCertLayoutDesigner() {
+  const overlay = document.getElementById("cert-designer-overlay");
+  const openBtn = document.getElementById("open-cert-designer-btn");
+  const closeBtn = document.getElementById("cert-designer-close-btn");
+  const backdrop = document.getElementById("cert-designer-backdrop");
+  const resetBtn = document.getElementById("cert-designer-reset-btn");
+  const saveBtn = document.getElementById("cert-designer-save-btn");
+  const sampleBtn = document.getElementById("cert-designer-sample-btn");
+  const sampleBtnText = document.getElementById("cert-sample-btn-text");
+
+  const stage = document.getElementById("cert-canvas-stage");
+  const artboardWrapper = document.getElementById("cert-artboard-wrapper");
+  const artboard = document.getElementById("cert-artboard");
+  const bgImg = document.getElementById("cert-artboard-bg-img");
+  const noBgNotice = document.getElementById("cert-artboard-no-bg-notice");
+  const scaleIndicator = document.getElementById("cert-scale-indicator");
+
+  const customFieldsContainer = document.getElementById("cert-artboard-custom-fields");
+  const layersContainer = document.getElementById("cert-layers-container");
+  const layersTotalCount = document.getElementById("cert-layers-total-count");
+  const fieldActiveName = document.getElementById("field-active-name");
+  const fieldActiveBadge = document.getElementById("field-active-type-badge");
+  const addCustomTextBtn = document.getElementById("btn-add-custom-text");
+  const deleteFieldBtn = document.getElementById("field-ctrl-delete-btn");
+  const duplicateFieldBtn = document.getElementById("field-ctrl-duplicate-btn");
+  const quickCenterBtn = document.getElementById("btn-quick-center-x");
+  const quickCenterYBtn = document.getElementById("btn-quick-center-y");
+  const spacingSelect = document.getElementById("field-ctrl-spacing");
+  const uppercaseBtn = document.getElementById("field-ctrl-uppercase-btn");
+  const artboardQrCanvas = document.getElementById("cert-artboard-qr-canvas");
+  const guideLineX = document.getElementById("cert-guide-line-x");
+  const guideLineY = document.getElementById("cert-guide-line-y");
+  const magnetLineX = document.getElementById("cert-magnet-line-x");
+  const magnetLineY = document.getElementById("cert-magnet-line-y");
+  const snapBadge = document.getElementById("cert-snap-badge");
+
+  // QR Inspector Controls
+  const qrGroup = document.getElementById("field-ctrl-qrcode-group");
+  const qrSizeSlider = document.getElementById("field-ctrl-qr-size");
+  const qrSizeVal = document.getElementById("field-ctrl-qr-size-val");
+  const qrFrameSelect = document.getElementById("field-ctrl-qr-frame");
+  const qrColorInput = document.getElementById("field-ctrl-qr-color");
+  const qrColorHex = document.getElementById("field-ctrl-qr-color-hex");
+  const qrBorderColorInput = document.getElementById("field-ctrl-qr-border-color");
+  const qrBorderHex = document.getElementById("field-ctrl-qr-border-hex");
+  const qrTransparentInput = document.getElementById("field-ctrl-qr-transparent");
+  const qrFrameOptions = document.getElementById("field-ctrl-qr-frame-options");
+
+  const toggleGridBtn = document.getElementById("cert-toggle-grid-btn");
+  const gridStatusText = document.getElementById("cert-grid-status-text");
+  const gridSizeSelect = document.getElementById("cert-grid-size-select");
+  const toggleMagnetBtn = document.getElementById("cert-toggle-magnet-btn");
+  const magnetStatusText = document.getElementById("cert-magnet-status-text");
+  const artboardGrid = document.getElementById("cert-artboard-grid");
+
+  if (!overlay || !openBtn) return;
+
+  let currentConfig = JSON.parse(JSON.stringify(DEFAULT_CERT_CONFIG));
+  let activeFieldKey = "userName";
+  let isSampleMode = true;
+  let currentArtboardScale = 1;
+
+  let isGridVisible = false;
+  let currentGridType = "50";
+  let isMagnetActive = true;
+
+  const STATIC_FIELD_KEYS = new Set(["userName", "qrCode", "certCode", "issueDate", "eventTitle"]);
+
+  const STATIC_CHIP_META = {
+    userName: { label: "Họ và tên", icon: "fa-user", badge: "User" },
+    qrCode: { label: "Mã QR Check", icon: "fa-qrcode", badge: "QR" },
+    certCode: { label: "Mã chứng chỉ", icon: "fa-barcode", badge: "Code" },
+    issueDate: { label: "Ngày cấp", icon: "fa-calendar-days", badge: "Date" },
+    eventTitle: { label: "Tên sự kiện", icon: "fa-award", badge: "Event" },
+  };
+
+  // Render & Update Grid Overlay
+  function renderArtboardGrid() {
+    if (!artboardGrid || !toggleGridBtn || !gridStatusText) return;
+
+    if (!isGridVisible) {
+      artboardGrid.classList.add("hidden");
+      toggleGridBtn.className = "px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs";
+      gridStatusText.textContent = "TẮT";
+      gridStatusText.className = "text-slate-500 font-bold";
+      const icon = toggleGridBtn.querySelector("i");
+      if (icon) icon.className = "fa-solid fa-border-all text-slate-400";
+      return;
+    }
+
+    artboardGrid.classList.remove("hidden");
+    toggleGridBtn.className = "px-2.5 py-1.5 rounded-xl border border-sky-400 bg-sky-50 text-sky-700 font-semibold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs active";
+    gridStatusText.textContent = "BẬT";
+    gridStatusText.className = "text-sky-600 font-bold";
+    const icon = toggleGridBtn.querySelector("i");
+    if (icon) icon.className = "fa-solid fa-border-all text-sky-600";
+
+    if (currentGridType === "20") {
+      artboardGrid.style.backgroundSize = "20px 20px";
+      artboardGrid.style.backgroundImage = "linear-gradient(to right, rgba(148, 163, 184, 0.22) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.22) 1px, transparent 1px)";
+    } else if (currentGridType === "50") {
+      artboardGrid.style.backgroundSize = "50px 50px";
+      artboardGrid.style.backgroundImage = "linear-gradient(to right, rgba(148, 163, 184, 0.28) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.28) 1px, transparent 1px)";
+    } else if (currentGridType === "100") {
+      artboardGrid.style.backgroundSize = "100px 100px";
+      artboardGrid.style.backgroundImage = "linear-gradient(to right, rgba(148, 163, 184, 0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.35) 1px, transparent 1px)";
+    } else if (currentGridType === "5pct") {
+      artboardGrid.style.backgroundSize = "5% 5%";
+      artboardGrid.style.backgroundImage = "linear-gradient(to right, rgba(56, 189, 248, 0.25) 1px, transparent 1px), linear-gradient(to bottom, rgba(56, 189, 248, 0.25) 1px, transparent 1px)";
+    } else if (currentGridType === "thirds") {
+      artboardGrid.style.backgroundSize = "100% 100%";
+      artboardGrid.style.backgroundImage = "linear-gradient(to right, transparent calc(33.333% - 1px), rgba(245, 158, 11, 0.45) calc(33.333% - 1px), rgba(245, 158, 11, 0.45) calc(33.333% + 1px), transparent calc(33.333% + 1px), transparent calc(66.667% - 1px), rgba(245, 158, 11, 0.45) calc(66.667% - 1px), rgba(245, 158, 11, 0.45) calc(66.667% + 1px), transparent calc(66.667% + 1px)), linear-gradient(to bottom, transparent calc(33.333% - 1px), rgba(245, 158, 11, 0.45) calc(33.333% - 1px), rgba(245, 158, 11, 0.45) calc(33.333% + 1px), transparent calc(33.333% + 1px), transparent calc(66.667% - 1px), rgba(245, 158, 11, 0.45) calc(66.667% - 1px), rgba(245, 158, 11, 0.45) calc(66.667% + 1px), transparent calc(66.667% + 1px))";
+    }
+  }
+
+  // Update Magnet Toggle Button UI
+  function updateMagnetBtnUI() {
+    if (!toggleMagnetBtn || !magnetStatusText) return;
+
+    if (isMagnetActive) {
+      toggleMagnetBtn.className = "px-3 py-1.5 rounded-xl bg-primary text-white font-bold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs active";
+      magnetStatusText.textContent = "BẬT";
+    } else {
+      toggleMagnetBtn.className = "px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 font-semibold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs";
+      magnetStatusText.textContent = "TẮT";
+    }
+  }
+
+  // Responsive scaling of 1200 x 850 artboard inside stage
+  function updateArtboardScale() {
+    if (!stage || !artboardWrapper || overlay.hasAttribute("hidden")) return;
+    const stageWidth = stage.clientWidth;
+    const stageHeight = stage.clientHeight;
+    if (!stageWidth || !stageHeight) return;
+
+    const pad = 36;
+    const scaleX = (stageWidth - pad) / 1200;
+    const scaleY = (stageHeight - pad) / 850;
+    currentArtboardScale = Math.min(scaleX, scaleY, 1);
+    if (currentArtboardScale < 0.2) currentArtboardScale = 0.2;
+
+    artboardWrapper.style.transform = `scale(${currentArtboardScale})`;
+    artboardWrapper.style.transformOrigin = "center center";
+    if (scaleIndicator) {
+      scaleIndicator.textContent = `${Math.round(currentArtboardScale * 100)}%`;
+    }
+  }
+
+  window.addEventListener("resize", () => {
+    if (!overlay.hidden) updateArtboardScale();
+  });
+
+  // Render dynamic custom field elements on the artboard
+  function renderArtboardCustomFields() {
+    if (!customFieldsContainer) return;
+    customFieldsContainer.innerHTML = "";
+
+    Object.entries(currentConfig.fields).forEach(([key, field]) => {
+      if (STATIC_FIELD_KEYS.has(key)) return;
+
+      const box = document.createElement("div");
+      box.id = `field-box-${key}`;
+      box.className = "cert-draggable-field group absolute cursor-move p-2 rounded-lg border-2 border-transparent hover:border-primary/50 transition-colors flex items-center gap-1.5 max-w-[800px]";
+      box.innerHTML = `
+        <span class="cert-field-content font-bold whitespace-pre-line break-words text-center"></span>
+        <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Văn bản</span>
+      `;
+      customFieldsContainer.appendChild(box);
+      attachDragToElement(box);
+    });
+  }
+
+  // Highlight selected element on artboard
+  function highlightLayerOnArtboard(key) {
+    document.querySelectorAll(".cert-draggable-field").forEach(el => {
+      el.classList.remove("ring-2", "ring-primary", "ring-offset-2", "!border-primary", "bg-primary/5");
+    });
+    const activeEl = document.getElementById(`field-box-${key}`);
+    if (activeEl) {
+      activeEl.classList.add("ring-2", "ring-primary", "ring-offset-2", "!border-primary", "bg-primary/5");
+    }
+  }
+
+  // Duplicate a custom field
+  function duplicateCustomField(key) {
+    const source = currentConfig.fields[key];
+    if (!source) return;
+
+    const newKey = `custom_${Date.now()}`;
+    currentConfig.fields[newKey] = JSON.parse(JSON.stringify(source));
+    currentConfig.fields[newKey].x = Math.min(90, (source.x || 50) + 2.0);
+    currentConfig.fields[newKey].y = Math.min(92, (source.y || 50) + 3.5);
+    currentConfig.fields[newKey].enabled = true;
+    currentConfig.fields[newKey].isCustomText = true;
+
+    renderArtboardCustomFields();
+    activeFieldKey = newKey;
+    renderLayersPanel();
+    applyAllFieldsToDOM();
+    syncInspectorUI();
+  }
+
+  // Delete a custom field
+  function deleteCustomField(key) {
+    const field = currentConfig.fields[key];
+    const isCustom = key.startsWith("custom") || field?.isCustomText;
+    if (!isCustom) {
+      alert("Chỉ có thể xóa các khối text tùy chỉnh.");
+      return;
+    }
+
+    if (!confirm("Bạn có chắc chắn muốn xóa khối văn bản này?")) return;
+
+    const el = document.getElementById(`field-box-${key}`);
+    if (el) el.remove();
+
+    delete currentConfig.fields[key];
+    activeFieldKey = "userName";
+    renderLayersPanel();
+    applyAllFieldsToDOM();
+    syncInspectorUI();
+  }
+
+  // Quick preset add button handler
+  function addPresetCustomText(presetType) {
+    const newKey = `custom_${Date.now()}`;
+    let config = {
+      enabled: true,
+      isCustomText: true,
+      x: 50.0,
+      align: "center",
+      letterSpacing: 0,
+      uppercase: false,
+    };
+
+    if (presetType === "heading") {
+      config = {
+        ...config,
+        text: "GIẤY CHỨNG NHẬN",
+        y: 28.0,
+        fontFamily: "Playfair Display",
+        fontSize: 32,
+        fontWeight: "800",
+        color: "#0f172a",
+        letterSpacing: 2,
+        uppercase: true,
+      };
+    } else if (presetType === "award") {
+      config = {
+        ...config,
+        text: "DANH HIỆU XUẤT SẮC",
+        y: 48.0,
+        fontFamily: "Playfair Display",
+        fontSize: 20,
+        fontWeight: "700",
+        color: "#b45309",
+        letterSpacing: 1,
+        uppercase: true,
+      };
+    } else if (presetType === "body") {
+      config = {
+        ...config,
+        text: "Đã hoàn thành xuất sắc các nội dung đào tạo\nvà đóng góp tích cực cho chương trình",
+        y: 56.0,
+        fontFamily: "Plus Jakarta Sans",
+        fontSize: 14,
+        fontWeight: "500",
+        color: "#475569",
+      };
+    } else if (presetType === "signature") {
+      config = {
+        ...config,
+        text: "Trưởng Ban Tổ Chức\n(Ký và ghi rõ họ tên)",
+        y: 74.0,
+        fontFamily: "Playfair Display",
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#0f172a",
+      };
+    } else {
+      config = {
+        ...config,
+        text: "Đoạn văn bản mới",
+        y: 60.0,
+        fontFamily: "Playfair Display",
+        fontSize: 22,
+        fontWeight: "700",
+        color: "#0f172a",
+      };
+    }
+
+    currentConfig.fields[newKey] = config;
+    renderArtboardCustomFields();
+    activeFieldKey = newKey;
+    renderLayersPanel();
+    applyAllFieldsToDOM();
+    syncInspectorUI();
+  }
+
+  // Render comprehensive Layers Panel (Custom Layers & System Fields)
+  function renderLayersPanel() {
+    if (!layersContainer) return;
+    layersContainer.innerHTML = "";
+
+    const allKeys = Object.keys(currentConfig.fields);
+    const customKeys = allKeys.filter(k => !STATIC_FIELD_KEYS.has(k));
+    const systemKeys = allKeys.filter(k => STATIC_FIELD_KEYS.has(k));
+
+    if (layersTotalCount) {
+      layersTotalCount.textContent = `${allKeys.length} lớp`;
+    }
+
+    // 1. Custom Text Layers Section
+    const customSection = document.createElement("div");
+    customSection.className = "space-y-1.5";
+
+    const customHeader = document.createElement("div");
+    customHeader.className = "flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 pt-1";
+    customHeader.innerHTML = `
+      <div class="flex items-center gap-1">
+        <i class="fa-solid fa-pen-nib text-[9px] text-amber-500"></i>
+        <span>Lớp tùy chỉnh</span>
+      </div>
+      <span class="font-mono text-slate-500">${customKeys.length}</span>
+    `;
+    customSection.appendChild(customHeader);
+
+    if (customKeys.length === 0) {
+      const emptyNote = document.createElement("div");
+      emptyNote.className = "p-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center";
+      emptyNote.innerHTML = `<span class="text-[11px] text-slate-400">Chưa có text tùy chỉnh. Bấm <strong>+ Thêm Text</strong> ở trên để tạo.</span>`;
+      customSection.appendChild(emptyNote);
+    } else {
+      customKeys.forEach(key => {
+        const field = currentConfig.fields[key];
+        const isCurrent = key === activeFieldKey;
+        const isHidden = field.enabled === false;
+
+        const row = document.createElement("div");
+        row.dataset.layerKey = key;
+        row.className = `layer-item-row group flex items-center justify-between p-2 rounded-xl border text-xs font-semibold spring-ease cursor-pointer ${
+          isCurrent
+            ? "border-primary bg-primary/5 shadow-2xs ring-1 ring-primary/30"
+            : isHidden
+              ? "border-slate-200 bg-slate-50/50 opacity-60 hover:opacity-100"
+              : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70"
+        }`;
+
+        let textSnippet = field.text ? field.text.replace(/\n/g, " ").trim() : "Text tùy chỉnh";
+        if (textSnippet.length > 20) textSnippet = textSnippet.slice(0, 18) + "...";
+
+        row.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0 flex-1 pr-1.5 pointer-events-none">
+            <i class="fa-solid fa-font text-[11px] shrink-0 ${isCurrent ? 'text-primary' : 'text-slate-400'}"></i>
+            <div class="min-w-0">
+              <div class="layer-title font-bold text-slate-800 truncate text-[11px]">${textSnippet}</div>
+              <div class="text-[9px] font-mono text-slate-400">X: ${Math.round(field.x)}% Y: ${Math.round(field.y)}%</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" class="btn-layer-toggle-eye w-6 h-6 rounded-md hover:bg-slate-200/80 flex items-center justify-center cursor-pointer text-slate-500 hover:text-slate-800" title="${isHidden ? 'Hiện lớp này' : 'Ẩn lớp này'}">
+              <i class="fa-solid ${isHidden ? 'fa-eye-slash text-slate-400' : 'fa-eye text-primary'} text-[11px]"></i>
+            </button>
+            <button type="button" class="btn-layer-duplicate w-6 h-6 rounded-md hover:bg-slate-200/80 flex items-center justify-center cursor-pointer text-slate-400 hover:text-primary" title="Nhân bản lớp">
+              <i class="fa-regular fa-copy text-[11px]"></i>
+            </button>
+            <button type="button" class="btn-layer-delete w-6 h-6 rounded-md hover:bg-red-100 flex items-center justify-center cursor-pointer text-slate-400 hover:text-red-600" title="Xóa lớp">
+              <i class="fa-solid fa-trash-can text-[11px]"></i>
+            </button>
+          </div>
+        `;
+
+        row.addEventListener("click", (e) => {
+          if (e.target.closest("button")) return;
+          activeFieldKey = key;
+          syncInspectorUI();
+          highlightLayerOnArtboard(key);
+        });
+
+        row.querySelector(".btn-layer-toggle-eye").addEventListener("click", (e) => {
+          e.stopPropagation();
+          field.enabled = field.enabled === false ? true : false;
+          applyFieldStyleToDOM(key);
+          renderLayersPanel();
+          syncInspectorUI();
+        });
+
+        row.querySelector(".btn-layer-duplicate").addEventListener("click", (e) => {
+          e.stopPropagation();
+          duplicateCustomField(key);
+        });
+
+        row.querySelector(".btn-layer-delete").addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteCustomField(key);
+        });
+
+        customSection.appendChild(row);
+      });
+    }
+
+    layersContainer.appendChild(customSection);
+
+    // 2. System Fields Section
+    const systemSection = document.createElement("div");
+    systemSection.className = "space-y-1.5 pt-2 border-t border-slate-100";
+
+    const systemHeader = document.createElement("div");
+    systemHeader.className = "flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1";
+    systemHeader.innerHTML = `
+      <div class="flex items-center gap-1">
+        <i class="fa-solid fa-shield-halved text-[9px] text-primary"></i>
+        <span>Trường hệ thống</span>
+      </div>
+      <span class="font-mono text-slate-500">${systemKeys.length}</span>
+    `;
+    systemSection.appendChild(systemHeader);
+
+    systemKeys.forEach(key => {
+      const field = currentConfig.fields[key];
+      const meta = STATIC_CHIP_META[key] || { label: key, icon: "fa-font", badge: "SYS" };
+      const isCurrent = key === activeFieldKey;
+      const isHidden = field.enabled === false;
+
+      const row = document.createElement("div");
+      row.dataset.layerKey = key;
+      row.className = `layer-item-row group flex items-center justify-between p-2 rounded-xl border text-xs font-semibold spring-ease cursor-pointer ${
+        isCurrent
+          ? "border-primary bg-primary/5 shadow-2xs ring-1 ring-primary/30"
+          : isHidden
+            ? "border-slate-200 bg-slate-50/50 opacity-60 hover:opacity-100"
+            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70"
+      }`;
+
+      row.innerHTML = `
+        <div class="flex items-center gap-2 min-w-0 flex-1 pr-1.5 pointer-events-none">
+          <i class="fa-solid ${meta.icon} text-[11px] shrink-0 ${isCurrent ? 'text-primary' : 'text-slate-400'}"></i>
+          <div class="min-w-0">
+            <div class="layer-title font-bold text-slate-800 truncate text-[11px]">${meta.label}</div>
+            <div class="text-[9px] font-mono text-slate-400">X: ${Math.round(field.x)}% Y: ${Math.round(field.y)}%</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded ${isCurrent ? 'bg-primary/10 text-primary font-bold' : 'bg-slate-100 text-slate-500'}">${meta.badge}</span>
+          <button type="button" class="btn-layer-toggle-eye w-6 h-6 rounded-md hover:bg-slate-200/80 flex items-center justify-center cursor-pointer text-slate-500 hover:text-slate-800" title="${isHidden ? 'Hiện trường này' : 'Ẩn trường này'}">
+            <i class="fa-solid ${isHidden ? 'fa-eye-slash text-slate-400' : 'fa-eye text-primary'} text-[11px]"></i>
+          </button>
+        </div>
+      `;
+
+      row.addEventListener("click", (e) => {
+        if (e.target.closest("button")) return;
+        activeFieldKey = key;
+        syncInspectorUI();
+        highlightLayerOnArtboard(key);
+      });
+
+      row.querySelector(".btn-layer-toggle-eye").addEventListener("click", (e) => {
+        e.stopPropagation();
+        field.enabled = field.enabled === false ? true : false;
+        applyFieldStyleToDOM(key);
+        renderLayersPanel();
+        syncInspectorUI();
+      });
+
+      systemSection.appendChild(row);
+    });
+
+    layersContainer.appendChild(systemSection);
+  }
+
+  // Apply visual styling to an artboard field element
+  function applyFieldStyleToDOM(key) {
+    const field = currentConfig.fields[key];
+    const el = document.getElementById(`field-box-${key}`);
+    if (!field || !el) return;
+
+    // Visibility
+    if (field.enabled === false) {
+      el.classList.add("hidden");
+    } else {
+      el.classList.remove("hidden");
+    }
+
+    // Position & Transform Anchor
+    el.style.left = `${field.x}%`;
+    el.style.top = `${field.y}%`;
+
+    const align = field.align || "center";
+    let translateX = "-50%";
+    if (align === "left") translateX = "0%";
+    else if (align === "right") translateX = "-100%";
+
+    el.style.transform = `translate(${translateX}, -50%)`;
+
+    // Content element inside
+    const contentEl = el.querySelector(".cert-field-content");
+
+    if (key === "qrCode") {
+      const sz = field.size || 80;
+      el.style.width = `${sz}px`;
+      el.style.height = `${sz}px`;
+      el.style.transform = `translate(-50%, -50%)`;
+
+      // Live styled QR drawing on canvas
+      const qrCanvas = el.querySelector("canvas") || artboardQrCanvas || document.getElementById("cert-artboard-qr-canvas");
+      if (qrCanvas) {
+        const sampleUrl = "https://springwave.io.vn/certificate.html?code=SW-202609-SAMPLE";
+        drawStyledQR(qrCanvas, sampleUrl, {
+          size: sz,
+          style: field.qrStyle || "standard",
+          frame: field.qrFrame || "box",
+          colorDark: field.qrColorDark || "#0f172a",
+          colorLight: field.qrColorLight || "#ffffff",
+          transparentBg: !!field.qrTransparentBg,
+          borderColor: field.qrBorderColor || "#cbd5e1",
+          borderWidth: field.qrBorderWidth || 1,
+          borderRadius: field.qrRadius || 8,
+        });
+      }
+      return;
+    }
+
+    if (contentEl) {
+      contentEl.style.fontFamily = `'${field.fontFamily || "Playfair Display"}', sans-serif`;
+      contentEl.style.fontSize = `${field.fontSize || 16}px`;
+      contentEl.style.fontWeight = field.fontWeight || "700";
+      contentEl.style.color = field.color || "#0f172a";
+      contentEl.style.textAlign = align;
+      contentEl.style.letterSpacing = field.letterSpacing ? `${field.letterSpacing}px` : "normal";
+      contentEl.style.textTransform = field.uppercase ? "uppercase" : "none";
+      contentEl.style.whiteSpace = "pre-line";
+      contentEl.style.wordBreak = "break-word";
+
+      const isCustom = key.startsWith("custom") || field.isCustomText;
+      if (isCustom) {
+        let textVal = field.text !== undefined ? field.text : (isSampleMode ? "Đoạn văn bản mẫu" : "{{customText}}");
+        if (isSampleMode && typeof textVal === "string") {
+          textVal = textVal
+            .replace(/\{\{fullName\}\}/g, "Nguyễn Văn A")
+            .replace(/\{\{eventTitle\}\}/g, "Hội Thảo Công Nghệ 2026")
+            .replace(/\{\{issueDate\}\}/g, "15/09/2026")
+            .replace(/\{\{certificateCode\}\}/g, "SW-202609-SAMPLE");
+        }
+        contentEl.textContent = textVal;
+      } else if (key === "userName") {
+        contentEl.textContent = isSampleMode ? "Nguyễn Văn A" : "{{fullName}}";
+      } else if (key === "certCode") {
+        contentEl.textContent = isSampleMode ? "SW-202609-SAMPLE" : "{{certificateCode}}";
+      } else if (key === "issueDate") {
+        contentEl.textContent = isSampleMode ? "Cấp ngày: 15/09/2026" : "{{issueDate}}";
+      } else if (key === "eventTitle") {
+        const ev = currentEvents.find(e => e._id === selectedCertEventId);
+        contentEl.textContent = isSampleMode ? (ev?.title || "Tên Sự Kiện / Hoạt Động") : "{{eventTitle}}";
+      }
+    }
+  }
+
+  function applyAllFieldsToDOM() {
+    Object.keys(currentConfig.fields).forEach(applyFieldStyleToDOM);
+  }
+
+  // Sync right-side inspector controls to match activeFieldKey
+  function syncInspectorUI() {
+    const field = currentConfig.fields[activeFieldKey] || {};
+    const isCustomText = activeFieldKey.startsWith("custom") || field.isCustomText;
+    const meta = STATIC_CHIP_META[activeFieldKey];
+
+    // Active field indicator
+    if (fieldActiveName) {
+      if (meta) fieldActiveName.textContent = meta.label;
+      else {
+        let snippet = field.text ? field.text.replace(/\n/g, " ").trim() : "Text tùy chỉnh";
+        if (snippet.length > 22) snippet = snippet.slice(0, 20) + "...";
+        fieldActiveName.textContent = snippet;
+      }
+    }
+    if (fieldActiveBadge) {
+      fieldActiveBadge.textContent = isCustomText ? "Custom" : (meta?.badge || "System");
+      fieldActiveBadge.className = isCustomText
+        ? "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200 shrink-0"
+        : "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-primary/10 text-primary shrink-0";
+    }
+
+    // Layers highlight in Layers Panel
+    document.querySelectorAll("#cert-layers-container .layer-item-row").forEach(row => {
+      const isCurrent = row.dataset.layerKey === activeFieldKey;
+      row.classList.toggle("border-primary", isCurrent);
+      row.classList.toggle("bg-primary/5", isCurrent);
+      row.classList.toggle("shadow-2xs", isCurrent);
+      row.classList.toggle("ring-1", isCurrent);
+      row.classList.toggle("ring-primary/30", isCurrent);
+    });
+
+    // Artboard field box highlight
+    highlightLayerOnArtboard(activeFieldKey);
+
+    // Toggle enabled
+    const enabledInput = document.getElementById("field-ctrl-enabled");
+    if (enabledInput) enabledInput.checked = field.enabled !== false;
+
+    // Groups
+    const fontGroup = document.getElementById("field-ctrl-font-group");
+    const sizeGroup = document.getElementById("field-ctrl-size-group");
+    const colorGroup = document.getElementById("field-ctrl-color-group");
+    const styleGroup = document.getElementById("field-ctrl-style-group");
+    const typographyGroup = document.getElementById("field-ctrl-typography-group");
+    const customTextGroup = document.getElementById("field-ctrl-customtext-group");
+    const sizeLabel = document.getElementById("field-ctrl-size-label");
+    const sizeVal = document.getElementById("field-ctrl-size-val");
+    const sizeInput = document.getElementById("field-ctrl-size");
+
+    if (activeFieldKey === "qrCode") {
+      fontGroup?.classList.add("hidden");
+      sizeGroup?.classList.add("hidden");
+      colorGroup?.classList.add("hidden");
+      styleGroup?.classList.add("hidden");
+      typographyGroup?.classList.add("hidden");
+      customTextGroup?.classList.add("hidden");
+      qrGroup?.classList.remove("hidden");
+
+      // Sync QR Inspector values
+      const sz = field.size || 80;
+      if (qrSizeSlider) qrSizeSlider.value = sz;
+      if (qrSizeVal) qrSizeVal.textContent = `${sz}px`;
+
+      if (qrFrameSelect) qrFrameSelect.value = field.qrFrame || "box";
+      if (qrFrameOptions) qrFrameOptions.classList.toggle("hidden", (field.qrFrame || "box") === "none");
+
+      const darkCol = field.qrColorDark || "#0f172a";
+      if (qrColorInput) qrColorInput.value = darkCol.length === 7 ? darkCol : "#0f172a";
+      if (qrColorHex) qrColorHex.value = darkCol;
+
+      const borderCol = field.qrBorderColor || "#cbd5e1";
+      if (qrBorderColorInput) qrBorderColorInput.value = borderCol.length === 7 ? borderCol : "#cbd5e1";
+      if (qrBorderHex) qrBorderHex.value = borderCol;
+
+      if (qrTransparentInput) qrTransparentInput.checked = !!field.qrTransparentBg;
+
+      const currentStyle = field.qrStyle || "standard";
+      document.querySelectorAll("#field-ctrl-qr-style-group .qr-style-btn").forEach(btn => {
+        const isMatch = btn.dataset.style === currentStyle;
+        btn.classList.toggle("active", isMatch);
+        btn.classList.toggle("border-primary", isMatch);
+        btn.classList.toggle("bg-primary/10", isMatch);
+        btn.classList.toggle("text-primary", isMatch);
+        btn.classList.toggle("text-slate-700", !isMatch);
+      });
+    } else {
+      qrGroup?.classList.add("hidden");
+      fontGroup?.classList.remove("hidden");
+      sizeGroup?.classList.remove("hidden");
+      colorGroup?.classList.remove("hidden");
+      styleGroup?.classList.remove("hidden");
+      typographyGroup?.classList.remove("hidden");
+
+      if (isCustomText) {
+        customTextGroup?.classList.remove("hidden");
+        const customValInput = document.getElementById("field-ctrl-custom-val");
+        if (customValInput) customValInput.value = field.text || "";
+      } else {
+        customTextGroup?.classList.add("hidden");
+      }
+
+      if (sizeLabel) sizeLabel.textContent = "Cỡ chữ (Font Size)";
+      const fs = field.fontSize || 16;
+      if (sizeInput) {
+        sizeInput.min = "10";
+        sizeInput.max = "90";
+        sizeInput.value = fs;
+      }
+      if (sizeVal) sizeVal.textContent = `${fs}px`;
+
+      const fontSelect = document.getElementById("field-ctrl-font");
+      if (fontSelect) fontSelect.value = field.fontFamily || "Playfair Display";
+
+      const weightSelect = document.getElementById("field-ctrl-weight");
+      if (weightSelect) weightSelect.value = field.fontWeight || "700";
+
+      const colorInput = document.getElementById("field-ctrl-color");
+      const hexInput = document.getElementById("field-ctrl-color-hex");
+      const colorVal = field.color || "#0f172a";
+      if (colorInput) colorInput.value = colorVal.length === 7 ? colorVal : "#0f172a";
+      if (hexInput) hexInput.value = colorVal;
+
+      // Spacing
+      if (spacingSelect) spacingSelect.value = String(field.letterSpacing || 0);
+
+      // Uppercase
+      if (uppercaseBtn) {
+        const isUpper = !!field.uppercase;
+        uppercaseBtn.classList.toggle("bg-primary", isUpper);
+        uppercaseBtn.classList.toggle("text-white", isUpper);
+        uppercaseBtn.classList.toggle("border-primary", isUpper);
+        uppercaseBtn.classList.toggle("bg-white", !isUpper);
+        uppercaseBtn.classList.toggle("text-slate-700", !isUpper);
+      }
+
+      // Align buttons
+      const currentAlign = field.align || "center";
+      document.querySelectorAll("#field-ctrl-align-group .align-btn").forEach(btn => {
+        const isMatch = btn.dataset.align === currentAlign;
+        btn.classList.toggle("active", isMatch);
+        btn.classList.toggle("bg-white", isMatch);
+        btn.classList.toggle("text-primary", isMatch);
+        btn.classList.toggle("shadow-2xs", isMatch);
+        btn.classList.toggle("text-slate-600", !isMatch);
+      });
+    }
+
+    // Coordinates X & Y
+    const xInput = document.getElementById("field-ctrl-x");
+    const yInput = document.getElementById("field-ctrl-y");
+    if (xInput) xInput.value = field.x !== undefined ? field.x : 50;
+    if (yInput) yInput.value = field.y !== undefined ? field.y : 50;
+  }
+
+  // Setup Drag-and-Drop using Native Pointer Events on all artboard fields
+  function attachDragToElement(el) {
+    if (!el || el.dataset.dragAttached === "true") return;
+    el.dataset.dragAttached = "true";
+
+    const fieldKey = el.id.replace("field-box-", "");
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let initialFieldX = 0;
+    let initialFieldY = 0;
+
+    el.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      activeFieldKey = fieldKey;
+      syncInspectorUI();
+
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      initialFieldX = currentConfig.fields[fieldKey]?.x || 50;
+      initialFieldY = currentConfig.fields[fieldKey]?.y || 50;
+
+      el.setPointerCapture(e.pointerId);
+      el.classList.add("opacity-90", "scale-105", "shadow-xl");
+    });
+
+    el.addEventListener("pointermove", (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      const effectiveScale = currentArtboardScale > 0 ? currentArtboardScale : 1;
+      const deltaXPercent = (dx / effectiveScale) / 1200 * 100;
+      const deltaYPercent = (dy / effectiveScale) / 850 * 100;
+
+      let newX = Math.round((initialFieldX + deltaXPercent) * 10) / 10;
+      let newY = Math.round((initialFieldY + deltaYPercent) * 10) / 10;
+
+      let snappedX = false;
+      let snappedY = false;
+      let snapLabel = "";
+
+      if (isMagnetActive && !e.altKey) {
+        const SNAP_THRESHOLD_X = 1.0;
+        const SNAP_THRESHOLD_Y = 1.2;
+
+        // 1. Center Canvas Snap (X=50% and Y=50%)
+        if (Math.abs(newX - 50.0) <= SNAP_THRESHOLD_X) {
+          newX = 50.0;
+          snappedX = true;
+          if (guideLineX) {
+            guideLineX.style.left = "50%";
+            guideLineX.classList.remove("hidden");
+          }
+          snapLabel = "🎯 Giữa Canvas (X: 50%)";
+        }
+
+        if (Math.abs(newY - 50.0) <= SNAP_THRESHOLD_Y) {
+          newY = 50.0;
+          snappedY = true;
+          if (guideLineY) {
+            guideLineY.style.top = "50%";
+            guideLineY.classList.remove("hidden");
+          }
+          snapLabel = snapLabel ? "🎯 Tâm Canvas (50%, 50%)" : "🎯 Giữa Canvas (Y: 50%)";
+        }
+
+        // 2. Inter-Element Smart Guides (Align with other active fields)
+        const otherEntries = Object.entries(currentConfig.fields).filter(
+          ([k, f]) => k !== fieldKey && f && f.enabled !== false
+        );
+
+        for (const [otherKey, otherField] of otherEntries) {
+          const otherLabel = STATIC_CHIP_META[otherKey]?.label || (otherField.text ? (otherField.text.length > 12 ? otherField.text.slice(0, 10) + "..." : otherField.text) : "Mục khác");
+
+          if (!snappedX && Math.abs(newX - otherField.x) <= SNAP_THRESHOLD_X) {
+            newX = otherField.x;
+            snappedX = true;
+            if (magnetLineX) {
+              magnetLineX.style.left = `${newX}%`;
+              magnetLineX.classList.remove("hidden");
+            }
+            snapLabel = snapLabel || `🧲 Cột dọc thẳng: ${otherLabel}`;
+          }
+
+          if (!snappedY && Math.abs(newY - otherField.y) <= SNAP_THRESHOLD_Y) {
+            newY = otherField.y;
+            snappedY = true;
+            if (magnetLineY) {
+              magnetLineY.style.top = `${newY}%`;
+              magnetLineY.classList.remove("hidden");
+            }
+            snapLabel = snapLabel || `🧲 Hàng ngang thẳng: ${otherLabel}`;
+          }
+        }
+
+        // 3. Grid Snapping (when Grid is active and not already snapped)
+        if (isGridVisible) {
+          if (!snappedX) {
+            let stepX = 0;
+            if (currentGridType === "20") stepX = (20 / 1200) * 100;
+            else if (currentGridType === "50") stepX = (50 / 1200) * 100;
+            else if (currentGridType === "100") stepX = (100 / 1200) * 100;
+            else if (currentGridType === "thirds") stepX = 33.333;
+            else if (currentGridType === "5pct") stepX = 5.0;
+
+            if (stepX > 0) {
+              const nearestStep = Math.round(newX / stepX) * stepX;
+              if (Math.abs(newX - nearestStep) <= 0.6) {
+                newX = Math.round(nearestStep * 10) / 10;
+                snappedX = true;
+                if (guideLineX) {
+                  guideLineX.style.left = `${newX}%`;
+                  guideLineX.classList.remove("hidden");
+                }
+                snapLabel = snapLabel || `📐 Lưới X: ${newX}%`;
+              }
+            }
+          }
+
+          if (!snappedY) {
+            let stepY = 0;
+            if (currentGridType === "20") stepY = (20 / 850) * 100;
+            else if (currentGridType === "50") stepY = (50 / 850) * 100;
+            else if (currentGridType === "100") stepY = (100 / 850) * 100;
+            else if (currentGridType === "thirds") stepY = 33.333;
+            else if (currentGridType === "5pct") stepY = 5.0;
+
+            if (stepY > 0) {
+              const nearestStep = Math.round(newY / stepY) * stepY;
+              if (Math.abs(newY - nearestStep) <= 0.7) {
+                newY = Math.round(nearestStep * 10) / 10;
+                snappedY = true;
+                if (guideLineY) {
+                  guideLineY.style.top = `${newY}%`;
+                  guideLineY.classList.remove("hidden");
+                }
+                snapLabel = snapLabel || `📐 Lưới Y: ${newY}%`;
+              }
+            }
+          }
+        }
+      }
+
+      // Hide guide lines if not snapped
+      if (!snappedX) {
+        guideLineX?.classList.add("hidden");
+        magnetLineX?.classList.add("hidden");
+      }
+      if (!snappedY) {
+        guideLineY?.classList.add("hidden");
+        magnetLineY?.classList.add("hidden");
+      }
+
+      // Snap badge tooltip positioning
+      if (snapBadge) {
+        if (snappedX || snappedY) {
+          snapBadge.textContent = snapLabel;
+          snapBadge.style.left = `${newX}%`;
+          snapBadge.style.top = `${Math.max(4, newY - 4)}%`;
+          snapBadge.classList.remove("hidden");
+        } else {
+          snapBadge.classList.add("hidden");
+        }
+      }
+
+      newX = Math.max(0.5, Math.min(99.5, newX));
+      newY = Math.max(0.5, Math.min(99.5, newY));
+
+      if (currentConfig.fields[fieldKey]) {
+        currentConfig.fields[fieldKey].x = newX;
+        currentConfig.fields[fieldKey].y = newY;
+      }
+
+      applyFieldStyleToDOM(fieldKey);
+
+      const xInput = document.getElementById("field-ctrl-x");
+      const yInput = document.getElementById("field-ctrl-y");
+      if (xInput && activeFieldKey === fieldKey) xInput.value = newX;
+      if (yInput && activeFieldKey === fieldKey) yInput.value = newY;
+    });
+
+    const handleEnd = (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      guideLineX?.classList.add("hidden");
+      guideLineY?.classList.add("hidden");
+      magnetLineX?.classList.add("hidden");
+      magnetLineY?.classList.add("hidden");
+      snapBadge?.classList.add("hidden");
+      try {
+        if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+      } catch {}
+      el.classList.remove("opacity-90", "scale-105", "shadow-xl");
+    };
+
+    el.addEventListener("pointerup", handleEnd);
+    el.addEventListener("pointercancel", handleEnd);
+  }
+
+  function setupAllPointerDragging() {
+    document.querySelectorAll(".cert-draggable-field").forEach(attachDragToElement);
+  }
+
+  // Setup Inspector form inputs
+  function setupInspectorEvents() {
+    // Enabled switch
+    document.getElementById("field-ctrl-enabled")?.addEventListener("change", (e) => {
+      if (!currentConfig.fields[activeFieldKey]) return;
+      currentConfig.fields[activeFieldKey].enabled = e.target.checked;
+      applyFieldStyleToDOM(activeFieldKey);
+    });
+
+    // Font select
+    document.getElementById("field-ctrl-font")?.addEventListener("change", (e) => {
+      if (!currentConfig.fields[activeFieldKey]) return;
+      currentConfig.fields[activeFieldKey].fontFamily = e.target.value;
+      applyFieldStyleToDOM(activeFieldKey);
+    });
+
+    // Font / QR Size range
+    const sizeInput = document.getElementById("field-ctrl-size");
+    const sizeVal = document.getElementById("field-ctrl-size-val");
+    sizeInput?.addEventListener("input", (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (sizeVal) sizeVal.textContent = `${val}px`;
+      if (!currentConfig.fields[activeFieldKey]) return;
+
+      if (activeFieldKey === "qrCode") {
+        currentConfig.fields[activeFieldKey].size = val;
+      } else {
+        currentConfig.fields[activeFieldKey].fontSize = val;
+      }
+      applyFieldStyleToDOM(activeFieldKey);
+    });
+
+    // Color picker & hex text
+    const colorInput = document.getElementById("field-ctrl-color");
+    const hexInput = document.getElementById("field-ctrl-color-hex");
+
+    colorInput?.addEventListener("input", (e) => {
+      const val = e.target.value;
+      if (hexInput) hexInput.value = val;
+      if (currentConfig.fields[activeFieldKey]) {
+        currentConfig.fields[activeFieldKey].color = val;
+        applyFieldStyleToDOM(activeFieldKey);
+      }
+    });
+
+    hexInput?.addEventListener("change", (e) => {
+      let val = e.target.value.trim();
+      if (!val.startsWith("#")) val = `#${val}`;
+      if (colorInput && /^#[0-9A-Fa-f]{6}$/.test(val)) colorInput.value = val;
+      if (currentConfig.fields[activeFieldKey]) {
+        currentConfig.fields[activeFieldKey].color = val;
+        applyFieldStyleToDOM(activeFieldKey);
+      }
+    });
+
+    // Swatches
+    document.querySelectorAll(".color-swatch-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const c = btn.dataset.color;
+        if (!c || !currentConfig.fields[activeFieldKey]) return;
+        if (colorInput) colorInput.value = c;
+        if (hexInput) hexInput.value = c;
+        currentConfig.fields[activeFieldKey].color = c;
+        applyFieldStyleToDOM(activeFieldKey);
+      });
+    });
+
+    // Weight
+    document.getElementById("field-ctrl-weight")?.addEventListener("change", (e) => {
+      if (!currentConfig.fields[activeFieldKey]) return;
+      currentConfig.fields[activeFieldKey].fontWeight = e.target.value;
+      applyFieldStyleToDOM(activeFieldKey);
+    });
+
+    // Spacing
+    spacingSelect?.addEventListener("change", (e) => {
+      if (!currentConfig.fields[activeFieldKey]) return;
+      currentConfig.fields[activeFieldKey].letterSpacing = parseInt(e.target.value, 10) || 0;
+      applyFieldStyleToDOM(activeFieldKey);
+    });
+
+    // Uppercase toggle
+    uppercaseBtn?.addEventListener("click", () => {
+      if (!currentConfig.fields[activeFieldKey]) return;
+      currentConfig.fields[activeFieldKey].uppercase = !currentConfig.fields[activeFieldKey].uppercase;
+      syncInspectorUI();
+      applyFieldStyleToDOM(activeFieldKey);
+    });
+
+    // Align buttons
+    document.querySelectorAll("#field-ctrl-align-group .align-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const align = btn.dataset.align;
+        if (!currentConfig.fields[activeFieldKey]) return;
+        currentConfig.fields[activeFieldKey].align = align;
+        syncInspectorUI();
+        applyFieldStyleToDOM(activeFieldKey);
+      });
+    });
+
+    // Custom Text textarea input (supports multiline Enter)
+    document.getElementById("field-ctrl-custom-val")?.addEventListener("input", (e) => {
+      if (!currentConfig.fields[activeFieldKey]) return;
+      currentConfig.fields[activeFieldKey].text = e.target.value;
+      applyFieldStyleToDOM(activeFieldKey);
+
+      // Update live text snippet in Layers Panel
+      const activeRowSnippet = document.querySelector(`.layer-item-row[data-layer-key="${activeFieldKey}"] .layer-title`);
+      if (activeRowSnippet) {
+        const txt = e.target.value.replace(/\n/g, " ").trim();
+        activeRowSnippet.textContent = txt ? (txt.length > 20 ? txt.slice(0, 18) + "..." : txt) : "Text tùy chỉnh";
+      }
+      if (fieldActiveName) {
+        const txt = e.target.value.replace(/\n/g, " ").trim();
+        fieldActiveName.textContent = txt ? (txt.length > 22 ? txt.slice(0, 20) + "..." : txt) : "Text tùy chỉnh";
+      }
+    });
+
+    // Dynamic Tokens Inserter
+    document.querySelectorAll(".token-insert-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const token = btn.dataset.token;
+        const textarea = document.getElementById("field-ctrl-custom-val");
+        if (!textarea || !currentConfig.fields[activeFieldKey] || !token) return;
+
+        const start = textarea.selectionStart || 0;
+        const end = textarea.selectionEnd || 0;
+        const currentVal = textarea.value || "";
+        const newVal = currentVal.substring(0, start) + token + currentVal.substring(end);
+        textarea.value = newVal;
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = start + token.length;
+
+        currentConfig.fields[activeFieldKey].text = newVal;
+        applyFieldStyleToDOM(activeFieldKey);
+        renderLayersPanel();
+      });
+    });
+
+    // Quick Presets
+    document.querySelectorAll(".preset-tag-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const val = btn.textContent.trim();
+        if (!currentConfig.fields[activeFieldKey]) return;
+        currentConfig.fields[activeFieldKey].text = val;
+        const customValInput = document.getElementById("field-ctrl-custom-val");
+        if (customValInput) customValInput.value = val;
+        applyFieldStyleToDOM(activeFieldKey);
+        renderLayersPanel();
+      });
+    });
+
+    // Quick Add Preset Buttons (+ Tiêu đề, + Danh hiệu, + Nội dung, + Chữ ký)
+    document.querySelectorAll(".btn-quick-add-preset").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const presetType = btn.dataset.preset;
+        addPresetCustomText(presetType);
+      });
+    });
+
+    // Add new custom text field button
+    addCustomTextBtn?.addEventListener("click", () => {
+      addPresetCustomText("default");
+    });
+
+    // Duplicate custom field button in inspector
+    duplicateFieldBtn?.addEventListener("click", () => {
+      duplicateCustomField(activeFieldKey);
+    });
+
+    // Delete custom field button in inspector
+    deleteFieldBtn?.addEventListener("click", () => {
+      deleteCustomField(activeFieldKey);
+    });
+
+    // QR Code Inspector Controls
+    qrSizeSlider?.addEventListener("input", (e) => {
+      const val = parseInt(e.target.value, 10) || 80;
+      if (qrSizeVal) qrSizeVal.textContent = `${val}px`;
+      if (currentConfig.fields.qrCode) {
+        currentConfig.fields.qrCode.size = val;
+        applyFieldStyleToDOM("qrCode");
+      }
+    });
+
+    qrFrameSelect?.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (currentConfig.fields.qrCode) {
+        currentConfig.fields.qrCode.qrFrame = val;
+        if (qrFrameOptions) {
+          qrFrameOptions.classList.toggle("hidden", val === "none");
+        }
+        applyFieldStyleToDOM("qrCode");
+      }
+    });
+
+    qrColorInput?.addEventListener("input", (e) => {
+      const val = e.target.value;
+      if (qrColorHex) qrColorHex.value = val;
+      if (currentConfig.fields.qrCode) {
+        currentConfig.fields.qrCode.qrColorDark = val;
+        applyFieldStyleToDOM("qrCode");
+      }
+    });
+
+    qrColorHex?.addEventListener("change", (e) => {
+      let val = e.target.value.trim();
+      if (!val.startsWith("#")) val = `#${val}`;
+      if (qrColorInput && /^#[0-9A-Fa-f]{6}$/.test(val)) qrColorInput.value = val;
+      if (currentConfig.fields.qrCode) {
+        currentConfig.fields.qrCode.qrColorDark = val;
+        applyFieldStyleToDOM("qrCode");
+      }
+    });
+
+    document.querySelectorAll(".qr-color-swatch").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const color = btn.dataset.color;
+        if (!color || !currentConfig.fields.qrCode) return;
+        if (qrColorInput) qrColorInput.value = color;
+        if (qrColorHex) qrColorHex.value = color;
+        currentConfig.fields.qrCode.qrColorDark = color;
+        applyFieldStyleToDOM("qrCode");
+      });
+    });
+
+    qrBorderColorInput?.addEventListener("input", (e) => {
+      const val = e.target.value;
+      if (qrBorderHex) qrBorderHex.value = val;
+      if (currentConfig.fields.qrCode) {
+        currentConfig.fields.qrCode.qrBorderColor = val;
+        applyFieldStyleToDOM("qrCode");
+      }
+    });
+
+    qrBorderHex?.addEventListener("change", (e) => {
+      let val = e.target.value.trim();
+      if (!val.startsWith("#")) val = `#${val}`;
+      if (qrBorderColorInput && /^#[0-9A-Fa-f]{6}$/.test(val)) qrBorderColorInput.value = val;
+      if (currentConfig.fields.qrCode) {
+        currentConfig.fields.qrCode.qrBorderColor = val;
+        applyFieldStyleToDOM("qrCode");
+      }
+    });
+
+    qrTransparentInput?.addEventListener("change", (e) => {
+      const checked = e.target.checked;
+      if (currentConfig.fields.qrCode) {
+        currentConfig.fields.qrCode.qrTransparentBg = checked;
+        applyFieldStyleToDOM("qrCode");
+      }
+    });
+
+    document.querySelectorAll("#field-ctrl-qr-style-group .qr-style-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const style = btn.dataset.style;
+        if (currentConfig.fields.qrCode) {
+          currentConfig.fields.qrCode.qrStyle = style;
+        }
+        document.querySelectorAll("#field-ctrl-qr-style-group .qr-style-btn").forEach(b => {
+          const isMatch = b.dataset.style === style;
+          b.classList.toggle("active", isMatch);
+          b.classList.toggle("border-primary", isMatch);
+          b.classList.toggle("bg-primary/10", isMatch);
+          b.classList.toggle("text-primary", isMatch);
+          b.classList.toggle("text-slate-700", !isMatch);
+        });
+        applyFieldStyleToDOM("qrCode");
+      });
+    });
+
+    // Quick Center X button
+    quickCenterBtn?.addEventListener("click", () => {
+      const field = currentConfig.fields[activeFieldKey];
+      if (!field) return;
+      field.x = 50.0;
+      field.align = "center";
+      applyFieldStyleToDOM(activeFieldKey);
+      syncInspectorUI();
+    });
+
+    // Quick Center Y button
+    quickCenterYBtn?.addEventListener("click", () => {
+      const field = currentConfig.fields[activeFieldKey];
+      if (!field) return;
+      field.y = 50.0;
+      applyFieldStyleToDOM(activeFieldKey);
+      syncInspectorUI();
+    });
+
+    // Grid toggle button
+    toggleGridBtn?.addEventListener("click", () => {
+      isGridVisible = !isGridVisible;
+      renderArtboardGrid();
+    });
+
+    // Grid size select
+    gridSizeSelect?.addEventListener("change", (e) => {
+      currentGridType = e.target.value;
+      if (!isGridVisible) {
+        isGridVisible = true;
+      }
+      renderArtboardGrid();
+    });
+
+    // Magnet toggle button
+    toggleMagnetBtn?.addEventListener("click", () => {
+      isMagnetActive = !isMagnetActive;
+      updateMagnetBtnUI();
+    });
+
+    // Coordinates direct typing
+    document.getElementById("field-ctrl-x")?.addEventListener("change", (e) => {
+      const val = parseFloat(e.target.value);
+      if (isNaN(val) || !currentConfig.fields[activeFieldKey]) return;
+      currentConfig.fields[activeFieldKey].x = Math.max(0, Math.min(100, val));
+      applyFieldStyleToDOM(activeFieldKey);
+    });
+
+    document.getElementById("field-ctrl-y")?.addEventListener("change", (e) => {
+      const val = parseFloat(e.target.value);
+      if (isNaN(val) || !currentConfig.fields[activeFieldKey]) return;
+      currentConfig.fields[activeFieldKey].y = Math.max(0, Math.min(100, val));
+      applyFieldStyleToDOM(activeFieldKey);
+    });
+
+    // Keyboard Shortcuts & Arrow Nudge
+    window.addEventListener("keydown", (e) => {
+      if (overlay.hasAttribute("hidden") || !overlay.classList.contains("active")) return;
+
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      // Shortcut: G for Toggle Grid
+      if (e.key === "g" || e.key === "G") {
+        isGridVisible = !isGridVisible;
+        renderArtboardGrid();
+        return;
+      }
+
+      // Shortcut: M for Toggle Magnet
+      if (e.key === "m" || e.key === "M") {
+        isMagnetActive = !isMagnetActive;
+        updateMagnetBtnUI();
+        return;
+      }
+
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+        const field = currentConfig.fields[activeFieldKey];
+        if (!field) return;
+
+        e.preventDefault();
+        const step = e.shiftKey ? 2.0 : 0.5;
+
+        if (e.key === "ArrowLeft") {
+          field.x = Math.max(0, Math.min(100, Math.round((field.x - step) * 10) / 10));
+        } else if (e.key === "ArrowRight") {
+          field.x = Math.max(0, Math.min(100, Math.round((field.x + step) * 10) / 10));
+        } else if (e.key === "ArrowUp") {
+          field.y = Math.max(0, Math.min(100, Math.round((field.y - step) * 10) / 10));
+        } else if (e.key === "ArrowDown") {
+          field.y = Math.max(0, Math.min(100, Math.round((field.y + step) * 10) / 10));
+        }
+
+        applyFieldStyleToDOM(activeFieldKey);
+
+        const xInput = document.getElementById("field-ctrl-x");
+        const yInput = document.getElementById("field-ctrl-y");
+        if (xInput) xInput.value = field.x;
+        if (yInput) yInput.value = field.y;
+      }
+    });
+  }
+
+  // Open Designer Modal
+  openBtn.addEventListener("click", () => {
+    const certSelect = document.getElementById("cert-event-select");
+    if (!selectedCertEventId && certSelect && certSelect.value) {
+      selectedCertEventId = certSelect.value;
+    }
+    if (!selectedCertEventId) {
+      alert("Vui lòng chọn một sự kiện trước.");
+      return;
+    }
+
+    const event = currentEvents.find(ev => ev._id === selectedCertEventId || String(ev._id) === String(selectedCertEventId));
+    if (!event) {
+      alert("Không tìm thấy thông tin sự kiện.");
+      return;
+    }
+
+    // Load background image
+    const bgUrl = event.certificateBackground;
+    if (bgUrl && bgUrl.trim() !== "") {
+      bgImg.src = bgUrl;
+      bgImg.classList.remove("hidden");
+      noBgNotice.classList.add("hidden");
+    } else {
+      bgImg.src = "";
+      bgImg.classList.add("hidden");
+      noBgNotice.classList.remove("hidden");
+    }
+
+    // Load existing certificateConfig or fallback to DEFAULT_CERT_CONFIG
+    if (event.certificateConfig && event.certificateConfig.fields) {
+      currentConfig = {
+        isCustom: true,
+        fields: JSON.parse(JSON.stringify(event.certificateConfig.fields)),
+      };
+      // Ensure essential default fields exist if missing, and merge missing properties (e.g. newly added QR style/color properties)
+      Object.keys(DEFAULT_CERT_CONFIG.fields).forEach(k => {
+        if (!currentConfig.fields[k]) {
+          currentConfig.fields[k] = JSON.parse(JSON.stringify(DEFAULT_CERT_CONFIG.fields[k]));
+        } else {
+          currentConfig.fields[k] = {
+            ...JSON.parse(JSON.stringify(DEFAULT_CERT_CONFIG.fields[k])),
+            ...currentConfig.fields[k],
+          };
+        }
+      });
+    } else {
+      currentConfig = JSON.parse(JSON.stringify(DEFAULT_CERT_CONFIG));
+    }
+
+    activeFieldKey = "userName";
+    renderArtboardCustomFields();
+    renderLayersPanel();
+    applyAllFieldsToDOM();
+    syncInspectorUI();
+    renderArtboardGrid();
+    updateMagnetBtnUI();
+
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+
+    setTimeout(updateArtboardScale, 60);
+  });
+
+  // Close Modal
+  function closeModal() {
+    overlay.classList.remove("active");
+    setTimeout(() => overlay.setAttribute("hidden", ""), 300);
+    document.body.style.overflow = "";
+  }
+
+  closeBtn?.addEventListener("click", closeModal);
+  backdrop?.addEventListener("click", closeModal);
+
+  // Toggle Sample Data / Tokens
+  sampleBtn?.addEventListener("click", () => {
+    isSampleMode = !isSampleMode;
+    if (sampleBtnText) {
+      sampleBtnText.textContent = isSampleMode ? "Sample Student" : "Variable Tokens";
+    }
+    applyAllFieldsToDOM();
+  });
+
+  // Reset to default layout
+  resetBtn?.addEventListener("click", () => {
+    if (!confirm("Khôi phục vị trí các trường về mặc định của hệ thống?")) return;
+    currentConfig = JSON.parse(JSON.stringify(DEFAULT_CERT_CONFIG));
+    renderArtboardCustomFields();
+    renderLayersPanel();
+    activeFieldKey = "userName";
+    applyAllFieldsToDOM();
+    syncInspectorUI();
+  });
+
+  // Save Layout
+  saveBtn?.addEventListener("click", async () => {
+    if (!selectedCertEventId) return;
+
+    const origHTML = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Đang lưu...</span>`;
+
+    try {
+      const formData = new FormData();
+      formData.append("certificateConfig", JSON.stringify(currentConfig));
+
+      const res = await updateActivity(selectedCertEventId, formData);
+      const updatedEv = res.event || res.activity || {};
+
+      const idx = currentEvents.findIndex(ev => ev._id === selectedCertEventId);
+      if (idx !== -1) {
+        currentEvents[idx].certificateConfig = currentConfig;
+      }
+
+      alert("Lưu bố cục chứng chỉ Canva thành công!");
+      closeModal();
+    } catch (err) {
+      console.error("Save certificateConfig error:", err);
+      alert("Lưu bố cục thất bại: " + (err.message || "Unknown error"));
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = origHTML;
+    }
+  });
+
+  setupAllPointerDragging();
+  setupInspectorEvents();
 }
 
 function initCertEventSelect() {

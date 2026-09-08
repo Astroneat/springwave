@@ -1,7 +1,77 @@
 import "../../src/style.css";
+import QRCode from "qrcode";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
+import { API_BASE_URL, CDN_DOMAIN } from "../config.js";
 import { verifyCertificate } from "../api/certificates.js";
 import { initI18n, t, getLang, setLang, applyTranslation } from "../lib/i18n.js";
 import { formatDate, toTitleCase } from "../lib/utils.js";
+import { drawStyledQR } from "../lib/qr-styler.js";
+
+export function resolveMediaUrl(url) {
+  if (!url || typeof url !== "string") return "";
+  const trimmed = url.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("data:") || trimmed.startsWith("blob:")) {
+    return trimmed;
+  }
+  if (trimmed.startsWith("/uploads/")) {
+    return `${API_BASE_URL}${trimmed}`;
+  }
+  return `${CDN_DOMAIN}/${trimmed.replace(/^\/+/, "")}`;
+}
+
+async function loadCrossOriginImage(url) {
+  if (!url) return null;
+  const resolved = resolveMediaUrl(url);
+
+  // 1. Try fetch as blob -> ObjectURL (bypasses canvas tainting and CORS cache issues)
+  try {
+    const resp = await fetch(resolved, { mode: 'cors' });
+    if (resp.ok) {
+      const blob = await resp.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const img = new Image();
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = rej;
+        img.src = objectUrl;
+      });
+      return { img, objectUrl };
+    }
+  } catch (err) {
+    console.warn("fetch blob for background image failed, trying cache-busted Image:", err);
+  }
+
+  // 2. Try Image with crossOrigin = 'anonymous' and cache buster
+  try {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    const cacheBusted = resolved.includes('?') ? `${resolved}&_cb=${Date.now()}` : `${resolved}?_cb=${Date.now()}`;
+    await new Promise((res, rej) => {
+      img.onload = res;
+      img.onerror = rej;
+      img.src = cacheBusted;
+    });
+    return { img, objectUrl: null };
+  } catch (err) {
+    console.warn("Cache-busted Image load failed:", err);
+  }
+
+  // 3. Fallback: Image with crossOrigin without cache buster
+  try {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    await new Promise((res, rej) => {
+      img.onload = res;
+      img.onerror = rej;
+      img.src = resolved;
+    });
+    return { img, objectUrl: null };
+  } catch (err) {
+    console.error("All image load attempts failed for background:", err);
+    return null;
+  }
+}
 
 let currentCertData = null;
 let currentCertStatus = 'active';
@@ -40,6 +110,10 @@ function renderDynamicTexts() {
   const dateEl = document.getElementById("cert-date");
   if (dateEl) {
     dateEl.textContent = formatCertDate(eventDate, lang);
+  }
+  const customDateEl = document.getElementById("cert-custom-date");
+  if (customDateEl) {
+    customDateEl.textContent = formatCertDate(eventDate, lang);
   }
 
   // Revocation text
@@ -203,49 +277,175 @@ async function setupCertificateDOM(cert, status) {
   const certCode = cert.certificateCode || "SW-CODE";
   const bgUrl = cert.metadata?.customBackground || cert.event?.certificateBackground;
 
-  // 1. Populate fixed info
-  document.getElementById("cert-user-name").textContent = userName;
-  document.getElementById("cert-event-title").textContent = eventTitle;
-  document.getElementById("cert-issued-by-org").textContent = orgName;
-  document.getElementById("cert-code-text").textContent = certCode;
+  // 1. Check if Certificate has custom Canva config
+  const certConfig = cert.metadata?.certificateConfig || cert.event?.certificateConfig;
+  const isCustomCanva = certConfig && certConfig.isCustom && certConfig.fields;
 
-  // 2. Custom Background & Contrast Auto-Detection
   const certNode = document.getElementById("certificate-node");
   const watermark = document.getElementById("cert-watermark");
+  const classicDecorations = document.getElementById("cert-classic-decorations");
+  const classicBody = document.getElementById("cert-classic-body");
+  const customOverlay = document.getElementById("cert-custom-overlay");
 
-  if (bgUrl && bgUrl.trim() !== '') {
-    certNode.style.backgroundImage = `url('${bgUrl}')`;
-    certNode.style.backgroundColor = '#0f172a';
-    if (watermark) watermark.style.display = 'none';
+  if (isCustomCanva) {
+    // Hide classic elements
+    if (classicDecorations) classicDecorations.classList.add("hidden");
+    if (classicBody) classicBody.classList.add("hidden");
+    if (watermark) watermark.style.display = "none";
 
-    // Auto-detect dark or light background theme
-    const theme = await detectBackgroundTheme(bgUrl);
-    certNode.classList.remove('cert-theme-light', 'cert-theme-dark');
-    certNode.classList.add(`cert-theme-${theme}`);
-  } else {
-    certNode.style.backgroundImage = 'none';
-    certNode.style.backgroundColor = '#faf9f6';
-    if (watermark) watermark.style.display = 'flex';
-    certNode.classList.remove('cert-theme-light', 'cert-theme-dark');
-    certNode.classList.add('cert-theme-light');
-  }
-
-  // 3. Render QR Code
-  const qrContainer = document.getElementById("cert-qrcode-container");
-  if (qrContainer) {
-    qrContainer.innerHTML = "";
-    const verifyUrl = `${window.location.origin}/certificate.html?code=${encodeURIComponent(certCode)}`;
-    
-    if (typeof QRCode !== 'undefined' && QRCode.toCanvas) {
-      QRCode.toCanvas(verifyUrl, { width: 72, margin: 0 }, (err, canvas) => {
-        if (!err && canvas) qrContainer.appendChild(canvas);
-      });
+    // Set full-bleed background without outer border
+    certNode.style.border = "none";
+    certNode.style.padding = "0";
+    if (bgUrl && bgUrl.trim() !== "") {
+      const resolvedBg = resolveMediaUrl(bgUrl);
+      certNode.style.backgroundImage = `url('${resolvedBg}')`;
+      certNode.style.backgroundColor = "#0f172a";
     } else {
-      const qrImg = document.createElement("img");
-      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=${encodeURIComponent(verifyUrl)}`;
-      qrImg.alt = "QR Code";
-      qrImg.className = "w-full h-full object-contain";
-      qrContainer.appendChild(qrImg);
+      certNode.style.backgroundImage = "none";
+      certNode.style.backgroundColor = "#faf9f6";
+    }
+
+    // Render dynamic custom overlay fields
+    if (customOverlay) {
+      customOverlay.classList.remove("hidden");
+      customOverlay.innerHTML = "";
+
+      const verifyUrl = `${window.location.origin}/certificate.html?code=${encodeURIComponent(certCode)}`;
+
+      Object.entries(certConfig.fields).forEach(([key, field]) => {
+        if (!field || field.enabled === false) return;
+
+        const align = field.align || "center";
+        let translateX = "-50%";
+        if (align === "left") translateX = "0%";
+        else if (align === "right") translateX = "-100%";
+
+        const fieldWrapper = document.createElement("div");
+        fieldWrapper.className = "absolute";
+        fieldWrapper.style.left = `${field.x}%`;
+        fieldWrapper.style.top = `${field.y}%`;
+
+        if (key === "qrCode") {
+          const sz = field.size || 80;
+          fieldWrapper.style.width = `${sz}px`;
+          fieldWrapper.style.height = `${sz}px`;
+          fieldWrapper.style.transform = "translate(-50%, -50%)";
+          fieldWrapper.className += " flex items-center justify-center";
+
+          const qrCanvas = document.createElement("canvas");
+          fieldWrapper.appendChild(qrCanvas);
+
+          drawStyledQR(qrCanvas, verifyUrl, {
+            size: sz,
+            style: field.qrStyle || "standard",
+            frame: field.qrFrame || "box",
+            colorDark: field.qrColorDark || "#0f172a",
+            colorLight: field.qrColorLight || "#ffffff",
+            transparentBg: !!field.qrTransparentBg,
+            borderColor: field.qrBorderColor || "#cbd5e1",
+            borderWidth: field.qrBorderWidth || 1,
+            borderRadius: field.qrRadius || 8,
+          });
+        } else {
+          fieldWrapper.style.transform = `translate(${translateX}, -50%)`;
+          fieldWrapper.style.fontFamily = `'${field.fontFamily || "Playfair Display"}', sans-serif`;
+          fieldWrapper.style.fontSize = `${field.fontSize || 16}px`;
+          fieldWrapper.style.fontWeight = field.fontWeight || "700";
+          fieldWrapper.style.color = field.color || "#0f172a";
+          fieldWrapper.style.textAlign = align;
+          if (key === "userName" || key === "certCode" || key === "issueDate") {
+            fieldWrapper.style.whiteSpace = "nowrap";
+          } else {
+            fieldWrapper.style.whiteSpace = "pre-line";
+            fieldWrapper.style.wordBreak = "break-word";
+          }
+          fieldWrapper.style.maxWidth = "900px";
+
+          if (field.letterSpacing) {
+            fieldWrapper.style.letterSpacing = `${field.letterSpacing}px`;
+          }
+          if (field.uppercase) {
+            fieldWrapper.style.textTransform = "uppercase";
+          }
+
+          const eventDate = cert.metadata?.eventDate || cert.event?.heldDate || cert.createdAt;
+          const isCustomText = key.startsWith("custom") || field.isCustomText || field.type === "customText";
+
+          if (key === "userName") {
+            fieldWrapper.textContent = userName;
+          } else if (key === "certCode") {
+            fieldWrapper.textContent = certCode;
+            fieldWrapper.id = "cert-custom-code";
+          } else if (key === "issueDate") {
+            fieldWrapper.textContent = formatCertDate(eventDate, getLang());
+            fieldWrapper.id = "cert-custom-date";
+          } else if (key === "eventTitle") {
+            fieldWrapper.textContent = eventTitle;
+          } else if (isCustomText) {
+            let val = field.text || "";
+            val = val
+              .replace(/\{\{fullName\}\}/g, userName)
+              .replace(/\{\{eventTitle\}\}/g, eventTitle)
+              .replace(/\{\{issueDate\}\}/g, formatCertDate(eventDate, getLang()))
+              .replace(/\{\{certificateCode\}\}/g, certCode);
+            fieldWrapper.textContent = val;
+          }
+        }
+
+        customOverlay.appendChild(fieldWrapper);
+      });
+    }
+  } else {
+    // Classic legacy layout
+    if (classicDecorations) classicDecorations.classList.remove("hidden");
+    if (classicBody) classicBody.classList.remove("hidden");
+    if (customOverlay) customOverlay.classList.add("hidden");
+
+    certNode.style.border = "16px solid #0f172a";
+    certNode.style.padding = "3.5rem";
+
+    // 1. Populate fixed info
+    document.getElementById("cert-user-name").textContent = userName;
+    document.getElementById("cert-event-title").textContent = eventTitle;
+    document.getElementById("cert-issued-by-org").textContent = orgName;
+    document.getElementById("cert-code-text").textContent = certCode;
+
+    // 2. Custom Background & Contrast Auto-Detection
+    if (bgUrl && bgUrl.trim() !== '') {
+      certNode.style.backgroundImage = `url('${bgUrl}')`;
+      certNode.style.backgroundColor = '#0f172a';
+      if (watermark) watermark.style.display = 'none';
+
+      // Auto-detect dark or light background theme
+      const theme = await detectBackgroundTheme(bgUrl);
+      certNode.classList.remove('cert-theme-light', 'cert-theme-dark');
+      certNode.classList.add(`cert-theme-${theme}`);
+    } else {
+      certNode.style.backgroundImage = 'none';
+      certNode.style.backgroundColor = '#faf9f6';
+      if (watermark) watermark.style.display = 'flex';
+      certNode.classList.remove('cert-theme-light', 'cert-theme-dark');
+      certNode.classList.add('cert-theme-light');
+    }
+
+    // 3. Render QR Code
+    const qrContainer = document.getElementById("cert-qrcode-container");
+    if (qrContainer) {
+      qrContainer.innerHTML = "";
+      const verifyUrl = `${window.location.origin}/certificate.html?code=${encodeURIComponent(certCode)}`;
+      
+      const qrcodeLib = (QRCode && QRCode.toCanvas) ? QRCode : ((QRCode && QRCode.default) ? QRCode.default : (typeof window !== 'undefined' ? window.QRCode : null));
+      if (qrcodeLib && typeof qrcodeLib.toCanvas === 'function') {
+        qrcodeLib.toCanvas(verifyUrl, { width: 72, margin: 0 }, (err, canvas) => {
+          if (!err && canvas) qrContainer.appendChild(canvas);
+        });
+      } else {
+        const qrImg = document.createElement("img");
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=${encodeURIComponent(verifyUrl)}`;
+        qrImg.alt = "QR Code";
+        qrImg.className = "w-full h-full object-contain";
+        qrContainer.appendChild(qrImg);
+      }
     }
   }
 
@@ -272,39 +472,7 @@ async function setupCertificateDOM(cert, status) {
   }
 }
 
-// Safe CDN / Window Loader for html-to-image & jsPDF
-function loadExternalScript(src) {
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${src}"]`);
-    if (existing) {
-      if (existing.dataset.loaded === 'true' || window.htmlToImage || window.jspdf) return resolve();
-      existing.addEventListener('load', () => resolve());
-      existing.addEventListener('error', (e) => reject(e));
-      return;
-    }
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    s.onload = () => {
-      s.dataset.loaded = 'true';
-      resolve();
-    };
-    s.onerror = (err) => reject(err);
-    document.head.appendChild(s);
-  });
-}
 
-async function getHtmlToImage() {
-  if (window.htmlToImage) return window.htmlToImage;
-  await loadExternalScript("https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js");
-  return window.htmlToImage;
-}
-
-async function getJsPDF() {
-  if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
-  await loadExternalScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
-  return window.jspdf?.jsPDF;
-}
 
 function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
   let rot = Math.PI / 2 * 3;
@@ -348,23 +516,132 @@ async function drawCertificateDirectToCanvas(cert, certNode) {
   const bgUrl = cert.metadata?.customBackground || cert.event?.certificateBackground;
 
   // 1. Draw Background
-  if (bgUrl) {
-    try {
-      const bgImg = new Image();
-      bgImg.crossOrigin = "anonymous";
-      await new Promise((res, rej) => {
-        bgImg.onload = res;
-        bgImg.onerror = rej;
-        bgImg.src = bgUrl;
-      });
-      ctx.drawImage(bgImg, 0, 0, width, height);
-    } catch {
+  const rawBgUrl = cert.metadata?.customBackground || cert.event?.certificateBackground;
+  if (rawBgUrl && rawBgUrl.trim() !== "") {
+    const bgResult = await loadCrossOriginImage(rawBgUrl);
+    if (bgResult && bgResult.img) {
+      try {
+        ctx.drawImage(bgResult.img, 0, 0, width, height);
+      } catch (err) {
+        console.warn("ctx.drawImage background error:", err);
+        ctx.fillStyle = isDark ? "#0f172a" : "#faf9f6";
+        ctx.fillRect(0, 0, width, height);
+      } finally {
+        if (bgResult.objectUrl) URL.revokeObjectURL(bgResult.objectUrl);
+      }
+    } else {
       ctx.fillStyle = isDark ? "#0f172a" : "#faf9f6";
       ctx.fillRect(0, 0, width, height);
     }
   } else {
     ctx.fillStyle = "#faf9f6";
     ctx.fillRect(0, 0, width, height);
+  }
+
+  // Handle Custom Canva Template in Direct Canvas 2D Vector Renderer
+  const certConfig = cert.metadata?.certificateConfig || cert.event?.certificateConfig;
+  const isCustomCanva = certConfig && certConfig.isCustom && certConfig.fields;
+
+  if (isCustomCanva) {
+    const isRevoked = currentCertStatus === 'revoked' || cert.status === 'revoked';
+    const userName = toTitleCase(cert.metadata?.userName || cert.user?.fullname || "Attendee");
+    const eventTitle = cert.metadata?.eventTitle || cert.event?.title || "Event / Activity";
+    const certCode = cert.certificateCode || "SW";
+    const eventDate = cert.metadata?.eventDate || cert.event?.heldDate || cert.createdAt;
+    const lang = getLang();
+
+    for (const [key, field] of Object.entries(certConfig.fields)) {
+      if (!field || field.enabled === false) continue;
+
+      const px = (field.x / 100) * width;
+      const py = (field.y / 100) * height;
+
+      if (key === "qrCode") {
+        const sz = field.size || 80;
+        const qrCanvas = document.createElement("canvas");
+        const verifyUrl = `${window.location.origin}/certificate.html?code=${encodeURIComponent(certCode)}`;
+        drawStyledQR(qrCanvas, verifyUrl, {
+          size: sz,
+          style: field.qrStyle || "standard",
+          frame: field.qrFrame || "box",
+          colorDark: field.qrColorDark || "#0f172a",
+          colorLight: field.qrColorLight || "#ffffff",
+          transparentBg: !!field.qrTransparentBg,
+          borderColor: field.qrBorderColor || "#cbd5e1",
+          borderWidth: field.qrBorderWidth || 1,
+          borderRadius: field.qrRadius || 8,
+        });
+        ctx.drawImage(qrCanvas, px - sz / 2, py - sz / 2, sz, sz);
+      } else {
+        const isCustomText = key.startsWith("custom") || field.isCustomText || field.type === "customText";
+        let text = "";
+        if (key === "userName") text = userName;
+        else if (key === "certCode") text = certCode;
+        else if (key === "issueDate") text = formatCertDate(eventDate, lang);
+        else if (key === "eventTitle") text = eventTitle;
+        else if (isCustomText) {
+          text = (field.text || "")
+            .replace(/\{\{fullName\}\}/g, userName)
+            .replace(/\{\{eventTitle\}\}/g, eventTitle)
+            .replace(/\{\{issueDate\}\}/g, formatCertDate(eventDate, lang))
+            .replace(/\{\{certificateCode\}\}/g, certCode);
+        }
+
+        if (field.uppercase && text) {
+          text = text.toUpperCase();
+        }
+
+        if (text) {
+          const family = field.fontFamily || "Playfair Display";
+          let fallback = "sans-serif";
+          if (family === "Playfair Display" || family === "Cinzel") fallback = "Georgia, serif";
+          else if (family === "Great Vibes") fallback = "cursive";
+
+          ctx.font = `${field.fontWeight || "700"} ${field.fontSize || 16}px "${family}", ${fallback}`;
+          ctx.fillStyle = field.color || "#0f172a";
+          ctx.textAlign = field.align || "center";
+          ctx.textBaseline = "middle";
+
+          if (field.letterSpacing && ctx.letterSpacing !== undefined) {
+            ctx.letterSpacing = `${field.letterSpacing}px`;
+          }
+
+          if (typeof text === "string" && text.includes("\n")) {
+            const lines = text.split("\n");
+            const fs = field.fontSize || 16;
+            const lineHeight = fs * 1.35;
+            const totalHeight = (lines.length - 1) * lineHeight;
+            const startY = py - totalHeight / 2;
+            lines.forEach((line, idx) => {
+              ctx.fillText(line, px, startY + idx * lineHeight);
+            });
+          } else {
+            ctx.fillText(text, px, py);
+          }
+
+          if (ctx.letterSpacing !== undefined) {
+            ctx.letterSpacing = "0px";
+          }
+        }
+      }
+    }
+
+    if (isRevoked) {
+      ctx.save();
+      ctx.translate(width / 2, height / 2);
+      ctx.rotate(-12 * Math.PI / 180);
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = "rgba(220, 38, 38, 0.9)";
+      ctx.strokeRect(-250, -45, 500, 90);
+      ctx.font = "bold 44px 'Playfair Display', serif";
+      ctx.fillStyle = "rgba(220, 38, 38, 0.95)";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("REVOKED / ĐÃ THU HỒI", 0, 0);
+      ctx.restore();
+    }
+
+    return canvas;
   }
 
   // Scrim on dark theme
@@ -513,7 +790,12 @@ async function drawCertificateDirectToCanvas(cert, certNode) {
   ctx.fillRect(60, 680, width - 120, 1);
 
   // 9. Footer Left: QR Code & Code Text
-  const qrCanvas = document.querySelector("#cert-qrcode-container canvas");
+  const verifyUrl = `${window.location.origin}/certificate.html?code=${encodeURIComponent(certCode)}`;
+  let qrCanvas = document.querySelector("#cert-qrcode-container canvas");
+  if (!qrCanvas) {
+    qrCanvas = document.createElement("canvas");
+    drawStyledQR(qrCanvas, verifyUrl, { size: 72, style: "standard", frame: "none" });
+  }
   if (qrCanvas) {
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
@@ -612,26 +894,41 @@ async function drawCertificateDirectToCanvas(cert, certNode) {
 }
 
 async function renderCertificateToCanvas(certNode) {
-  await document.fonts.ready;
-
-  // 1. Try html-to-image (modern SVG DOM rasterizer with full oklab/CSS support)
   try {
-    const htmlToImage = await getHtmlToImage();
-    if (htmlToImage && htmlToImage.toCanvas) {
-      const canvas = await htmlToImage.toCanvas(certNode, {
-        pixelRatio: 3,
-        backgroundColor: '#faf9f6',
-        cacheBust: true,
-      });
+    await document.fonts.ready;
+  } catch (e) {
+    console.warn("document.fonts.ready error:", e);
+  }
+
+  // 1. Direct Canvas 2D Vector Renderer (100% reliable, zero network/parser dependency, 300 DPI)
+  try {
+    if (currentCertData) {
+      const canvas = await drawCertificateDirectToCanvas(currentCertData, certNode);
       if (canvas && canvas.width > 0) {
         return canvas;
       }
     }
   } catch (err) {
-    console.warn("htmlToImage failed, falling back to direct Canvas 2D vector renderer:", err);
+    console.warn("Direct Canvas 2D render failed, falling back to html2canvas:", err);
   }
 
-  // 2. Direct Canvas 2D Vector Renderer (100% reliable, zero network/parser dependency)
+  // 2. Secondary fallback: html2canvas (bundled npm package)
+  try {
+    const canvas = await html2canvas(certNode, {
+      scale: 3,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#faf9f6",
+      logging: false,
+    });
+    if (canvas && canvas.width > 0) {
+      return canvas;
+    }
+  } catch (err) {
+    console.warn("html2canvas fallback failed:", err);
+  }
+
+  // Final fallback
   return drawCertificateDirectToCanvas(currentCertData, certNode);
 }
 
@@ -693,11 +990,8 @@ function initActionButtons() {
       const canvas = await renderCertificateToCanvas(certNode);
       const imgData = canvas.toDataURL("image/jpeg", 0.95);
 
-      const jsPDFClass = await getJsPDF();
-      if (!jsPDFClass) throw new Error("Could not load jsPDF library");
-
       // Initialize A4 Landscape PDF (297 x 210 mm)
-      const doc = new jsPDFClass({
+      const doc = new jsPDF({
         orientation: "landscape",
         unit: "mm",
         format: "a4",
