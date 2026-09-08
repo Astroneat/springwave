@@ -36,644 +36,306 @@
     </span>
   </div>
 
-  <!-- HERO -->
-  <!-- HERO -->
-  <section class="figma-hero" id="hero" data-node-id="1:4" data-name="homepage">
-    <img src="/assets/images/hero-bg.png" alt="Scenery Background" class="figma-hero-bg" data-node-id="3:2" fetchpriority="high" loading="eager" decoding="async" />
+  <!-- 1. HERO SECTION -->
+  <section class="hero-redesign" id="hero">
+    <div class="hero-redesign-pattern" aria-hidden="true"></div>
+    <div class="hero-redesign-glow" aria-hidden="true"></div>
     
-    <div class="figma-hero-content">
-      <h1 class="figma-hero-title">
-        <div class="figma-hero-title-row">
-          <span data-i18n="index.hero_title_prefix">Discover</span>
-          <span class="rotating-word-container">
-            <span class="rotating-word active font-seminar" data-i18n="index.widget_seminar_plural">Seminars</span>
-            <span class="rotating-word font-workshop" data-i18n="index.widget_workshop_plural">Workshops</span>
-            <span class="rotating-word font-sport" data-i18n="index.widget_sport_plural">Sports</span>
-            <span class="rotating-word font-community" data-i18n="index.widget_community_plural">Communities</span>
-            <span class="rotating-word font-opportunity" data-i18n="index.widget_opportunity_plural">Opportunities</span>
-          </span>
-        </div>
-        <div class="figma-hero-title-suffix-row" data-i18n="index.hero_title_suffix">
-          that match your interest
-        </div>
+    <div class="hero-redesign-content">
+      <div class="hero-badge-pill reveal">
+        <span class="material-symbols-outlined text-sm text-blue-400">verified</span>
+        <span data-i18n="index.hero_badge">Cổng sự kiện & Phát triển sinh viên toàn diện</span>
+      </div>
+
+      <h1 class="hero-redesign-title reveal">
+        <span data-i18n="index.hero_main_heading">Khám phá sự kiện, kết nối CLB & tích lũy chứng chỉ số</span>
       </h1>
-      
-      <div class="hero-actions">
-        <a href="./explore.html" class="figma-explore-btn" data-node-id="12:52">
-          <img src="/assets/images/icon-rocket.svg" alt="Rocket Icon" data-node-id="14:4" />
-          <span data-i18n="index.hero_figma_explore" data-node-id="11:43">Let’s explore</span>
+
+      <p class="hero-redesign-desc reveal" data-i18n="index.hero_main_desc">
+        Tổng hợp workshop, hackathon, hoạt động tình nguyện từ các trường ĐH và câu lạc bộ. Đăng ký vé QR, điểm danh tự động và xây dựng hồ sơ rèn luyện chuẩn hóa.
+      </p>
+
+      <div class="hero-actions-row reveal">
+        <a href="./explore.html" class="hero-btn-primary">
+          <span class="material-symbols-outlined text-lg">explore</span>
+          <span data-i18n="index.hero_cta_explore">Khám phá sự kiện</span>
         </a>
-        <a href="./quiz.html" class="hero-quiz-btn">
+        <a href="./quiz.html" class="hero-btn-secondary">
           <span class="material-symbols-outlined text-lg">psychology</span>
-          <span data-i18n="index.hero_take_quiz">Take AI Quiz</span>
+          <span data-i18n="index.hero_cta_quiz">Làm bài Quiz AI</span>
         </a>
       </div>
-    </div>
-  </section>
 
-  <!-- 1. THE SPRINGWAVE JOURNEY -->
-  <section class="journey-section content-visibility-auto section-rhythm-generous bg-white border-t border-slate-200/60" id="core-pillars">
-    <div class="landing-container">
-      <div class="journey-header text-center max-w-3xl mx-auto mb-12 reveal">
-        <h2 class="journey-heading sw-section-title" data-i18n="index.pillars_heading">Discover. Connect. Grow.</h2>
-        <p class="journey-subtext sw-section-subtitle" data-i18n="index.pillars_desc">Four simple ways SpringWave helps you make the most of your student life.</p>
-      </div>
-
-      <div class="journey-wrapper reveal">
-        <div class="journey-connecting-line"></div>
-        
-        <div class="journey-grid">
-          <!-- Step 1: Discover -->
-          <a href="/quiz.html" class="journey-item discover">
-            <div class="journey-number-wrap">
-              <span class="journey-number">01</span>
-            </div>
-            <span class="journey-item-eyebrow" data-i18n="index.pillar1_eyebrow">DISCOVER</span>
-            <h3 class="journey-item-title" data-i18n="index.pillar1_title">Understand yourself</h3>
-            <p class="journey-item-desc" data-i18n="index.pillar1_desc">Discover your interests, strengths, and goals with an AI-powered profile.</p>
-            
-            <!-- Miniature UI Detail -->
-            <div class="journey-visual">
-              <div class="mini-profile-preview">
-                <div class="item"><span class="dot"></span><span data-i18n="index.pillar1_preview_1">Interests: Coding, Design</span></div>
-                <div class="item"><span class="dot"></span><span data-i18n="index.pillar1_preview_2">Goals: Hackathons, PM</span></div>
-              </div>
-            </div>
-
-            <div class="journey-item-cta">
-              <span data-i18n="index.pillar_cta1">Take the quiz</span>
-              <span class="arrow">&rarr;</span>
-            </div>
-          </a>
-
-          <!-- Step 2: Explore -->
-          <a href="/explore.html" class="journey-item explore">
-            <div class="journey-number-wrap">
-              <span class="journey-number">02</span>
-            </div>
-            <span class="journey-item-eyebrow" data-i18n="index.pillar2_eyebrow">EXPLORE</span>
-            <h3 class="journey-item-title" data-i18n="index.pillar2_title">Find your opportunities</h3>
-            <p class="journey-item-desc" data-i18n="index.pillar2_desc">Discover activities, competitions, workshops, and events that match your interests.</p>
-            
-            <!-- Miniature UI Detail -->
-            <div class="journey-visual">
-              <div class="mini-explore-preview">
-                <span data-i18n="index.pillar2_tag1">Technology</span>
-                <span data-i18n="index.pillar2_tag2">Workshop</span>
-                <span data-i18n="index.pillar2_tag3">Hackathon</span>
-              </div>
-            </div>
-
-            <div class="journey-item-cta">
-              <span data-i18n="index.pillar_cta2">Explore</span>
-              <span class="arrow">&rarr;</span>
-            </div>
-          </a>
-
-          <!-- Step 3: Connect -->
-          <a href="/community.html" class="journey-item connect">
-            <div class="journey-number-wrap">
-              <span class="journey-number">03</span>
-            </div>
-            <span class="journey-item-eyebrow" data-i18n="index.pillar3_eyebrow">CONNECT</span>
-            <h3 class="journey-item-title" data-i18n="index.pillar3_title">Meet your community</h3>
-            <p class="journey-item-desc" data-i18n="index.pillar3_desc">Join discussions, find teammates, and share useful resources with other students.</p>
-            
-            <!-- Miniature UI Detail -->
-            <div class="journey-visual">
-              <div class="mini-connect-preview">
-                <div class="mini-connect-avatars">
-                  <div class="circle"></div>
-                  <div class="circle"></div>
-                  <div class="circle"></div>
-                </div>
-                <span class="mini-connect-bubble" data-i18n="index.pillar3_bubble">Teammates Found!</span>
-              </div>
-            </div>
-
-            <div class="journey-item-cta">
-              <span data-i18n="index.pillar_cta3">Community</span>
-              <span class="arrow">&rarr;</span>
-            </div>
-          </a>
-
-          <!-- Step 4: Grow -->
-          <a href="/profile.html#badges-section" class="journey-item grow">
-            <div class="journey-number-wrap">
-              <span class="journey-number">04</span>
-            </div>
-            <span class="journey-item-eyebrow" data-i18n="index.pillar4_eyebrow">GROW</span>
-            <h3 class="journey-item-title" data-i18n="index.pillar4_title">Build your journey</h3>
-            <p class="journey-item-desc" data-i18n="index.pillar4_desc">Earn XP, unlock badges, and make your progress visible.</p>
-            
-            <!-- Miniature UI Detail -->
-            <div class="journey-visual">
-              <div class="mini-grow-preview">
-                <div class="mini-grow-header">
-                  <span data-i18n="index.pillar4_level">LEVEL 04</span>
-                  <span>+120 XP</span>
-                </div>
-                <div class="mini-grow-track">
-                  <div class="mini-grow-fill"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="journey-item-cta">
-              <span data-i18n="index.pillar_cta4">View profile</span>
-              <span class="arrow">&rarr;</span>
-            </div>
-          </a>
+      <!-- Live Event Ticker Strip -->
+      <div class="live-ticker-strip reveal" id="live-ticker-bar">
+        <div class="ticker-badge-wrap">
+          <span class="ticker-pulse-dot"></span>
+          <span data-i18n="index.live_ticker_label">ĐANG DIỄN RA & SẮP TỚI</span>
+        </div>
+        <div class="ticker-track-container">
+          <div class="ticker-track" id="live-ticker-track">
+            <span class="ticker-item" data-i18n="index.live_ticker_empty">Đang đồng bộ sự kiện mới nhất từ hệ thống...</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 2. QUICKSTART EXPLORER SECTION -->
-  <section class="quickstart-section content-visibility-auto section-rhythm-compact bg-[#f8fafc] border-t border-slate-200/60" id="quickstart">
+  <!-- 2. PLATFORM TRUST & REAL STATS BAR -->
+  <section class="stats-bar-section content-visibility-auto" id="stats-bar">
+    <div class="landing-container">
+      <div class="stats-bar-grid reveal">
+        <!-- Stat 1: Total Events -->
+        <div class="stat-card">
+          <div class="stat-icon-wrap" style="background: #e0f2fe; color: #0284c7;">
+            <span class="material-symbols-outlined">event_available</span>
+          </div>
+          <div>
+            <div class="stat-number" id="stat-events-val">--</div>
+            <div class="stat-label" data-i18n="index.stat_events_label">Sự kiện ngoại khóa</div>
+          </div>
+        </div>
+        <!-- Stat 2: Clubs & Organizers -->
+        <div class="stat-card">
+          <div class="stat-icon-wrap" style="background: #f5f3ff; color: #7c3aed;">
+            <span class="material-symbols-outlined">groups</span>
+          </div>
+          <div>
+            <div class="stat-number" id="stat-clubs-val">--</div>
+            <div class="stat-label" data-i18n="index.stat_clubs_label">CLB & Ban tổ chức</div>
+          </div>
+        </div>
+        <!-- Stat 3: Student Participations -->
+        <div class="stat-card">
+          <div class="stat-icon-wrap" style="background: #ecfdf5; color: #059669;">
+            <span class="material-symbols-outlined">school</span>
+          </div>
+          <div>
+            <div class="stat-number" id="stat-students-val">--</div>
+            <div class="stat-label" data-i18n="index.stat_students_label">Lượt sinh viên tham gia</div>
+          </div>
+        </div>
+        <!-- Stat 4: Partner Universities -->
+        <div class="stat-card">
+          <div class="stat-icon-wrap" style="background: #fff7ed; color: #ea580c;">
+            <span class="material-symbols-outlined">account_balance</span>
+          </div>
+          <div>
+            <div class="stat-number" id="stat-universities-val">--</div>
+            <div class="stat-label" data-i18n="index.stat_universities_label">Trường ĐH liên kết</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. REAL EVENT HUB (Sự kiện đã & đang diễn ra) -->
+  <section class="event-hub-section content-visibility-auto" id="event-hub">
     <div class="landing-container">
       <div class="text-center max-w-3xl mx-auto mb-10 reveal">
-        <h2 class="sw-section-title">Jump Straight Into What You Need</h2>
-        <p class="sw-section-subtitle">Choose your focus — discover workshops, take your AI strengths quiz, or connect with peers.</p>
+        <div class="sw-eyebrow" data-i18n="index.events_badge">SỰ KIỆN NỔI BẬT</div>
+        <h2 class="sw-section-title text-2xl md:text-4xl font-extrabold text-slate-900 mb-4" data-i18n="index.events_title">
+          Sự kiện sinh viên đang diễn ra & sắp tới
+        </h2>
+        <p class="sw-section-subtitle text-slate-600 text-sm md:text-base leading-relaxed" data-i18n="index.events_desc">
+          Khám phá các hoạt động ngoại khóa, workshop và cuộc thi được tổ chức bởi các CLB uy tín. Đăng ký nhận vé QR tham dự ngay.
+        </p>
       </div>
 
-      <div class="quickstart-grid reveal">
-        <!-- Card 1: AI Quiz -->
-        <a href="/quiz.html" class="quickstart-card group">
-          <div class="quickstart-icon-wrap">
-            <span class="material-symbols-outlined text-xl">psychology</span>
-          </div>
-          <h3 class="quickstart-title">AI Strengths Quiz</h3>
-          <p class="quickstart-desc">Take the 2-minute strengths assessment to receive personalized event recommendations matched to your career path.</p>
-          <div class="quickstart-action">
-            <span>Start Assessment</span>
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </div>
-        </a>
+      <!-- Event Tabs Navigation -->
+      <div class="event-tabs-bar reveal">
+        <button class="event-tab-btn active" data-tab="upcoming">
+          <span class="material-symbols-outlined text-base">upcoming</span>
+          <span data-i18n="index.tab_upcoming">Đang mở đăng ký</span>
+        </button>
+        <button class="event-tab-btn" data-tab="ongoing">
+          <span class="material-symbols-outlined text-base">play_circle</span>
+          <span data-i18n="index.tab_ongoing">Đang diễn ra</span>
+        </button>
+        <button class="event-tab-btn" data-tab="past">
+          <span class="material-symbols-outlined text-base">task_alt</span>
+          <span data-i18n="index.tab_past">Đã kết thúc & Vinh danh</span>
+        </button>
+      </div>
 
-        <!-- Card 2: Workshops & Hackathons -->
-        <a href="/explore.html?category=workshop" class="quickstart-card group">
-          <div class="quickstart-icon-wrap" style="color: #0284c7; background: #e0f2fe;">
-            <span class="material-symbols-outlined text-xl">terminal</span>
-          </div>
-          <h3 class="quickstart-title">Workshops & Hackathons</h3>
-          <p class="quickstart-desc">Browse software engineering hackathons, UI/UX sprints, and technical masterclasses across top partner universities.</p>
-          <div class="quickstart-action" style="color: #0284c7;">
-            <span>Browse Tech Events</span>
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </div>
-        </a>
+      <!-- Event Cards Grid Container -->
+      <div class="event-hub-grid reveal" id="event-hub-container">
+        <!-- Dynamically rendered via js/pages/index.js -->
+        <div class="event-empty-box">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent mb-3"></div>
+          <p class="text-slate-500 text-sm">Đang tải danh sách sự kiện...</p>
+        </div>
+      </div>
 
-        <!-- Card 3: Student Community -->
-        <a href="/community.html" class="quickstart-card group">
-          <div class="quickstart-icon-wrap" style="color: #7c3aed; background: #f5f3ff;">
-            <span class="material-symbols-outlined text-xl">forum</span>
-          </div>
-          <h3 class="quickstart-title">Cross-Campus Forum</h3>
-          <p class="quickstart-desc">Connect with peers, find hackathon teammates, ask questions, and share study tips with students from other faculties.</p>
-          <div class="quickstart-action" style="color: #7c3aed;">
-            <span>Join Discussions</span>
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </div>
-        </a>
-
-        <!-- Card 4: Verified Portfolio & Certificates -->
-        <a href="/profile.html" class="quickstart-card group">
-          <div class="quickstart-icon-wrap" style="color: #059669; background: #ecfdf5;">
-            <span class="material-symbols-outlined text-xl">workspace_premium</span>
-          </div>
-          <h3 class="quickstart-title">Verified Portfolio</h3>
-          <p class="quickstart-desc">Accumulate XP, unlock 16 badges, and download verifiable activity certificates directly to your LinkedIn & resume.</p>
-          <div class="quickstart-action" style="color: #059669;">
-            <span>View My Profile</span>
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </div>
+      <!-- View All Events Footer Action -->
+      <div class="text-center reveal">
+        <a href="/explore.html" class="inline-flex items-center gap-2 px-7 py-3 rounded-full font-bold text-sm text-white bg-[#1755ba] hover:bg-[#124193] transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5">
+          <span data-i18n="index.view_all_events">Xem tất cả sự kiện</span>
+          <span class="material-symbols-outlined text-base">arrow_forward</span>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- 3. HOW IT WORKS -->
-  <section class="sw-section-normal content-visibility-auto section-rhythm-generous bg-white border-t border-slate-200/60" id="how-it-works">
+  <!-- 4. BỘ 3 GIÁ TRỊ THỰC CHẤT (THREE PILLARS) -->
+  <section class="three-pillars-section content-visibility-auto" id="three-pillars">
     <div class="landing-container">
       <div class="text-center max-w-3xl mx-auto mb-12 reveal">
-        <h2 class="sw-section-title" data-i18n="index.how_heading">Three Steps to Your Growth Journey</h2>
-        <p class="sw-section-subtitle" data-i18n="index.how_desc">SpringWave's AI engine analyzes your profile and creates a personalized path toward your goals.</p>
+        <div class="sw-eyebrow" data-i18n="index.pillars_badge">BỘ 3 GIÁ TRỊ THỰC CHẤT</div>
+        <h2 class="sw-section-title text-2xl md:text-4xl font-extrabold text-slate-900 mb-4" data-i18n="index.pillars_main_title">
+          Nền tảng ngoại khóa chuẩn hóa cho sinh viên & CLB
+        </h2>
+        <p class="sw-section-subtitle text-slate-600 text-sm md:text-base leading-relaxed" data-i18n="index.pillars_main_desc">
+          Không khẩu hiệu sáo rỗng, SpringWave giải quyết trọn vẹn 3 nhu cầu thực tế nhất của đời sống sinh viên.
+        </p>
+      </div>
+
+      <div class="pillars-grid reveal">
+        <!-- Pillar 1: Dữ liệu sự kiện tập trung -->
+        <div class="pillar-card">
+          <div class="pillar-icon-box" style="background: #e0f2fe; color: #0284c7;">
+            <span class="material-symbols-outlined">event_note</span>
+          </div>
+          <h3 class="pillar-title" data-i18n="index.pillar1_name">Dữ liệu sự kiện tập trung</h3>
+          <p class="pillar-desc" data-i18n="index.pillar1_text">
+            Không còn cảnh theo dõi rời rạc hàng chục fanpage Facebook hay group chat. Toàn bộ workshop, hackathon, talkshow và hoạt động tình nguyện từ các trường ĐH được chọn lọc, cập nhật hạn đăng ký và phân loại minh bạch.
+          </p>
+          <div class="pillar-proof-wrap">
+            <div class="flex flex-wrap gap-1.5 text-xs">
+              <a href="/explore.html?type=Workshop" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 font-semibold text-slate-700 transition-colors">Workshop</a>
+              <a href="/explore.html?type=Hackathon" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 font-semibold text-slate-700 transition-colors">Hackathon</a>
+              <a href="/explore.html?type=Competition" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 font-semibold text-slate-700 transition-colors">Cuộc thi</a>
+              <a href="/explore.html?type=Volunteer" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 font-semibold text-slate-700 transition-colors">Tình nguyện</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 2: Kết nối CLB & Đồng đội -->
+        <div class="pillar-card">
+          <div class="pillar-icon-box" style="background: #f5f3ff; color: #7c3aed;">
+            <span class="material-symbols-outlined">groups</span>
+          </div>
+          <h3 class="pillar-title" data-i18n="index.pillar2_name">Kết nối CLB & Đồng đội</h3>
+          <p class="pillar-desc" data-i18n="index.pillar2_text">
+            Không gian kết nối đa trường. Dễ dàng tìm bạn đồng hành có cùng chuyên môn để lập đội thi Hackathon, NCKH, hoặc khám phá và gia nhập câu lạc bộ phù hợp với đam mê và định hướng nghề nghiệp.
+          </p>
+          <div class="pillar-proof-wrap">
+            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">CLB & Ban tổ chức đồng hành:</div>
+            <div class="org-logo-strip" id="org-logo-strip">
+              <!-- Rendered dynamically from /organizations -->
+              <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
+              <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
+              <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 3: Quản lý con người & Vận hành -->
+        <div class="pillar-card">
+          <div class="pillar-icon-box" style="background: #ecfdf5; color: #059669;">
+            <span class="material-symbols-outlined">verified_user</span>
+          </div>
+          <h3 class="pillar-title" data-i18n="index.pillar3_name">Quản lý con người & Vận hành</h3>
+          <p class="pillar-desc" data-i18n="index.pillar3_text">
+            Giải pháp toàn diện cho CLB và người tham gia: Vé điện tử QR cá nhân hóa, điểm danh 1 chạm tại cổng, theo dõi danh sách tham dự theo thời gian thực và tự động xuất chứng chỉ số chống giả mạo.
+          </p>
+          <div class="pillar-proof-wrap">
+            <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 border border-slate-200/70">
+              <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-base">qr_code_scanner</span>
+              </div>
+              <div class="text-xs">
+                <div class="font-bold text-slate-800">Điểm danh QR & Chứng chỉ số</div>
+                <div class="text-[11px] text-slate-500">Minh chứng tính Điểm Rèn Luyện (ĐRL)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. HOW IT WORKS (3 Simple Steps) -->
+  <section class="sw-section-normal content-visibility-auto section-rhythm-generous bg-white" id="how-it-works">
+    <div class="landing-container">
+      <div class="text-center max-w-3xl mx-auto mb-12 reveal">
+        <div class="sw-eyebrow" data-i18n="index.how_title">Cách hoạt động</div>
+        <h2 class="sw-section-title text-2xl md:text-4xl font-extrabold text-slate-900 mb-4" data-i18n="index.how_heading">
+          Ba bước bắt đầu hành trình của bạn
+        </h2>
+        <p class="sw-section-subtitle text-slate-600 text-sm md:text-base leading-relaxed" data-i18n="index.how_desc">
+          SpringWave phân tích sở thích và gợi ý lộ trình tham gia sự kiện chuẩn hóa hướng tới mục tiêu phát triển của bạn.
+        </p>
       </div>
 
       <div class="how-flow-wrapper reveal">
         <div class="how-connecting-path"></div>
-        
         <div class="relative flex flex-col md:flex-row gap-8 justify-between items-stretch">
           <!-- Step 1 -->
-          <a href="/quiz.html" class="how-step-card block hover:no-underline step-1" style="color: inherit; text-decoration: none;">
+          <a href="/quiz.html" class="how-step-card block hover:no-underline step-1">
             <div class="how-step-badge">1</div>
             <div class="how-step-icon-wrap">
               <span class="material-symbols-outlined how-step-icon">quiz</span>
             </div>
-            <h3 class="text-lg font-bold text-slate-900 mb-3" data-i18n="index.step1_title">Take AI Quiz</h3>
-            
-            <!-- Miniature Quiz Mockup -->
-            <div class="how-mini-mockup">
-              <div class="how-mini-quiz">
-                <div class="item"><input type="checkbox" checked disabled> <span data-i18n="index.how_quiz_1">Tech & Coding</span></div>
-                <div class="item"><input type="checkbox" checked disabled> <span data-i18n="index.how_quiz_2">UI/UX Design</span></div>
-              </div>
-            </div>
-
-            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step1_desc">Answer a few questions about your interests, skills, and goals. Our AI builds your unique profile.</p>
+            <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="index.step1_title">Làm bài trắc nghiệm sở thích</h3>
+            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step1_desc">Trả lời vài câu hỏi về sở thích, kỹ năng và định hướng để xây dựng hồ sơ ban đầu của bạn.</p>
           </a>
 
           <!-- Step 2 -->
-          <a href="/explore.html" class="how-step-card block hover:no-underline step-2" style="color: inherit; text-decoration: none;">
+          <a href="/explore.html" class="how-step-card block hover:no-underline step-2">
             <div class="how-step-badge">2</div>
             <div class="how-step-icon-wrap">
               <span class="material-symbols-outlined how-step-icon">recommend</span>
             </div>
-            <h3 class="text-lg font-bold text-slate-900 mb-3" data-i18n="index.step2_title">Get Recommendations</h3>
-            
-            <!-- Miniature Match Mockup -->
-            <div class="how-mini-mockup">
-              <div class="how-mini-match">
-                <span data-i18n="index.how_match_title">Match Score</span>
-                <span>95%</span>
-              </div>
-              <div class="how-mini-progress">
-                <div class="how-mini-progress-fill"></div>
-              </div>
-            </div>
-
-            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step2_desc">Receive tailored opportunities ranked by match score — from workshops to career programs.</p>
+            <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="index.step2_title">Nhận gợi ý & Đăng ký vé QR</h3>
+            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step2_desc">Nhận cơ hội phù hợp được gợi ý dành riêng cho bạn — từ workshop, cuộc thi đến hoạt động tình nguyện.</p>
           </a>
 
           <!-- Step 3 -->
-          <a href="/profile.html" class="how-step-card block hover:no-underline step-3" style="color: inherit; text-decoration: none;">
+          <a href="/profile.html" class="how-step-card block hover:no-underline step-3">
             <div class="how-step-badge">3</div>
             <div class="how-step-icon-wrap">
-              <span class="material-symbols-outlined how-step-icon">rocket_launch</span>
+              <span class="material-symbols-outlined how-step-icon">workspace_premium</span>
             </div>
-            <h3 class="text-lg font-bold text-slate-900 mb-3" data-i18n="index.step3_title">Build Your Growth</h3>
-            
-            <!-- Miniature Grow Mockup -->
-            <div class="how-mini-mockup">
-              <div class="how-mini-grow">
-                <span class="xp">+120 XP</span>
-                <span class="badge" data-i18n="index.mockup_badge_explorer">🏆 Explorer</span>
-              </div>
-            </div>
-
-            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step3_desc">Track progress, develop skills, and follow your AI-generated roadmap toward your dream career.</p>
+            <h3 class="text-lg font-bold text-slate-900 mb-2" data-i18n="index.step3_title">Tham gia & Nhận chứng chỉ số</h3>
+            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="index.step3_desc">Điểm danh 1 chạm tại sự kiện, nhận chứng chỉ số có mã xác thực QR và tích lũy điểm rèn luyện.</p>
           </a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 4. PLATFORM PREVIEW HUB -->
-  <section class="landing-section content-visibility-auto section-rhythm-standard bg-[#f8fafc] border-t border-slate-200/60" id="platform-preview-hub">
+  <!-- 6. HOST CALLOUT BANNER -->
+  <section class="content-visibility-auto section-rhythm-compact bg-slate-50 border-t border-slate-200/60" id="host-callout">
     <div class="landing-container">
-      <div class="text-center max-w-3xl mx-auto mb-12 reveal">
-        <h2 class="sw-section-title" data-i18n="index.preview_hub_heading">Explore the SpringWave Interface</h2>
-        <p class="sw-section-subtitle" data-i18n="index.preview_hub_desc">Get an inside look at the core interfaces designed to optimize your academic and skill development journey.</p>
-      </div>
-
-      <!-- Tabs Navigation -->
-      <div class="mb-10 reveal">
-        <div class="preview-tabs-list">
-          <button class="preview-tab-btn active" data-tab="preview-ai-matching">
-            <span class="material-symbols-outlined text-base">auto_awesome</span>
-            <span data-i18n="index.tab_ai">AI Recommendations</span>
-          </button>
-          <button class="preview-tab-btn" data-tab="preview-forum">
-            <span class="material-symbols-outlined text-base">forum</span>
-            <span data-i18n="index.tab_forum">Student Forum</span>
-          </button>
-          <button class="preview-tab-btn" data-tab="preview-dashboard">
-            <span class="material-symbols-outlined text-base">dashboard</span>
-            <span data-i18n="index.tab_dashboard">Gamified Dashboard</span>
-          </button>
+      <div class="host-callout-banner reveal">
+        <div class="max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 text-blue-200 mb-3" data-i18n="index.host_callout_badge">
+            DÀNH CHO BAN TỔ CHỨC & CLB
+          </div>
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-3" data-i18n="index.host_callout_title">
+            Bạn là Ban chủ nhiệm CLB hay Ban tổ chức sự kiện sinh viên?
+          </h2>
+          <p class="text-blue-100 text-sm md:text-base leading-relaxed" data-i18n="index.host_callout_desc">
+            Tiết kiệm 90% thời gian điểm danh giấy và nhập liệu thủ công. Sử dụng hệ thống tạo sự kiện, quét mã QR check-in tốc độ cao, xuất báo cáo danh sách tham gia và cấp chứng chỉ số cho sinh viên.
+          </p>
         </div>
-      </div>
-
-      <!-- Tab Content Area -->
-      <div class="max-w-5xl mx-auto reveal">
-        
-        <!-- Tab 1: AI Recommendations -->
-        <div class="preview-tab-panel active" id="preview-ai-matching">
-          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <a href="/explore.html?category=workshop" class="rec-card block hover:no-underline" style="color: inherit; text-decoration: none;">
-              <div class="rec-card-header">
-                <div>
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--sw-cyan-light); color: var(--sw-cyan);">
-                      <span class="material-symbols-outlined text-sm">code</span>
-                    </div>
-                    <span class="rec-card-badge perfect" data-i18n="index.match_95">95% Match</span>
-                  </div>
-                  <h3 class="rec-card-title" data-i18n="index.rec_card1_title">AI Innovation Workshop</h3>
-                </div>
-              </div>
-              <div class="match-bar-track">
-                <div class="match-bar-fill" data-width="95" style="width: 95%;"></div>
-              </div>
-              <div class="checklist">
-                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> <span data-i18n="index.rec_card1_check1">Matches your major</span></div>
-                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> <span data-i18n="index.rec_card1_check2">Matches your interests</span></div>
-                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> <span data-i18n="index.rec_card1_check3">Improves missing skills</span></div>
-              </div>
-            </a>
-
-            <a href="/explore.html?category=sport" class="rec-card block hover:no-underline" style="color: inherit; text-decoration: none;">
-              <div class="rec-card-header">
-                <div>
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--sw-coral-light); color: var(--sw-coral);">
-                      <span class="material-symbols-outlined text-sm">sports_soccer</span>
-                    </div>
-                    <span class="rec-card-badge perfect" data-i18n="index.match_91">91% Match</span>
-                  </div>
-                  <h3 class="rec-card-title" data-i18n="index.rec_card2_title">Student Sports Tournament</h3>
-                </div>
-              </div>
-              <div class="match-bar-track">
-                <div class="match-bar-fill" data-width="91" style="width: 91%;"></div>
-              </div>
-              <div class="checklist">
-                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> <span data-i18n="index.rec_card2_check1">Improves physical health</span></div>
-                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> <span data-i18n="index.rec_card2_check2">Builds team collaboration</span></div>
-                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> <span data-i18n="index.rec_card2_check3">Relieves academic stress</span></div>
-              </div>
-            </a>
-
-            <a href="/explore.html?category=volunteer" class="rec-card block hover:no-underline" style="color: inherit; text-decoration: none;">
-              <div class="rec-card-header">
-                <div>
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--sw-purple-light); color: var(--sw-purple);">
-                      <span class="material-symbols-outlined text-sm">volunteer_activism</span>
-                    </div>
-                    <span class="rec-card-badge good" data-i18n="index.match_88">88% Match</span>
-                  </div>
-                  <h3 class="rec-card-title" data-i18n="index.rec_card3_title">Green City Volunteer Program</h3>
-                </div>
-              </div>
-              <div class="match-bar-track">
-                <div class="match-bar-fill" data-width="88" style="width: 88%;"></div>
-              </div>
-              <div class="checklist">
-                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> <span data-i18n="index.rec_card3_check1">Leadership development</span></div>
-                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> <span data-i18n="index.rec_card3_check2">Community impact</span></div>
-                <div class="checklist-item"><span class="check-icon material-symbols-outlined">check</span> <span data-i18n="index.rec_card3_check3">Resume building</span></div>
-              </div>
-            </a>
-          </div>
-          <div class="text-center mt-8">
-            <a href="/quiz.html" class="sw-btn-primary">
-              <span data-i18n="index.take_quiz_to_see_matches">Try AI Matchmaker</span>
-              <span class="material-symbols-outlined text-base">psychology</span>
-            </a>
-          </div>
+        <div class="shrink-0">
+          <a href="/register-host.html" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm bg-white text-slate-900 hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+            <span data-i18n="index.host_callout_btn">Đăng ký làm Người tổ chức (Host)</span>
+            <span class="material-symbols-outlined text-base">arrow_forward</span>
+          </a>
         </div>
-
-        <!-- Tab 2: Student Forum -->
-        <div class="preview-tab-panel" id="preview-forum">
-          <div class="flex flex-col gap-4">
-            <!-- Mock Thread 1 -->
-            <a href="/community.html" class="community-thread-card block hover:no-underline flex flex-col md:flex-row justify-between gap-6 cursor-pointer" style="color: inherit; text-decoration: none;">
-              <div>
-                <div class="flex items-center gap-3 mb-2">
-                  <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">M</div>
-                  <div>
-                    <h5 class="text-xs font-bold text-slate-800">Minh Anh</h5>
-                    <p class="text-[9px] text-slate-400" data-i18n="index.forum_school1">University of Da Nang</p>
-                  </div>
-                </div>
-                <h3 class="text-base font-bold text-slate-900 mb-1" data-i18n="index.forum_title1">Anyone joining AI Hackathon 2026?</h3>
-                <p class="text-xs text-slate-500 mb-2" data-i18n="index.forum_desc1">Looking for teammates interested in NLP and computer vision.</p>
-                <div class="community-thread-tags">
-                  <span class="community-thread-tag" data-i18n="index.forum_tag_tech">TECH</span>
-                  <span class="community-thread-tag" data-i18n="index.forum_tag_teammate">TEAMMATE</span>
-                </div>
-              </div>
-              <div class="flex md:flex-col justify-between items-end gap-2 text-right shrink-0">
-                <div class="flex gap-3 text-[11px] text-slate-400">
-                  <span data-i18n="index.forum_replies1">12 replies</span>
-                  <span data-i18n="index.forum_views1">234 views</span>
-                </div>
-              </div>
-            </a>
-            <!-- Mock Thread 2 -->
-            <a href="/community.html" class="community-thread-card block hover:no-underline flex flex-col md:flex-row justify-between gap-6 cursor-pointer" style="color: inherit; text-decoration: none;">
-              <div>
-                <div class="flex items-center gap-3 mb-2">
-                  <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">T</div>
-                  <div>
-                    <h5 class="text-xs font-bold text-slate-800">Thanh Trung</h5>
-                    <p class="text-[9px] text-slate-400" data-i18n="index.forum_school2">Duy Tan University</p>
-                  </div>
-                </div>
-                <h3 class="text-base font-bold text-slate-900 mb-1" data-i18n="index.forum_title2">How can I prepare for a startup competition?</h3>
-                <p class="text-xs text-slate-500 mb-2" data-i18n="index.forum_desc2">First time joining a startup pitch competition. Any tips on MVP development?</p>
-                <div class="community-thread-tags">
-                  <span class="community-thread-tag" data-i18n="index.forum_tag_startup">STARTUP</span>
-                  <span class="community-thread-tag" data-i18n="index.forum_tag_tips">TIPS</span>
-                </div>
-              </div>
-              <div class="flex md:flex-col justify-between items-end gap-2 text-right shrink-0">
-                <div class="flex gap-3 text-[11px] text-slate-400">
-                  <span data-i18n="index.forum_replies2">8 replies</span>
-                  <span data-i18n="index.forum_views2">156 views</span>
-                </div>
-              </div>
-            </a>
-          </div>
-          <div class="text-center mt-8">
-            <a href="/community.html" class="sw-btn-primary">
-              <span data-i18n="index.view_all_discussions">Join the Discussions</span>
-              <span class="material-symbols-outlined text-base">forum</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- Tab 3: Growth Dashboard -->
-        <div class="preview-tab-panel" id="preview-dashboard">
-          <div class="grid md:grid-cols-[1fr_1.5fr] gap-8 items-start bg-white p-8 rounded-3xl border border-slate-200/80 shadow-sm">
-            <div>
-              <h3 class="text-xl font-bold text-slate-900 mb-4" data-i18n="index.dashboard_preview_title">Gamified Dashboard</h3>
-              <p class="text-xs text-slate-500 leading-relaxed mb-6" data-i18n="index.dashboard_preview_desc">Track contribution levels, milestones, and unlock 16 badges representing your community engagement. Receive matching recommendations as you participate.</p>
-              
-              <!-- Community Contribution widget looking like profile.html -->
-              <div class="profile-card !shadow-none !border !border-slate-200/60 !bg-slate-50/50 !p-5 !rounded-3xl">
-                <h2 class="text-lg font-bold text-gray-800 mb-3" data-i18n="profile.community_contribution">Community Contribution</h2>
-                
-                <div class="mb-3">
-                  <div class="flex items-center justify-between mb-1.5">
-                    <div class="flex items-center gap-2">
-                      <div class="w-7 h-7 rounded-xl bg-[#f0f4ff] flex items-center justify-center text-[#1755ba]">
-                        <i class="fa-solid fa-users text-[10px]"></i>
-                      </div>
-                      <span class="font-semibold text-gray-800 text-sm" data-i18n="profile.score">Contribution Score</span>
-                    </div>
-                    <span class="text-[10px] font-bold text-[#1755ba] bg-[#f0f4ff] px-2 py-0.5 rounded-full">Lv.4</span>
-                  </div>
-                  
-                  <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden mb-1">
-                    <div class="h-full bg-gradient-to-r from-blue-500 to-[#1755ba] rounded-full" style="width: 75%"></div>
-                  </div>
-                  
-                  <div class="flex justify-between text-[10px] text-gray-500 font-medium">
-                    <span>750 pts</span>
-                    <span>750 / 1000 pts</span>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                  <div class="bg-white rounded-xl p-3 flex flex-col items-center text-center transition-transform hover:scale-[1.02] border border-slate-100">
-                    <i class="fa-regular fa-comments text-[#1755ba] text-base mb-1"></i>
-                    <span class="text-lg font-bold text-gray-900 mb-0.5">12</span>
-                    <span class="text-[9px] text-gray-500 font-medium" data-i18n="profile.discussions">Discussions</span>
-                  </div>
-                  <div class="bg-white rounded-xl p-3 flex flex-col items-center text-center transition-transform hover:scale-[1.02] border border-slate-100">
-                    <i class="fa-regular fa-calendar-check text-[#1755ba] text-base mb-1"></i>
-                    <span class="text-lg font-bold text-gray-900 mb-0.5">5</span>
-                    <span class="text-[9px] text-gray-500 font-medium">Events Attended</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="w-full">
-              <!-- Badges Grid looking like profile.html badges -->
-              <div class="profile-card !shadow-none !border !border-slate-200/60 !bg-slate-50/50 !p-5 !rounded-3xl w-full">
-                <h2 class="text-lg font-bold text-gray-800 mb-1" data-i18n="profile.badges">Badges</h2>
-                <p class="text-[11px] text-slate-500 mb-3" data-i18n="profile.badges_desc">Complete actions across the community to earn badges. Each badge has its own personality — collect them all.</p>
-                
-                <div class="grid grid-cols-2 gap-2.5">
-                  <!-- Badge 1: Self-Discovery (Newbie, earned) -->
-                  <div class="badge-card tier-newbie earned animate-fade-in">
-                    <div class="badge-card-top">
-                      <div class="badge-emblem earned">
-                        <span class="material-symbols-outlined badge-icon">psychology</span>
-                      </div>
-                      <div class="badge-status-group">
-                        <span class="badge-tier-pill" data-i18n="badges.rarity.common">Common</span>
-                        <div class="badge-status earned">
-                          <span class="material-symbols-outlined badge-status-icon">check</span>
-                          <span data-i18n="badges.status.earned">Earned</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="badge-info">
-                      <h4 class="badge-label" data-i18n="badges.list.self_discovery.label">Self-Discovery</h4>
-                      <p class="badge-desc" data-i18n="badges.list.self_discovery.desc">Completed the personality quiz</p>
-                    </div>
-                    <div class="badge-meta">
-                      <span data-i18n="badges.categories.profile">Profile</span>
-                      <span class="badge-meta-dot">●</span>
-                      <span>15 XP</span>
-                    </div>
-                  </div>
-
-                  <!-- Badge 2: Event Goer (Explorer, earned) -->
-                  <div class="badge-card tier-explorer earned animate-fade-in">
-                    <div class="badge-card-top">
-                      <div class="badge-emblem earned">
-                        <span class="material-symbols-outlined badge-icon">event_available</span>
-                      </div>
-                      <div class="badge-status-group">
-                        <span class="badge-tier-pill" data-i18n="badges.rarity.uncommon">Uncommon</span>
-                        <div class="badge-status earned">
-                          <span class="material-symbols-outlined badge-status-icon">check</span>
-                          <span data-i18n="badges.status.earned">Earned</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="badge-info">
-                      <h4 class="badge-label" data-i18n="badges.list.event_goer.label">Event Goer</h4>
-                      <p class="badge-desc" data-i18n="badges.list.event_goer.desc">Participated in 1 event</p>
-                    </div>
-                    <div class="badge-meta">
-                      <span data-i18n="badges.categories.events">Events</span>
-                      <span class="badge-meta-dot">●</span>
-                      <span>25 XP</span>
-                    </div>
-                  </div>
-
-                  <!-- Badge 3: Conversation Starter (Contributor, earned) -->
-                  <div class="badge-card tier-contributor earned animate-fade-in">
-                    <div class="badge-card-top">
-                      <div class="badge-emblem earned">
-                        <span class="material-symbols-outlined badge-icon">chat</span>
-                      </div>
-                      <div class="badge-status-group">
-                        <span class="badge-tier-pill" data-i18n="badges.rarity.rare">Rare</span>
-                        <div class="badge-status earned">
-                          <span class="material-symbols-outlined badge-status-icon">check</span>
-                          <span data-i18n="badges.status.earned">Earned</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="badge-info">
-                      <h4 class="badge-label" data-i18n="badges.list.conversation_starter.label">Conversation Starter</h4>
-                      <p class="badge-desc" data-i18n="badges.list.conversation_starter.desc">Started 5 discussions</p>
-                    </div>
-                    <div class="badge-meta">
-                      <span data-i18n="badges.categories.community">Community</span>
-                      <span class="badge-meta-dot">●</span>
-                      <span>50 XP</span>
-                    </div>
-                  </div>
-
-                  <!-- Badge 4: The Sage (Legendary, locked) -->
-                  <div class="badge-card tier-legendary locked animate-fade-in">
-                    <div class="badge-card-top">
-                      <div class="badge-emblem locked">
-                        <span class="material-symbols-outlined badge-icon">emoji_objects</span>
-                      </div>
-                      <div class="badge-status-group">
-                        <span class="badge-tier-pill" data-i18n="badges.rarity.legendary">Legendary</span>
-                        <div class="badge-status locked">
-                          <span class="material-symbols-outlined badge-status-icon">lock</span>
-                          <span data-i18n="badges.status.locked">Locked</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="badge-info">
-                      <h4 class="badge-label" data-i18n="badges.list.the_sage.label">The Sage</h4>
-                      <p class="badge-desc" data-i18n="badges.list.the_sage.desc">Reach Level 6</p>
-                    </div>
-                    <div class="badge-progress-container">
-                      <div class="badge-progress-info">
-                        <span data-i18n="badges.status.progress">Progress</span>
-                        <span>680 / 2000</span>
-                      </div>
-                      <div class="badge-progress-bar">
-                        <div class="badge-progress-fill" style="transform: scaleX(0.34);"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="text-center mt-8">
-            <a href="/profile.html" class="sw-btn-primary">
-              <span data-i18n="index.view_profile">Go to Profile</span>
-              <span class="material-symbols-outlined text-base">account_circle</span>
-            </a>
-          </div>
-        </div>
-
       </div>
     </div>
   </section>
 
-  <!-- 5. STUDENT TESTIMONIALS SECTION -->
+  <!-- 7. STUDENT TESTIMONIALS SECTION -->
   <section class="content-visibility-auto section-rhythm-compact bg-white border-t border-slate-200/60" id="testimonials">
     <div class="landing-container">
       <div class="text-center max-w-3xl mx-auto mb-10 reveal">
-        <h2 class="sw-section-title">Loved by Students Across Campuses</h2>
-        <p class="sw-section-subtitle">Real experiences from students who transformed their extracurricular journey with SpringWave.</p>
+        <h2 class="sw-section-title" data-i18n="index.testimonial_heading">Được yêu thích bởi sinh viên & Ban tổ chức</h2>
+        <p class="sw-section-subtitle" data-i18n="index.testimonial_desc">Trải nghiệm thực tế từ các bạn sinh viên và ban điều hành CLB sau khi đồng hành cùng SpringWave.</p>
       </div>
 
       <div class="grid md:grid-cols-3 gap-6 reveal">
@@ -687,15 +349,15 @@
               <i class="fa-solid fa-star text-amber-400"></i>
               <i class="fa-solid fa-star text-amber-400"></i>
             </div>
-            <p class="text-slate-700 text-sm leading-relaxed mb-6 italic">
-              “I used to struggle finding hackathon teammates and design challenges. Through SpringWave, I connected with passionate peers and found events perfectly matching my UI/UX journey.”
+            <p class="text-slate-700 text-sm leading-relaxed mb-6 italic" data-i18n="index.testimonial_truong_quote">
+              “Từng loay hoay tìm đồng đội thi hackathon và các sân chơi thiết kế, SpringWave đã kết nối mình với những người bạn cùng đam mê và mở ra hàng loạt workshop chuẩn xác với định hướng UI/UX.”
             </p>
           </div>
           <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
-            <div class="w-10 h-10 rounded-full bg-violet-100 text-violet-700 font-bold flex items-center justify-center text-sm shadow-2xs">TT</div>
+            <img src="/assets/images/Truong.jpg" alt="Tien Truong" class="w-10 h-10 rounded-full object-cover shadow-2xs" />
             <div>
-              <div class="text-xs font-bold text-slate-900">Tien Truong</div>
-              <div class="text-[10px] text-slate-500 font-medium">UI/UX Designer • Product Lead</div>
+              <div class="text-xs font-bold text-slate-900" data-i18n="index.testimonial_truong_name">Tiến Trường</div>
+              <div class="text-[10px] text-slate-500 font-medium" data-i18n="index.testimonial_truong_role">UI/UX Designer • Product Lead</div>
             </div>
           </div>
         </div>
@@ -710,15 +372,15 @@
               <i class="fa-solid fa-star text-amber-400"></i>
               <i class="fa-solid fa-star text-amber-400"></i>
             </div>
-            <p class="text-slate-700 text-sm leading-relaxed mb-6 italic">
-              “As a club president, managing event check-ins and attendance sheets was a nightmare. SpringWave's QR scanner and instant roster reports cut check-in delays to zero.”
+            <p class="text-slate-700 text-sm leading-relaxed mb-6 italic" data-i18n="index.testimonial_tai_quote">
+              “Là ban tổ chức CLB, quản lý danh sách đăng ký và điểm danh giấy từng là nỗi ám ảnh. Với máy quét QR và xuất báo cáo điểm danh của SpringWave, việc đón tiếp người tham dự diễn ra nhanh chóng và chính xác 100%.”
             </p>
           </div>
           <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">DT</div>
+            <img src="/assets/images/Tai.jpg" alt="Duc Tai" class="w-10 h-10 rounded-full object-cover shadow-2xs" />
             <div>
-              <div class="font-bold text-slate-900 text-sm">Đức Tài</div>
-              <div class="text-xs text-slate-500">GDG On Campus Organizer</div>
+              <div class="font-bold text-slate-900 text-sm" data-i18n="index.testimonial_tai_name">Đức Tài</div>
+              <div class="text-xs text-slate-500" data-i18n="index.testimonial_tai_role">GDG On Campus Organizer • Leader CLB Công nghệ</div>
             </div>
           </div>
         </div>
@@ -733,15 +395,15 @@
               <i class="fa-solid fa-star text-amber-400"></i>
               <i class="fa-solid fa-star text-amber-400"></i>
             </div>
-            <p class="text-slate-700 text-sm leading-relaxed mb-6 italic">
-              “The personalized roadmap with milestone tracking helped me prepare for my first national Hackathon and win 2nd place. Essential toolkit for every student.”
+            <p class="text-slate-700 text-sm leading-relaxed mb-6 italic" data-i18n="index.testimonial_dat_quote">
+              “Lộ trình sự kiện kết hợp chứng chỉ số minh chứng rõ ràng giúp mình dễ dàng tích lũy điểm rèn luyện và chuẩn bị hồ sơ ứng tuyển thực tập thành công.”
             </p>
           </div>
           <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">TD</div>
+            <img src="/assets/images/Dat.jpg" alt="Thanh Dat" class="w-10 h-10 rounded-full object-cover shadow-2xs" />
             <div>
-              <div class="font-bold text-slate-900 text-sm">Thành Đạt</div>
-              <div class="text-xs text-slate-500">Computer Science Junior</div>
+              <div class="font-bold text-slate-900 text-sm" data-i18n="index.testimonial_dat_name">Thành Đạt</div>
+              <div class="text-xs text-slate-500" data-i18n="index.testimonial_dat_role">Sinh viên Khoa CNTT • Giải Nhì Hackathon Toàn quốc</div>
             </div>
           </div>
         </div>
@@ -749,24 +411,25 @@
     </div>
   </section>
 
-  <!-- 6. FAQ ACCORDION -->
+  <!-- 8. FAQ ACCORDION -->
   <section class="sw-section-compact content-visibility-auto section-rhythm-standard bg-[#f8fafc] border-t border-slate-200/60" id="faq">
     <div class="landing-container">
       <div class="text-center max-w-3xl mx-auto mb-12 reveal">
-        <h2 class="sw-section-title" data-i18n="index.faq_heading">Frequently Asked Questions</h2>
-        <p class="sw-section-subtitle" data-i18n="index.faq_desc">Find answers to the most common questions about the SpringWave platform and its AI engine.</p>
+        <div class="sw-eyebrow" data-i18n="index.faq_label">Hỏi đáp</div>
+        <h2 class="sw-section-title" data-i18n="index.faq_heading">Các câu hỏi thường gặp</h2>
+        <p class="sw-section-subtitle" data-i18n="index.faq_desc">Giải đáp nhanh những thắc mắc phổ biến về việc tham gia sự kiện và cấp chứng chỉ trên SpringWave.</p>
       </div>
 
       <div class="faq-accordion reveal">
         <!-- Question 1 -->
         <div class="faq-item">
           <button class="faq-header">
-            <span data-i18n="index.faq_q1">How does the SpringWave AI matchmaker work?</span>
+            <span data-i18n="index.faq_q1_title">Tham gia sự kiện trên SpringWave có được tính Điểm Rèn Luyện (ĐRL) không?</span>
             <span class="material-symbols-outlined faq-icon">expand_more</span>
           </button>
           <div class="faq-content">
             <div class="faq-body">
-              <p data-i18n="index.faq_a1">SpringWave utilizes our custom RAG/LLM engine to evaluate your survey responses across four criteria: Communication, Technical, Creativity, and Social Impact. It compares your profile against our extracurricular catalog to recommend activities that align with your career goals and skill gap recommendations.</p>
+              <p data-i18n="index.faq_q1_ans">Có. Các sự kiện chính thức do các CLB hoặc Khoa/Trường đối tác tổ chức trên SpringWave đều hỗ trợ xuất danh sách tham gia và cấp chứng chỉ số có mã xác thực QR, giúp sinh viên minh chứng hoạt động để cộng điểm rèn luyện theo quy định của trường.</p>
             </div>
           </div>
         </div>
@@ -774,12 +437,12 @@
         <!-- Question 2 -->
         <div class="faq-item">
           <button class="faq-header">
-            <span data-i18n="index.faq_q2">What is the gamification contribution system?</span>
+            <span data-i18n="index.faq_q2_title">Làm sao để nhận và tra cứu chứng chỉ sau khi tham gia?</span>
             <span class="material-symbols-outlined faq-icon">expand_more</span>
           </button>
           <div class="faq-content">
             <div class="faq-body">
-              <p data-i18n="index.faq_a2">Every time you engage with the community — starting a thread in the forum, replying to a discussion, or participating in university clubs — you earn Experience Points (XP). Unlocking certain XP thresholds increases your level and unlocks 16 uniquely-colored badges showcased on your profile.</p>
+              <p data-i18n="index.faq_q2_ans">Sau khi bạn được Ban tổ chức quét mã QR điểm danh thành công tại sự kiện, chứng chỉ điện tử sẽ tự động xuất hiện trong mục 'Hồ sơ cá nhân'. Bạn có thể xem, tải file PDF chất lượng cao hoặc chia sẻ liên kết xác thực công khai lên CV và LinkedIn.</p>
             </div>
           </div>
         </div>
@@ -787,12 +450,12 @@
         <!-- Question 3 -->
         <div class="faq-item">
           <button class="faq-header">
-            <span data-i18n="index.faq_q3">Can I register as an organizer (Host) on the platform?</span>
+            <span data-i18n="index.faq_q3_title">Câu lạc bộ / Đội nhóm sinh viên có phải trả phí để đăng sự kiện không?</span>
             <span class="material-symbols-outlined faq-icon">expand_more</span>
           </button>
           <div class="faq-content">
             <div class="faq-body">
-              <p data-i18n="index.faq_a3">Yes, absolutely! By clicking "Register Host" in the navbar, you can submit an organizer request. Once approved by the administrator, you'll gain access to the Organization Dashboard to create activities, map venues, register attendees, and scan attendance QR codes.</p>
+              <p data-i18n="index.faq_q3_ans">Hoàn toàn miễn phí. SpringWave hỗ trợ tối đa các câu lạc bộ và tổ chức sinh viên đăng tải sự kiện, quản lý vé QR, điểm danh người tham dự và cấp chứng chỉ mà không thu bất kỳ chi phí nền tảng nào.</p>
             </div>
           </div>
         </div>
@@ -800,12 +463,12 @@
         <!-- Question 4 -->
         <div class="faq-item">
           <button class="faq-header">
-            <span data-i18n="index.faq_q4">Is student verification required to participate in events?</span>
+            <span data-i18n="index.faq_q4_title">Tôi có thể tìm kiếm bạn bè cùng tham gia sự kiện hoặc thi đấu ở đâu?</span>
             <span class="material-symbols-outlined faq-icon">expand_more</span>
           </button>
           <div class="faq-content">
             <div class="faq-body">
-              <p data-i18n="index.faq_a4">Some official partner workshops and tournaments require verified student status to ensure certificate integrity. You can easily upload a student ID image in your settings, and the administrative dashboard will verify it within 24 hours.</p>
+              <p data-i18n="index.faq_q4_ans">Bạn có thể vào tab 'Cộng đồng' trên thanh điều hướng để đăng bài tìm đồng đội thi Hackathon, thảo luận theo từng trường đại học, hoặc tham khảo đánh giá từ các bạn sinh viên đã tham gia các kỳ trước.</p>
             </div>
           </div>
         </div>
@@ -813,40 +476,32 @@
     </div>
   </section>
 
-  <!-- FINAL CTA -->
-  <section class="landing-section content-visibility-auto section-rhythm-generous cta-gradient relative overflow-hidden">
-    <div class="cta-radial-overlay"></div>
-    <!-- Floating Activity Tags -->
-    <div class="cta-tag-pill tag-1" data-i18n="index.floating_card_ai">AI Workshop</div>
-    <div class="cta-tag-pill tag-2" data-i18n="index.pillar2_tag3">Hackathon</div>
-    <div class="cta-tag-pill tag-3" data-i18n="index.floating_card_startup">Startup Networking</div>
-    <div class="cta-tag-pill tag-4" data-i18n="index.floating_card_volunteer">Volunteer Program</div>
-
+  <!-- 9. FINAL CTA -->
+  <section class="landing-section content-visibility-auto section-rhythm-generous cta-gradient relative overflow-hidden" id="final-cta">
     <div class="landing-container relative z-10 text-center">
       <div class="reveal">
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold mb-6"
-          style="background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.8);">
+          style="background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.85);">
           <span class="material-symbols-outlined text-base">rocket_launch</span>
-          <span data-i18n="index.cta_label">Start Your Journey</span>
+          <span data-i18n="index.cta_label">Bắt đầu hành trình</span>
         </div>
         <h2 class="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6" style="color: #ffffff;" data-i18n="index.cta_heading">
-          Start Building Your Future Today
+          Xây dựng tương lai của bạn ngay hôm nay
         </h2>
-        <p class="text-lg md:text-xl max-w-2xl mx-auto mb-10" style="color: rgba(255, 255, 255, 0.7);" data-i18n="index.cta_desc">
-          Discover opportunities, build skills, and grow with personalized guidance. Join thousands of students already on
-          SpringWave.
+        <p class="text-lg md:text-xl max-w-2xl mx-auto mb-10" style="color: rgba(255, 255, 255, 0.75);" data-i18n="index.cta_desc">
+          Khám phá cơ hội, xây dựng kỹ năng và phát triển với sự hướng dẫn cá nhân hóa. Tham gia cùng hàng ngàn sinh viên trên SpringWave.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a href="/explore.html" id="finalCtaBtn"
             class="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-base transition-all active:scale-95 shadow-xl hover:bg-slate-50 hover:translate-y-[-1px]"
-            style="background: #ffffff; color: #23499b;">
-            <span data-i18n="index.cta_explore_now">Explore Now</span>
+            style="background: #ffffff; color: #1755ba;">
+            <span data-i18n="index.cta_explore_now">Khám phá ngay</span>
             <span class="material-symbols-outlined text-lg">explore</span>
           </a>
           <a href="/quiz.html"
             class="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-base transition-all active:scale-95 hover:bg-white/10 hover:translate-y-[-1px]"
             style="border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; background: rgba(255, 255, 255, 0.05);">
-            <span data-i18n="index.hero_take_quiz">Take AI Quiz</span>
+            <span data-i18n="index.hero_take_quiz">Làm bài Quiz AI</span>
             <span class="material-symbols-outlined text-lg">psychology</span>
           </a>
         </div>
