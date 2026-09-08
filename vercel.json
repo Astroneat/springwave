@@ -2,6 +2,7 @@
   "buildCommand": "npx vite build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/cdn-proxy/(.*)", "destination": "https://cdn.springwave.io.vn/$1" },
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/register", "destination": "/register.html" },

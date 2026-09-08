@@ -34,6 +34,15 @@ function cacheBustPlugin() {
 
 export default defineConfig({
   plugins: [tailwindcss(), cacheBustPlugin()],
+  server: {
+    proxy: {
+      "/cdn-proxy": {
+        target: "https://cdn.springwave.io.vn",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/cdn-proxy/, ""),
+      },
+    },
+  },
   build: {
     sourcemap: false,
     rollupOptions: {

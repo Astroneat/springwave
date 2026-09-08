@@ -4578,8 +4578,9 @@ function initCertLayoutDesigner() {
     if (!stageWidth || !stageHeight) return;
 
     const pad = 36;
+    const artboardH = artboard.offsetHeight || 850;
     const scaleX = (stageWidth - pad) / 1200;
-    const scaleY = (stageHeight - pad) / 850;
+    const scaleY = (stageHeight - pad) / artboardH;
     currentArtboardScale = Math.min(scaleX, scaleY, 1);
     if (currentArtboardScale < 0.2) currentArtboardScale = 0.2;
 
@@ -5859,10 +5860,24 @@ function initCertLayoutDesigner() {
       bgImg.src = bgUrl;
       bgImg.classList.remove("hidden");
       noBgNotice.classList.add("hidden");
+      bgImg.onload = () => {
+        if (bgImg.naturalWidth && bgImg.naturalHeight) {
+          const aspect = bgImg.naturalWidth / bgImg.naturalHeight;
+          const targetH = Math.round(1200 / aspect);
+          artboard.style.height = `${targetH}px`;
+          updateArtboardScale();
+        }
+      };
+      if (bgImg.complete && bgImg.naturalWidth && bgImg.naturalHeight) {
+        const aspect = bgImg.naturalWidth / bgImg.naturalHeight;
+        const targetH = Math.round(1200 / aspect);
+        artboard.style.height = `${targetH}px`;
+      }
     } else {
       bgImg.src = "";
       bgImg.classList.add("hidden");
       noBgNotice.classList.remove("hidden");
+      artboard.style.height = "850px";
     }
 
     // Load existing certificateConfig or fallback to DEFAULT_CERT_CONFIG

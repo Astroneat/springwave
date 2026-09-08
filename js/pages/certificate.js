@@ -2,11 +2,13 @@ import "../../src/style.css";
 import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { API_BASE_URL, CDN_DOMAIN } from "../config.js";
+import { API_BASE_URL, CDN_DOMAIN, TURNSTILE_SITE_KEY } from "../config.js";
 import { verifyCertificate } from "../api/certificates.js";
 import { initI18n, t, getLang, setLang, applyTranslation } from "../lib/i18n.js";
 import { formatDate, toTitleCase } from "../lib/utils.js";
 import { drawStyledQR } from "../lib/qr-styler.js";
+import { getUser, isAuthenticated } from "../lib/session.js";
+import { createDiscussionWithScope } from "../api/forum.js";
 
 export function resolveMediaUrl(url) {
   if (!url || typeof url !== "string") return "";
@@ -20,13 +22,60 @@ export function resolveMediaUrl(url) {
   return `${CDN_DOMAIN}/${trimmed.replace(/^\/+/, "")}`;
 }
 
+let cachedBgResult = null;
+
 async function loadCrossOriginImage(url) {
   if (!url) return null;
   const resolved = resolveMediaUrl(url);
 
-  // 1. Try fetch as blob -> ObjectURL (bypasses canvas tainting and CORS cache issues)
+  // 0. If already blob: or data:, load into Image directly
+  if (resolved.startsWith("blob:") || resolved.startsWith("data:")) {
+    try {
+      const img = new Image();
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = rej;
+        img.src = resolved;
+      });
+      return { img, objectUrl: null };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Strategy 1: Local / Vite / Vercel proxy (/cdn-proxy) for CDN assets
+  if (resolved.includes("cdn.springwave.io.vn") || (CDN_DOMAIN && resolved.startsWith(CDN_DOMAIN))) {
+    try {
+      let pathPart = "";
+      if (CDN_DOMAIN && resolved.startsWith(CDN_DOMAIN)) {
+        pathPart = resolved.slice(CDN_DOMAIN.length).replace(/^\/+/, "");
+      } else {
+        const idx = resolved.indexOf("cdn.springwave.io.vn");
+        pathPart = resolved.slice(idx + "cdn.springwave.io.vn".length).replace(/^\/+/, "");
+      }
+      const proxyUrl = `/cdn-proxy/${pathPart}`;
+      const resp = await fetch(proxyUrl);
+      if (resp.ok) {
+        const blob = await resp.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const img = new Image();
+        await new Promise((res, rej) => {
+          img.onload = res;
+          img.onerror = rej;
+          img.src = objectUrl;
+        });
+        return { img, objectUrl };
+      }
+    } catch (err) {
+      console.warn("Local /cdn-proxy fetch failed, trying next strategy:", err);
+    }
+  }
+
+  // Strategy 2: High-speed global image cache & proxy (images.weserv.nl)
+  // Strips CORS restrictions and returns Access-Control-Allow-Origin: *
   try {
-    const resp = await fetch(resolved, { mode: 'cors' });
+    const weservUrl = `https://images.weserv.nl/?url=${encodeURIComponent(resolved)}`;
+    const resp = await fetch(weservUrl);
     if (resp.ok) {
       const blob = await resp.blob();
       const objectUrl = URL.createObjectURL(blob);
@@ -39,14 +88,51 @@ async function loadCrossOriginImage(url) {
       return { img, objectUrl };
     }
   } catch (err) {
-    console.warn("fetch blob for background image failed, trying cache-busted Image:", err);
+    console.warn("Public weserv proxy failed, trying next strategy:", err);
   }
 
-  // 2. Try Image with crossOrigin = 'anonymous' and cache buster
+  // Strategy 3: Direct CORS fetch as blob -> ObjectURL
+  try {
+    const resp = await fetch(resolved, { mode: "cors" });
+    if (resp.ok) {
+      const blob = await resp.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const img = new Image();
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = rej;
+        img.src = objectUrl;
+      });
+      return { img, objectUrl };
+    }
+  } catch (err) {
+    console.warn("Direct CORS fetch failed:", err);
+  }
+
+  // Strategy 4: allorigins.win CORS proxy
+  try {
+    const allOriginsUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(resolved)}`;
+    const resp = await fetch(allOriginsUrl);
+    if (resp.ok) {
+      const blob = await resp.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const img = new Image();
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = rej;
+        img.src = objectUrl;
+      });
+      return { img, objectUrl };
+    }
+  } catch (err) {
+    console.warn("AllOrigins proxy failed:", err);
+  }
+
+  // Strategy 5: Image with crossOrigin = 'anonymous' and cache buster
   try {
     const img = new Image();
     img.crossOrigin = "anonymous";
-    const cacheBusted = resolved.includes('?') ? `${resolved}&_cb=${Date.now()}` : `${resolved}?_cb=${Date.now()}`;
+    const cacheBusted = resolved.includes("?") ? `${resolved}&_cb=${Date.now()}` : `${resolved}?_cb=${Date.now()}`;
     await new Promise((res, rej) => {
       img.onload = res;
       img.onerror = rej;
@@ -57,7 +143,7 @@ async function loadCrossOriginImage(url) {
     console.warn("Cache-busted Image load failed:", err);
   }
 
-  // 3. Fallback: Image with crossOrigin without cache buster
+  // Strategy 6: Image with crossOrigin without cache buster
   try {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -73,8 +159,104 @@ async function loadCrossOriginImage(url) {
   }
 }
 
+
 let currentCertData = null;
 let currentCertStatus = 'active';
+
+export function checkCertificateOwnership(cert) {
+  const currentUser = getUser();
+  const certUser = cert?.user;
+  const certUserId = certUser?._id ? String(certUser._id) : (certUser ? String(certUser) : null);
+  const currentUserId = currentUser?._id ? String(currentUser._id) : (currentUser?.id ? String(currentUser.id) : null);
+
+  const isLoggedIn = isAuthenticated() && Boolean(currentUser);
+  const isOwner = Boolean(isLoggedIn && currentUserId && certUserId && currentUserId === certUserId);
+
+  return {
+    isOwner,
+    isLoggedIn,
+    currentUser,
+    certUser,
+    certUserId,
+    currentUserId,
+  };
+}
+
+let certToastTimer = null;
+export function showCertToast(msg, isError = false) {
+  const toast = document.getElementById("cert-toast");
+  const msgEl = document.getElementById("cert-toast-msg");
+  const iconEl = document.getElementById("cert-toast-icon");
+  if (!toast || !msgEl) return;
+
+  if (certToastTimer) clearTimeout(certToastTimer);
+
+  msgEl.textContent = msg;
+  if (isError) {
+    if (iconEl) {
+      iconEl.className = "w-6 h-6 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center shrink-0";
+      iconEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+    }
+  } else {
+    if (iconEl) {
+      iconEl.className = "w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0";
+      iconEl.innerHTML = `<i class="fa-solid fa-check"></i>`;
+    }
+  }
+
+  toast.classList.remove("opacity-0", "translate-y-10", "pointer-events-none");
+  toast.classList.add("opacity-100", "translate-y-0");
+
+  certToastTimer = setTimeout(() => {
+    toast.classList.remove("opacity-100", "translate-y-0");
+    toast.classList.add("opacity-0", "translate-y-10", "pointer-events-none");
+  }, 3500);
+}
+
+function openModalElement(overlay, content) {
+  if (!overlay || !content) return;
+  overlay.classList.remove("hidden");
+  requestAnimationFrame(() => {
+    overlay.classList.remove("opacity-0");
+    overlay.classList.add("opacity-100");
+    content.classList.remove("scale-95", "opacity-0");
+    content.classList.add("scale-100", "opacity-100");
+  });
+  document.body.style.overflow = "hidden";
+}
+
+function closeModalElement(overlay, content) {
+  if (!overlay || !content) return;
+  content.classList.remove("scale-100", "opacity-100");
+  content.classList.add("scale-95", "opacity-0");
+  overlay.classList.remove("opacity-100");
+  overlay.classList.add("opacity-0");
+  setTimeout(() => {
+    overlay.classList.add("hidden");
+    document.body.style.overflow = "";
+  }, 200);
+}
+
+function generateShareDraft(cert, lang = getLang()) {
+  const eventTitle = cert?.metadata?.eventTitle || cert?.event?.title || "Sự kiện";
+  const orgName = cert?.metadata?.orgName || cert?.organization?.name || "SpringWave";
+  const certCode = cert?.certificateCode || "SW-CODE";
+  const verifyUrl = `${window.location.origin}/certificate.html?code=${encodeURIComponent(certCode)}`;
+
+  if (lang === "vi") {
+    return {
+      title: `🎉 Mình vừa nhận được Chứng chỉ hoàn thành sự kiện: ${eventTitle}!`,
+      content: `Rất tự hào chia sẻ cùng mọi người: Mình đã hoàn thành xuất sắc sự kiện "${eventTitle}" do ${orgName} tổ chức và vinh dự được cấp Giấy chứng nhận hoàn thành! 🏆\n\n📜 Mã chứng nhận: ${certCode}\n🔗 Tra cứu & Xác thực trực tiếp: ${verifyUrl}\n\nCảm ơn Ban tổ chức và các bạn đã đồng hành cùng mình trong suốt hoạt động! 🚀`,
+      tags: "Certificate, Achievement, SpringWave",
+    };
+  } else {
+    return {
+      title: `🎉 I just received my Certificate of Completion for: ${eventTitle}!`,
+      content: `Proud to share with everyone: I have successfully completed "${eventTitle}" organized by ${orgName} and received my official Certificate of Completion! 🏆\n\n📜 Certificate ID: ${certCode}\n🔗 Verify online at: ${verifyUrl}\n\nThank you to the organizing committee and fellow participants for an amazing journey! 🚀`,
+      tags: "Certificate, Achievement, SpringWave",
+    };
+  }
+}
 
 // Format date according to active language
 function formatCertDate(dateValue, lang = getLang()) {
@@ -155,6 +337,50 @@ function renderDynamicTexts() {
   applyTranslation();
 }
 
+// Responsive scale calculation for certificate viewport (fits both width and height)
+function updateCertScale() {
+  const wrapper = document.querySelector(".cert-scale-wrapper");
+  const certNode = document.getElementById("certificate-node");
+  const container = document.getElementById("cert-container");
+  if (!wrapper || !certNode) return;
+
+  const header = document.querySelector("header");
+  const footer = document.querySelector("footer");
+  const headerH = header ? header.offsetHeight : 60;
+  const footerH = footer ? footer.offsetHeight : 32;
+
+  // Compute available space inside the viewport
+  const padX = 32;
+  const padY = 24;
+  const availW = Math.max(320, window.innerWidth - padX);
+  const availH = Math.max(260, window.innerHeight - headerH - footerH - padY);
+
+  const certW = 1200;
+  const certH = certNode.offsetHeight || 750;
+
+  // Optimal scale: fit both width and height cleanly
+  const scaleW = availW / certW;
+  const scaleH = availH / certH;
+  // Allow proportional scaling to fit screen beautifully (up to 1.35x on wide screens)
+  const maxScale = Math.min(1.35, Math.max(1, (window.innerWidth - 64) / 1200));
+  const scale = Math.min(scaleW, scaleH, maxScale);
+
+  wrapper.style.transform = `scale(${scale})`;
+  wrapper.style.transformOrigin = "center center";
+
+  const scaledWidth = Math.round(certW * scale);
+  const scaledHeight = Math.round(certH * scale);
+
+  wrapper.style.width = `${certW}px`;
+  wrapper.style.height = `${certH}px`;
+  wrapper.style.marginBottom = "0px";
+
+  if (container) {
+    container.style.width = `${scaledWidth}px`;
+    container.style.height = `${scaledHeight}px`;
+  }
+}
+
 // Initialize on DOM load
 document.addEventListener("DOMContentLoaded", async () => {
   await initI18n();
@@ -187,8 +413,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentCertData = cert;
     currentCertStatus = res.status || cert.status;
 
-    setupCertificateDOM(cert, currentCertStatus);
+    await setupCertificateDOM(cert, currentCertStatus);
     renderDynamicTexts();
+    updateCertScale();
 
     loadingEl.classList.add("hidden");
     containerEl.classList.remove("hidden");
@@ -200,6 +427,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   initActionButtons();
+  window.addEventListener("resize", updateCertScale);
+  window.addEventListener("orientationchange", updateCertScale);
 });
 
 // Listen for global language changes
@@ -208,68 +437,48 @@ window.addEventListener("language-changed", () => {
 });
 
 // Calculate perceived luminance of custom background to automatically switch text contrast
-function detectBackgroundTheme(imageUrl) {
-  return new Promise((resolve) => {
-    if (!imageUrl || imageUrl.trim() === '') {
-      return resolve('light');
-    }
+async function detectBackgroundTheme(imageUrl) {
+  if (!imageUrl || imageUrl.trim() === '') {
+    return 'light';
+  }
 
-    // Safety timeout: default to 'dark' high-contrast theme if image hangs or CORS blocks
-    const safetyTimer = setTimeout(() => {
-      resolve('dark');
-    }, 1500);
-
-    const img = new Image();
-    // Only set crossOrigin if not a local data URI
-    if (!imageUrl.startsWith('data:') && !imageUrl.startsWith(window.location.origin)) {
-      img.crossOrigin = "Anonymous";
-    }
-
-    img.onload = () => {
-      clearTimeout(safetyTimer);
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = 64;
-        canvas.height = 64;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 64, 64);
-        const imageData = ctx.getImageData(0, 0, 64, 64);
-        const data = imageData.data;
-        let totalLuminance = 0;
-        let count = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          const a = data[i + 3];
-          if (a > 40) {
-            // Perceived luminance formula (ITU-R BT.709 standard)
-            const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-            totalLuminance += lum;
-            count++;
-          }
+  try {
+    const bgRes = cachedBgResult || await loadCrossOriginImage(imageUrl);
+    if (bgRes && bgRes.img) {
+      const img = bgRes.img;
+      const canvas = document.createElement("canvas");
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, 64, 64);
+      const imageData = ctx.getImageData(0, 0, 64, 64);
+      const data = imageData.data;
+      let totalLuminance = 0;
+      let count = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+        if (a > 40) {
+          // Perceived luminance formula (ITU-R BT.709 standard)
+          const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          totalLuminance += lum;
+          count++;
         }
-        const avgLum = count > 0 ? totalLuminance / count : 128;
-        // Any custom artwork/color/scenery (< 215) switches to vibrant dark theme (white & gold text with deep shadow)
-        // Only pure bright white/ivory paper (> 215) stays light
-        resolve(avgLum < 215 ? 'dark' : 'light');
-      } catch (err) {
-        console.warn("Canvas read error on custom background, adopting high-contrast dark theme:", err);
-        resolve('dark');
       }
-    };
+      const avgLum = count > 0 ? totalLuminance / count : 128;
+      return avgLum < 215 ? 'dark' : 'light';
+    }
+  } catch (err) {
+    console.warn("Theme detection error:", err);
+  }
 
-    img.onerror = () => {
-      clearTimeout(safetyTimer);
-      console.warn("Image load error on custom background, defaulting to high-contrast dark theme");
-      resolve('dark');
-    };
-
-    img.src = imageUrl;
-  });
+  return 'dark';
 }
 
 async function setupCertificateDOM(cert, status) {
+  cachedBgResult = null;
   const isRevoked = status === 'revoked' || cert.status === 'revoked';
   const userName = toTitleCase(cert.metadata?.userName || cert.user?.fullname || "Attendee");
   const eventTitle = cert.metadata?.eventTitle || cert.event?.title || "Event / Activity";
@@ -296,13 +505,71 @@ async function setupCertificateDOM(cert, status) {
     // Set full-bleed background without outer border
     certNode.style.border = "none";
     certNode.style.padding = "0";
+    const certBgImg = document.getElementById("cert-custom-bg-img");
     if (bgUrl && bgUrl.trim() !== "") {
       const resolvedBg = resolveMediaUrl(bgUrl);
-      certNode.style.backgroundImage = `url('${resolvedBg}')`;
+
+      const applyDimensions = (w, h) => {
+        if (w > 0 && h > 0) {
+          const aspect = w / h;
+          const targetHeight = Math.round(1200 / aspect);
+          certNode.style.width = "1200px";
+          certNode.style.height = `${targetHeight}px`;
+          document.documentElement.style.setProperty("--cert-height", `${targetHeight}px`);
+          updateCertScale();
+        }
+      };
+
+      if (certBgImg) {
+        certBgImg.onload = () => {
+          applyDimensions(certBgImg.naturalWidth, certBgImg.naturalHeight);
+        };
+        certBgImg.src = resolvedBg;
+        certBgImg.classList.remove("hidden");
+        if (certBgImg.complete && certBgImg.naturalWidth > 0) {
+          applyDimensions(certBgImg.naturalWidth, certBgImg.naturalHeight);
+        }
+      }
+
+      // Preload background via 5-layer CORS loader to populate cache and swap certBgImg.src with clean blob URL
+      loadCrossOriginImage(bgUrl).then((bgRes) => {
+        if (bgRes && bgRes.img) {
+          cachedBgResult = bgRes;
+          applyDimensions(bgRes.img.naturalWidth, bgRes.img.naturalHeight);
+          if (certBgImg && bgRes.objectUrl) {
+            certBgImg.src = bgRes.objectUrl;
+          }
+        }
+      });
+
+      // Preload with standard Image object without crossOrigin to wait for dimension resolution
+      try {
+        const preloader = new Image();
+        await new Promise((resolve) => {
+          preloader.onload = () => {
+            applyDimensions(preloader.naturalWidth, preloader.naturalHeight);
+            resolve();
+          };
+          preloader.onerror = () => resolve();
+          preloader.src = resolvedBg;
+          if (preloader.complete && preloader.naturalWidth > 0) {
+            applyDimensions(preloader.naturalWidth, preloader.naturalHeight);
+            resolve();
+          }
+        });
+      } catch (e) {
+        console.warn("Preloader error:", e);
+      }
+
+      certNode.style.backgroundImage = "none";
       certNode.style.backgroundColor = "#0f172a";
     } else {
+      if (certBgImg) certBgImg.classList.add("hidden");
+      certNode.style.width = "1200px";
+      certNode.style.height = "850px";
       certNode.style.backgroundImage = "none";
       certNode.style.backgroundColor = "#faf9f6";
+      document.documentElement.style.setProperty("--cert-height", "850px");
     }
 
     // Render dynamic custom overlay fields
@@ -401,14 +668,21 @@ async function setupCertificateDOM(cert, status) {
     if (classicBody) classicBody.classList.remove("hidden");
     if (customOverlay) customOverlay.classList.add("hidden");
 
+    certNode.style.width = "1200px";
+    certNode.style.height = "850px";
     certNode.style.border = "16px solid #0f172a";
     certNode.style.padding = "3.5rem";
+    document.documentElement.style.setProperty("--cert-height", "850px");
 
     // 1. Populate fixed info
-    document.getElementById("cert-user-name").textContent = userName;
-    document.getElementById("cert-event-title").textContent = eventTitle;
-    document.getElementById("cert-issued-by-org").textContent = orgName;
-    document.getElementById("cert-code-text").textContent = certCode;
+    const elUserName = document.getElementById("cert-user-name");
+    const elEventTitle = document.getElementById("cert-event-title");
+    const elIssuedOrg = document.getElementById("cert-issued-by-org");
+    const elCodeText = document.getElementById("cert-code-text");
+    if (elUserName) elUserName.textContent = userName;
+    if (elEventTitle) elEventTitle.textContent = eventTitle;
+    if (elIssuedOrg) elIssuedOrg.textContent = orgName;
+    if (elCodeText) elCodeText.textContent = certCode;
 
     // 2. Custom Background & Contrast Auto-Detection
     if (bgUrl && bgUrl.trim() !== '') {
@@ -456,8 +730,8 @@ async function setupCertificateDOM(cert, status) {
   const downloadPngBtn = document.getElementById("download-png-btn");
 
   if (isRevoked) {
-    revokedBanner.classList.remove("hidden");
-    revokedStamp.classList.remove("hidden");
+    if (revokedBanner) revokedBanner.classList.remove("hidden");
+    if (revokedStamp) revokedStamp.classList.remove("hidden");
     if (downloadPdfBtn) {
       downloadPdfBtn.disabled = true;
       downloadPdfBtn.classList.add("opacity-50", "cursor-not-allowed");
@@ -467,9 +741,10 @@ async function setupCertificateDOM(cert, status) {
       downloadPngBtn.classList.add("opacity-50", "cursor-not-allowed");
     }
   } else {
-    revokedBanner.classList.add("hidden");
-    revokedStamp.classList.add("hidden");
+    if (revokedBanner) revokedBanner.classList.add("hidden");
+    if (revokedStamp) revokedStamp.classList.add("hidden");
   }
+
 }
 
 
@@ -501,7 +776,21 @@ function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
 // Direct Canvas 2D Vector Renderer (100% Offline & Reliable Zero-Dependency Engine)
 async function drawCertificateDirectToCanvas(cert, certNode) {
   const width = 1200;
-  const height = 850;
+  let height = certNode?.offsetHeight || 850;
+
+  const rawBgUrl = cert.metadata?.customBackground || cert.event?.certificateBackground;
+  let bgResult = cachedBgResult;
+  if (!bgResult || !bgResult.img) {
+    if (rawBgUrl && rawBgUrl.trim() !== "") {
+      bgResult = await loadCrossOriginImage(rawBgUrl);
+      if (bgResult) cachedBgResult = bgResult;
+    }
+  }
+
+  if (bgResult && bgResult.img && bgResult.img.naturalWidth > 0 && bgResult.img.naturalHeight > 0) {
+    height = Math.round(width / (bgResult.img.naturalWidth / bgResult.img.naturalHeight));
+  }
+
   const scale = 3;
 
   const canvas = document.createElement("canvas");
@@ -513,26 +802,19 @@ async function drawCertificateDirectToCanvas(cert, certNode) {
   await document.fonts.ready;
 
   const isDark = certNode?.classList?.contains("cert-theme-dark") || false;
-  const bgUrl = cert.metadata?.customBackground || cert.event?.certificateBackground;
 
   // 1. Draw Background
-  const rawBgUrl = cert.metadata?.customBackground || cert.event?.certificateBackground;
-  if (rawBgUrl && rawBgUrl.trim() !== "") {
-    const bgResult = await loadCrossOriginImage(rawBgUrl);
-    if (bgResult && bgResult.img) {
-      try {
-        ctx.drawImage(bgResult.img, 0, 0, width, height);
-      } catch (err) {
-        console.warn("ctx.drawImage background error:", err);
-        ctx.fillStyle = isDark ? "#0f172a" : "#faf9f6";
-        ctx.fillRect(0, 0, width, height);
-      } finally {
-        if (bgResult.objectUrl) URL.revokeObjectURL(bgResult.objectUrl);
-      }
-    } else {
+  if (bgResult && bgResult.img) {
+    try {
+      ctx.drawImage(bgResult.img, 0, 0, width, height);
+    } catch (err) {
+      console.warn("ctx.drawImage background error:", err);
       ctx.fillStyle = isDark ? "#0f172a" : "#faf9f6";
       ctx.fillRect(0, 0, width, height);
     }
+  } else if (rawBgUrl && rawBgUrl.trim() !== "") {
+    ctx.fillStyle = isDark ? "#0f172a" : "#faf9f6";
+    ctx.fillRect(0, 0, width, height);
   } else {
     ctx.fillStyle = "#faf9f6";
     ctx.fillRect(0, 0, width, height);
@@ -988,13 +1270,17 @@ function initActionButtons() {
     try {
       const certNode = document.getElementById("certificate-node");
       const canvas = await renderCertificateToCanvas(certNode);
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const imgData = canvas.toDataURL("image/png");
 
-      // Initialize A4 Landscape PDF (297 x 210 mm)
+      const certAspect = canvas.width / canvas.height;
+      const pdfPageW = 297;
+      const pdfPageH = pdfPageW / certAspect;
+
+      // Initialize PDF with exact matching aspect ratio (100% Full-bleed, Zero White Margins)
       const doc = new jsPDF({
-        orientation: "landscape",
+        orientation: pdfPageW >= pdfPageH ? "landscape" : "portrait",
         unit: "mm",
-        format: "a4",
+        format: [pdfPageW, pdfPageH],
         compress: true,
       });
 
@@ -1018,8 +1304,8 @@ function initActionButtons() {
         producer: 'SpringWave Verification Engine v1.0',
       });
 
-      // Fit image to full A4 page (297 x 210 mm)
-      doc.addImage(imgData, "JPEG", 0, 0, 297, 210, undefined, "FAST");
+      // Fit image 100% full-bleed onto custom matching page size
+      doc.addImage(imgData, "PNG", 0, 0, pdfPageW, pdfPageH, undefined, "FAST");
 
       const cleanUserName = userName.replace(/\s+/g, '_');
       doc.save(`Certificate_${cleanUserName}_${certCode}.pdf`);
@@ -1029,6 +1315,286 @@ function initActionButtons() {
     } finally {
       btn.disabled = false;
       btn.innerHTML = originalText;
+    }
+  });
+
+  // --- Share to Community & Ownership Modals ---
+  let certTurnstileWidgetId = null;
+
+  function renderCertTurnstile() {
+    const container = document.getElementById("cert-turnstile-container");
+    if (!container) return;
+
+    const tryRender = () => {
+      if (typeof turnstile !== "undefined") {
+        if (certTurnstileWidgetId !== null) {
+          try {
+            turnstile.reset(certTurnstileWidgetId);
+          } catch (e) {
+            console.warn("Turnstile reset error:", e);
+          }
+        } else {
+          try {
+            certTurnstileWidgetId = turnstile.render(container, {
+              sitekey: TURNSTILE_SITE_KEY,
+              theme: "light",
+            });
+          } catch (e) {
+            console.warn("Turnstile render error:", e);
+          }
+        }
+      } else {
+        setTimeout(tryRender, 200);
+      }
+    };
+
+    tryRender();
+  }
+
+  function resetCertTurnstile() {
+    if (typeof turnstile !== "undefined" && certTurnstileWidgetId !== null) {
+      try {
+        turnstile.reset(certTurnstileWidgetId);
+      } catch (e) {}
+    }
+  }
+
+  const handleShareClick = () => {
+    if (!currentCertData) return;
+    if (currentCertStatus === 'revoked' || currentCertData.status === 'revoked') {
+      showCertToast(getLang() === 'vi' ? 'Chứng chỉ đã bị thu hồi, không thể chia sẻ lên Cộng đồng.' : 'Revoked certificate cannot be shared to Community.', true);
+      return;
+    }
+
+    const ownership = checkCertificateOwnership(currentCertData);
+    if (!ownership.isLoggedIn) {
+      // Open login required modal
+      const modal = document.getElementById("login-required-modal");
+      const content = document.getElementById("login-required-modal-content");
+      const redirectLink = document.getElementById("login-redirect-link");
+      if (redirectLink) {
+        redirectLink.href = `/login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+      }
+      openModalElement(modal, content);
+      return;
+    }
+
+    if (!ownership.isOwner) {
+      // Open not-owner modal
+      const modal = document.getElementById("not-owner-modal");
+      const content = document.getElementById("not-owner-modal-content");
+      const descEl = document.getElementById("not-owner-modal-desc");
+      if (descEl) {
+        const recipientName = currentCertData.metadata?.userName || currentCertData.user?.fullname || "Người khác";
+        const currentUserName = ownership.currentUser?.fullname || ownership.currentUser?.username || "Tài khoản hiện tại";
+        descEl.textContent = t("certificate_view.not_owner_desc", { recipient: recipientName, currentUser: currentUserName });
+      }
+      openModalElement(modal, content);
+      return;
+    }
+
+    // Owner verified! Open share brag modal
+    const shareModal = document.getElementById("share-community-modal");
+    const shareContent = document.getElementById("share-modal-content");
+    const previewOrg = document.getElementById("preview-org-name");
+    const previewCode = document.getElementById("preview-cert-code");
+    const previewEvent = document.getElementById("preview-event-title");
+    const previewRecipient = document.getElementById("preview-recipient-name");
+    const titleInput = document.getElementById("share-post-title");
+    const contentInput = document.getElementById("share-post-content");
+    const tagsInput = document.getElementById("share-post-tags");
+    const alertBox = document.getElementById("share-alert-box");
+
+    if (alertBox) {
+      alertBox.className = "hidden p-3 rounded-xl text-xs flex items-center gap-2";
+      alertBox.innerHTML = "";
+    }
+
+    const eventTitle = currentCertData.metadata?.eventTitle || currentCertData.event?.title || "Sự kiện";
+    const orgName = currentCertData.metadata?.orgName || currentCertData.organization?.name || "SpringWave";
+    const certCode = currentCertData.certificateCode || "SW-CODE";
+    const recipientName = ownership.currentUser?.fullname || currentCertData.metadata?.userName || "Attendee";
+
+    if (previewOrg) previewOrg.textContent = orgName;
+    if (previewCode) previewCode.textContent = certCode;
+    if (previewEvent) previewEvent.textContent = eventTitle;
+    if (previewRecipient) previewRecipient.textContent = recipientName;
+
+    // Keep title and content empty as requested, so the user can freely type from scratch
+    if (titleInput) titleInput.value = "";
+    if (contentInput) contentInput.value = "";
+    if (tagsInput) tagsInput.value = "Certificate, Achievement, SpringWave";
+
+    openModalElement(shareModal, shareContent);
+    renderCertTurnstile();
+  };
+
+  document.getElementById("share-community-btn")?.addEventListener("click", handleShareClick);
+  document.getElementById("banner-share-btn")?.addEventListener("click", handleShareClick);
+
+  // Close share modal
+  const shareModal = document.getElementById("share-community-modal");
+  const shareContent = document.getElementById("share-modal-content");
+  const handleCloseShareModal = () => {
+    closeModalElement(shareModal, shareContent);
+    resetCertTurnstile();
+  };
+  document.getElementById("close-share-modal-btn")?.addEventListener("click", handleCloseShareModal);
+  shareModal?.addEventListener("click", (e) => {
+    if (e.target === shareModal) handleCloseShareModal();
+  });
+
+  // Close not-owner modal
+  const notOwnerModal = document.getElementById("not-owner-modal");
+  const notOwnerContent = document.getElementById("not-owner-modal-content");
+  document.getElementById("close-not-owner-modal-btn")?.addEventListener("click", () => {
+    closeModalElement(notOwnerModal, notOwnerContent);
+  });
+  notOwnerModal?.addEventListener("click", (e) => {
+    if (e.target === notOwnerModal) closeModalElement(notOwnerModal, notOwnerContent);
+  });
+
+  // Close login-required modal
+  const loginModal = document.getElementById("login-required-modal");
+  const loginContent = document.getElementById("login-required-modal-content");
+  document.getElementById("close-login-required-modal-btn")?.addEventListener("click", () => {
+    closeModalElement(loginModal, loginContent);
+  });
+  loginModal?.addEventListener("click", (e) => {
+    if (e.target === loginModal) closeModalElement(loginModal, loginContent);
+  });
+
+  // Copy post text
+  document.getElementById("copy-post-text-btn")?.addEventListener("click", () => {
+    const title = document.getElementById("share-post-title")?.value?.trim() || "";
+    const content = document.getElementById("share-post-content")?.value?.trim() || "";
+    if (!title && !content) {
+      showCertToast(getLang() === 'vi' ? 'Vui lòng nhập tiêu đề hoặc nội dung trước khi sao chép.' : 'Please enter title or content before copying.', true);
+      return;
+    }
+    const fullText = title && content ? `${title}\n\n${content}` : (title || content);
+    navigator.clipboard.writeText(fullText).then(() => {
+      showCertToast(t("certificate_view.copied_post"));
+      const btn = document.getElementById("copy-post-text-btn");
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = `<i class="fa-solid fa-check text-emerald-600"></i><span>${t("certificate_view.copied_post")}</span>`;
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+      }
+    });
+  });
+
+  // Open in Community Editor
+  document.getElementById("open-community-editor-btn")?.addEventListener("click", () => {
+    if (!currentCertData) return;
+    const title = document.getElementById("share-post-title")?.value || "";
+    const content = document.getElementById("share-post-content")?.value || "";
+    const certCode = currentCertData.certificateCode || "";
+    const eventId = currentCertData.event?._id || "";
+    const eventTitle = currentCertData.metadata?.eventTitle || currentCertData.event?.title || "";
+    const orgName = currentCertData.metadata?.orgName || currentCertData.organization?.name || "";
+
+    const params = new URLSearchParams();
+    params.set("action", "share-cert");
+    if (certCode) params.set("code", certCode);
+    if (eventId) params.set("eventId", eventId);
+    if (eventTitle) params.set("eventTitle", eventTitle);
+    if (orgName) params.set("orgName", orgName);
+    if (title) params.set("title", title);
+    if (content) params.set("content", content);
+
+    window.location.href = `/community.html?${params.toString()}`;
+  });
+
+  // Publish directly to Community
+  document.getElementById("publish-to-community-btn")?.addEventListener("click", async () => {
+    if (!currentCertData) return;
+    const titleInput = document.getElementById("share-post-title");
+    const contentInput = document.getElementById("share-post-content");
+    const tagsInput = document.getElementById("share-post-tags");
+    const publishBtn = document.getElementById("publish-to-community-btn");
+    const alertBox = document.getElementById("share-alert-box");
+
+    const title = titleInput?.value?.trim();
+    const content = contentInput?.value?.trim();
+    if (!title || !content) {
+      showCertToast(getLang() === 'vi' ? 'Vui lòng nhập tiêu đề và nội dung bài viết.' : 'Please enter both title and content.', true);
+      return;
+    }
+
+    const cfTurnstileResponse = (typeof turnstile !== "undefined" && certTurnstileWidgetId !== null)
+      ? turnstile.getResponse(certTurnstileWidgetId)
+      : undefined;
+
+    if (TURNSTILE_SITE_KEY && !cfTurnstileResponse) {
+      showCertToast(getLang() === 'vi' ? 'Vui lòng xác nhận kiểm tra bảo mật (Turnstile) trước khi đăng.' : 'Please complete the security check before posting.', true);
+      return;
+    }
+
+    const tags = tagsInput?.value ? tagsInput.value.split(",").map(s => s.trim()).filter(Boolean) : ["Certificate", "Achievement", "SpringWave"];
+
+    publishBtn.disabled = true;
+    const origHTML = publishBtn.innerHTML;
+    publishBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${getLang() === 'vi' ? 'Đang đăng bài...' : 'Posting...'}</span>`;
+
+    try {
+      const payload = {
+        title,
+        content,
+        category: "event",
+        relatedEvent: currentCertData.event?._id || undefined,
+        tags,
+        scope: "general",
+        cfTurnstileResponse,
+      };
+
+      const result = await createDiscussionWithScope(payload);
+      if (result) {
+        showCertToast(t("certificate_view.share_success_title"));
+        resetCertTurnstile();
+        if (alertBox) {
+          alertBox.className = "p-3.5 rounded-2xl text-xs flex items-center justify-between gap-3 bg-emerald-50 text-emerald-800 border border-emerald-200 mt-2";
+          alertBox.innerHTML = `
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-600 text-base shrink-0"></i>
+              <span class="font-medium">${t("certificate_view.share_success_desc")}</span>
+            </div>
+            <a href="/community.html" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shrink-0 text-[11px] transition-colors">
+              ${t("certificate_view.view_post")}
+            </a>
+          `;
+        }
+        publishBtn.innerHTML = `<i class="fa-solid fa-check"></i><span>${t("certificate_view.share_success_title")}</span>`;
+        setTimeout(() => {
+          closeModalElement(shareModal, shareContent);
+          publishBtn.disabled = false;
+          publishBtn.innerHTML = origHTML;
+        }, 2500);
+      } else {
+        throw new Error("Unable to create discussion");
+      }
+    } catch (err) {
+      console.warn("Direct community post failed:", err);
+      resetCertTurnstile();
+      const errMsg = err?.message || err?.error || (getLang() === 'vi' ? 'Đăng bài không thành công. Bạn có thể mở trực tiếp trong Diễn đàn.' : 'Post failed. You can open directly in Community.');
+      showCertToast(errMsg, true);
+      if (alertBox) {
+        alertBox.className = "p-3.5 rounded-2xl text-xs flex flex-col gap-2 bg-amber-50 text-amber-900 border border-amber-200 mt-2";
+        alertBox.innerHTML = `
+          <div class="flex items-start gap-2">
+            <i class="fa-solid fa-shield-halved text-amber-600 text-sm mt-0.5 shrink-0"></i>
+            <span class="leading-relaxed">${errMsg}</span>
+          </div>
+          <button type="button" id="alert-open-community-btn" class="self-end px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] transition-colors cursor-pointer">
+            ${t("certificate_view.open_in_community")} →
+          </button>
+        `;
+        document.getElementById("alert-open-community-btn")?.addEventListener("click", () => {
+          document.getElementById("open-community-editor-btn")?.click();
+        });
+      }
+      publishBtn.disabled = false;
+      publishBtn.innerHTML = origHTML;
     }
   });
 }

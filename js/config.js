@@ -9,4 +9,5 @@ export const MICROSOFT_CLIENT_ID =
   import.meta.env.VITE_MICROSOFT_CLIENT_ID || "";
 const envTurnstileKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 export const TURNSTILE_SITE_KEY =
-  envTurnstileKey !== undefined ? envTurnstileKey : "0x4AAAAAADnOtMcYHV27A0IZ";
+  (envTurnstileKey && envTurnstileKey.trim()) ? envTurnstileKey.trim() : "0x4AAAAAADnOtMcYHV27A0IZ";
+

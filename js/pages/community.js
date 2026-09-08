@@ -1,5 +1,5 @@
 import "../../src/style.css";
-import { t } from "../lib/i18n.js";
+import { t, getLang } from "../lib/i18n.js";
 import { isAuthenticated, getUser, getToken, setUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
@@ -241,11 +241,42 @@ document.addEventListener("DOMContentLoaded", async () => {
   initForumSidebarToggle();
   await initPostModal();
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const actionParam = urlParams.get("action");
+  if (actionParam === "share-cert" || urlParams.get("certCode")) {
+    const certCode = urlParams.get("certCode") || urlParams.get("code") || "";
+    const eventId = urlParams.get("eventId") || "";
+    const eventTitle = urlParams.get("eventTitle") || "";
+    const orgName = urlParams.get("orgName") || "SpringWave";
+    const customTitle = urlParams.get("title") || "";
+    const customContent = urlParams.get("content") || "";
+
+    const verifyUrl = `${window.location.origin}/certificate.html?code=${encodeURIComponent(certCode)}`;
+    const isVi = getLang() === 'vi';
+    const defaultTitle = customTitle || (isVi 
+      ? `🎉 Mình vừa nhận được Chứng chỉ hoàn thành sự kiện: ${eventTitle || 'SpringWave'}!` 
+      : `🎉 I just earned a Certificate of Completion for: ${eventTitle || 'SpringWave'}!`);
+    const defaultContent = customContent || (isVi
+      ? `Rất tự hào chia sẻ cùng mọi người: Mình đã hoàn thành xuất sắc sự kiện "${eventTitle}" do ${orgName} tổ chức và được cấp Giấy chứng nhận hoàn thành! 🏆\n\n📜 Mã chứng nhận: ${certCode}\n🔗 Tra cứu & Xác thực trực tiếp tại: ${verifyUrl}\n\nCảm ơn Ban tổ chức và các bạn đã đồng hành cùng mình! 🚀`
+      : `Proud to share with everyone: I have successfully completed "${eventTitle}" organized by ${orgName} and received my official Certificate of Completion! 🏆\n\n📜 Certificate ID: ${certCode}\n🔗 Verify online at: ${verifyUrl}\n\nThank you to the organizers and participants for this amazing experience! 🚀`);
+
+    setTimeout(() => {
+      if (window.openPostModal) {
+        window.openPostModal({
+          category: eventId ? "event" : "general",
+          eventId: eventId || undefined,
+          eventTitle: eventTitle || undefined,
+          title: defaultTitle,
+          content: defaultContent,
+          tags: "Certificate, Achievement, SpringWave",
+        });
+      }
+    }, 200);
+  }
+
   if (user && !isProfileComplete(user)) {
     showProfileModal();
   }
-
-  const urlParams = new URLSearchParams(window.location.search);
   const uniId = urlParams.get("uniId");
   const uniName = urlParams.get("uniName");
   const topic = urlParams.get("topic");
@@ -2789,6 +2820,18 @@ function initPostModal() {
         if (categorySelect) categorySelect.value = "event";
       }
       updateCategoryUI(cat);
+    }
+    if (config?.title) {
+      const titleInput = document.getElementById("postTitle");
+      if (titleInput) titleInput.value = config.title;
+    }
+    if (config?.content) {
+      const contentInput = document.getElementById("postContent");
+      if (contentInput) contentInput.value = config.content;
+    }
+    if (config?.tags) {
+      const tagsInput = document.getElementById("postTags");
+      if (tagsInput) tagsInput.value = Array.isArray(config.tags) ? config.tags.join(", ") : config.tags;
     }
     checkScope();
   }
