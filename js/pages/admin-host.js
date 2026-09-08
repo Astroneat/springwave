@@ -3,7 +3,7 @@ import { isAuthenticated, getUser } from "../lib/session.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
-import { t } from "../lib/i18n.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 import { getRegistrations, getRegistrationById, approveRegistration, rejectRegistration } from "../api/host.js";
 import { toggleDisableOrganizationAdmin } from "../api/organizations.js";
 
@@ -36,6 +36,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   initRefresh();
   initPopups();
   await loadData();
+
+  window.addEventListener("language-changed", () => {
+    applyTranslation();
+    loadData();
+  });
 });
 
 async function loadData() {
@@ -78,30 +83,30 @@ function renderTable(registrations) {
   if (!registrations.length) {
     tbody.innerHTML = "";
     empty.classList.remove("hidden");
-    count.textContent = "0 registrations";
+    count.textContent = t("admin_host.registrations_count", { n: 0 });
     return;
   }
 
   empty.classList.add("hidden");
-  count.textContent = `${registrations.length} registration${registrations.length !== 1 ? "s" : ""}`;
+  count.textContent = t("admin_host.registrations_count", { n: registrations.length });
 
   tbody.innerHTML = registrations.map(reg => {
     const isOrgDisabled = reg.organization && (reg.organization.isActive === false || reg.organization.status === 'disabled');
 
-    const statusBadge = isOrgDisabled ? `<span class="badge-rejected">Disabled</span>`
-      : reg.status === "pending" ? `<span class="badge-pending">Pending</span>`
-      : reg.status === "approved" ? `<span class="badge-approved">Approved</span>`
-      : `<span class="badge-rejected">Rejected</span>`;
+    const statusBadge = isOrgDisabled ? `<span class="badge-rejected">${t("admin_host.disabled", "Disabled")}</span>`
+      : reg.status === "pending" ? `<span class="badge-pending">${t("admin_host.tab_pending", "Pending")}</span>`
+      : reg.status === "approved" ? `<span class="badge-approved">${t("admin_host.tab_approved", "Approved")}</span>`
+      : `<span class="badge-rejected">${t("admin_host.tab_rejected", "Rejected")}</span>`;
 
     const actions = reg.status === "pending" ? `
-      <button class="approve-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#059669] hover:bg-green-50 hover:border-green-200 transition-all spring-ease" title="Approve">
+      <button class="approve-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#059669] hover:bg-green-50 hover:border-green-200 transition-all spring-ease" title="${t("admin_host.btn_approve", "Approve")}">
         <i class="fa-solid fa-check text-sm"></i>
       </button>
-      <button class="reject-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Reject">
+      <button class="reject-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="${t("admin_host.btn_reject", "Reject")}">
         <i class="fa-solid fa-ban text-sm"></i>
       </button>
     ` : reg.organization ? `
-      <button class="toggle-disable-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center ${isOrgDisabled ? 'text-[#059669] hover:bg-green-50 hover:border-green-200' : 'text-[#d97706] hover:bg-amber-50 hover:border-amber-200'} transition-all spring-ease" title="${isOrgDisabled ? 'Kích hoạt lại CLB/Tổ chức' : 'Vô hiệu hóa CLB/Tổ chức'}" data-org-id="${reg.organization._id}" data-disable="${!isOrgDisabled}">
+      <button class="toggle-disable-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center ${isOrgDisabled ? 'text-[#059669] hover:bg-green-50 hover:border-green-200' : 'text-[#d97706] hover:bg-amber-50 hover:border-amber-200'} transition-all spring-ease" title="${isOrgDisabled ? t("admin_host.action_enable", "Reactivate organization") : t("admin_host.action_disable", "Disable organization")}" data-org-id="${reg.organization._id}" data-disable="${!isOrgDisabled}">
         <i class="fa-solid fa-power-off text-sm"></i>
       </button>
     ` : `<span class="text-xs text-[#94a3b8]">—</span>`;
@@ -113,7 +118,7 @@ function renderTable(registrations) {
       : (reg.university?.name || null);
     const universityTag = universityName
       ? `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-md mt-1 max-w-[220px] truncate"><i class="fa-solid fa-graduation-cap text-[10px] shrink-0"></i> <span class="truncate">${universityName}</span></span>`
-      : `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md mt-1"><i class="fa-solid fa-globe text-[10px] shrink-0"></i> Tự do</span>`;
+      : `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md mt-1"><i class="fa-solid fa-globe text-[10px] shrink-0"></i> ${t("admin_host.independent", "Independent")}</span>`;
 
     return `
       <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc] transition-colors cursor-pointer" data-id="${reg._id}">
@@ -172,15 +177,15 @@ function renderTable(registrations) {
       e.stopPropagation();
       const orgId = btn.dataset.orgId;
       const shouldDisable = btn.dataset.disable === "true";
-      const orgName = btn.closest("tr").querySelector("td:first-child .font-semibold")?.textContent || "tổ chức này";
-      const actionText = shouldDisable ? "vô hiệu hóa" : "kích hoạt lại";
-      if (confirm(`Bạn có chắc chắn muốn ${actionText} ${orgName}?`)) {
+      const orgName = btn.closest("tr").querySelector("td:first-child .font-semibold")?.textContent || "this organization";
+      const actionText = shouldDisable ? t("admin_host.action_disable", "disable") : t("admin_host.action_enable", "reactivate");
+      if (confirm(t("admin_host.confirm_toggle", { action: actionText, name: orgName }))) {
         try {
           btn.disabled = true;
           await toggleDisableOrganizationAdmin(orgId, shouldDisable);
           await loadData();
         } catch (err) {
-          alert(`Thao tác thất bại: ${err.message}`);
+          alert(t("admin_host.toggle_failed", { msg: err.message }));
         }
       }
     });
@@ -197,7 +202,7 @@ function renderPagination(pagination) {
   currentPage = pagination.page;
   totalPages = pagination.totalPages;
   document.getElementById("pagination-info").textContent =
-    `Page ${pagination.page} of ${pagination.totalPages} (${pagination.totalItems} total)`;
+    t("admin_host.page_info", { page: pagination.page, total: pagination.totalPages, count: pagination.totalItems });
   document.getElementById("prev-page").disabled = pagination.page <= 1;
   document.getElementById("next-page").disabled = pagination.page >= pagination.totalPages;
 }
@@ -214,7 +219,7 @@ function initPagination() {
 function showEmpty() {
   document.getElementById("table-body").innerHTML = "";
   document.getElementById("table-empty").classList.remove("hidden");
-  document.getElementById("table-count").textContent = "0 registrations";
+  document.getElementById("table-count").textContent = t("admin_host.registrations_count", { n: 0 });
 }
 
 function initTabs() {
@@ -271,13 +276,13 @@ function buildDetailHTML(reg) {
   const reviewedBy = reg.reviewedBy || {};
   const cccdImage = reg.cccdImage
     ? `<img src="${reg.cccdImage}" class="max-w-[280px] rounded-xl border border-[#ecedfa]" />`
-    : `<span class="text-[#94a3b8] text-sm">Not provided</span>`;
+    : `<span class="text-[#94a3b8] text-sm">${t("admin_host.not_provided", "Not provided")}</span>`;
 
   const credibilityHTML = (reg.credibilityEvidence || []).map(ev =>
     ev.type === "image"
       ? `<a href="${ev.url}" target="_blank"><img src="${ev.url}" class="evidence-img" /></a>`
       : `<a href="${ev.url}" target="_blank" class="text-primary underline text-sm">${ev.url}</a>`
-  ).join("") || `<span class="text-[#94a3b8] text-sm">None</span>`;
+  ).join("") || `<span class="text-[#94a3b8] text-sm">${t("admin_host.none", "None")}</span>`;
 
   const thirdParty = reg.thirdPartyContact || {};
 
@@ -285,45 +290,45 @@ function buildDetailHTML(reg) {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Organization Info -->
       <div class="md:col-span-2">
-        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">Organization Info</h3>
+        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">${t("admin_host.org_info", "Organization Info")}</h3>
         <div class="bg-[#f8f9fc] rounded-2xl p-5 space-y-3">
-          <div class="flex justify-between"><span class="text-[#64748b]">Name</span><span class="font-semibold text-right">${reg.orgName}</span></div>
-          <div class="flex justify-between items-center"><span class="text-[#64748b]">University</span><span class="font-semibold text-right ${reg.university ? 'text-primary' : 'text-slate-600'}">${reg.university ? (reg.university.shortName ? `${reg.university.name} (${reg.university.shortName})` : (reg.university.name || reg.university)) : 'Tự do / Không thuộc trường nào'}</span></div>
-          <div class="flex justify-between"><span class="text-[#64748b]">Representative</span><span class="font-semibold text-right">${reg.representativeName}</span></div>
-          <div class="flex justify-between"><span class="text-[#64748b]">Phone</span><span class="font-semibold text-right">${reg.phoneNo}</span></div>
-          <div class="flex justify-between"><span class="text-[#64748b]">Status</span><span class="text-right">${reg.status === "pending" ? '<span class="badge-pending">Pending</span>' : reg.status === "approved" ? '<span class="badge-approved">Approved</span>' : '<span class="badge-rejected">Rejected</span>'}</span></div>
-          ${reg.reviewNote ? `<div class="flex justify-between"><span class="text-[#64748b]">Review Note</span><span class="text-right text-[#dc2626]">${reg.reviewNote}</span></div>` : ""}
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.org_name", "Name")}</span><span class="font-semibold text-right">${reg.orgName}</span></div>
+          <div class="flex justify-between items-center"><span class="text-[#64748b]">${t("admin_host.university", "University")}</span><span class="font-semibold text-right ${reg.university ? 'text-primary' : 'text-slate-600'}">${reg.university ? (reg.university.shortName ? `${reg.university.name} (${reg.university.shortName})` : (reg.university.name || reg.university)) : t("admin_host.independent_full", "Independent / No University Affiliation")}</span></div>
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.rep_name", "Representative")}</span><span class="font-semibold text-right">${reg.representativeName}</span></div>
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.phone", "Phone")}</span><span class="font-semibold text-right">${reg.phoneNo}</span></div>
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.status", "Status")}</span><span class="text-right">${reg.status === "pending" ? `<span class="badge-pending">${t("admin_host.tab_pending", "Pending")}</span>` : reg.status === "approved" ? `<span class="badge-approved">${t("admin_host.tab_approved", "Approved")}</span>` : `<span class="badge-rejected">${t("admin_host.tab_rejected", "Rejected")}</span>`}</span></div>
+          ${reg.reviewNote ? `<div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.review_note", "Review Note")}</span><span class="text-right text-[#dc2626]">${reg.reviewNote}</span></div>` : ""}
         </div>
       </div>
 
       <!-- CCCD -->
       <div>
-        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">CCCD / ID Card</h3>
+        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">${t("admin_host.cccd_card", "CCCD / ID Card")}</h3>
         <div class="bg-[#f8f9fc] rounded-2xl p-5 space-y-3">
           <div>
-            <p class="text-[13px] text-[#64748b] mb-2">Image</p>
+            <p class="text-[13px] text-[#64748b] mb-2">${t("admin_host.image", "Image")}</p>
             ${cccdImage}
           </div>
           <div>
-            <p class="text-[13px] text-[#64748b] mb-1">Number</p>
-            <p class="font-semibold font-mono">${reg.cccdNumber || "Not provided"}</p>
+            <p class="text-[13px] text-[#64748b] mb-1">${t("admin_host.number", "Number")}</p>
+            <p class="font-semibold font-mono">${reg.cccdNumber || t("admin_host.not_provided", "Not provided")}</p>
           </div>
         </div>
       </div>
 
       <!-- Third Party -->
       <div>
-        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">Third Party Reference</h3>
+        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">${t("admin_host.third_party_ref", "Third Party Reference")}</h3>
         <div class="bg-[#f8f9fc] rounded-2xl p-5 space-y-3">
-          <div class="flex justify-between"><span class="text-[#64748b]">Name</span><span class="font-semibold text-right">${thirdParty.name || "—"}</span></div>
-          <div class="flex justify-between"><span class="text-[#64748b]">Phone</span><span class="font-semibold text-right">${thirdParty.phoneNo || "—"}</span></div>
-          <div class="flex justify-between"><span class="text-[#64748b]">Relation</span><span class="font-semibold text-right">${thirdParty.relation || "—"}</span></div>
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.org_name", "Name")}</span><span class="font-semibold text-right">${thirdParty.name || "—"}</span></div>
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.phone", "Phone")}</span><span class="font-semibold text-right">${thirdParty.phoneNo || "—"}</span></div>
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.relation", "Relation")}</span><span class="font-semibold text-right">${thirdParty.relation || "—"}</span></div>
         </div>
       </div>
 
       <!-- Credibility Evidence -->
       <div class="md:col-span-2">
-        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">Credibility Evidence</h3>
+        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">${t("admin_host.credibility_evidence", "Credibility Evidence")}</h3>
         <div class="bg-[#f8f9fc] rounded-2xl p-5 flex flex-wrap gap-3">
           ${credibilityHTML}
         </div>
@@ -331,25 +336,25 @@ function buildDetailHTML(reg) {
 
       <!-- Submitter Info -->
       <div>
-        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">Submitted By</h3>
+        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">${t("admin_host.submitted_by", "Submitted By")}</h3>
         <div class="bg-[#f8f9fc] rounded-2xl p-5 space-y-3">
-          <div class="flex justify-between"><span class="text-[#64748b]">Name</span><span class="font-semibold text-right">${user.fullname || "—"}</span></div>
-          <div class="flex justify-between"><span class="text-[#64748b]">Email</span><span class="font-semibold text-right">${user.email || "—"}</span></div>
-          <div class="flex justify-between"><span class="text-[#64748b]">Username</span><span class="font-semibold text-right">${user.username || "—"}</span></div>
-          <div class="flex justify-between"><span class="text-[#64748b]">Phone</span><span class="font-semibold text-right">${user.phoneNo || "—"}</span></div>
-          ${user.school ? `<div class="flex justify-between"><span class="text-[#64748b]">School</span><span class="font-semibold text-right">${user.school}</span></div>` : ""}
-          ${user.createdAt ? `<div class="flex justify-between"><span class="text-[#64748b]">Joined</span><span class="font-semibold text-right">${formatDate(user.createdAt)}</span></div>` : ""}
-          <div class="flex justify-between"><span class="text-[#64748b]">Email Verified</span><span class="font-semibold text-right">${user.emailVerified ? '<span class="text-[#059669]">Yes</span>' : '<span class="text-[#dc2626]">No</span>'}</span></div>
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.org_name", "Name")}</span><span class="font-semibold text-right">${user.fullname || "—"}</span></div>
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.email", "Email")}</span><span class="font-semibold text-right">${user.email || "—"}</span></div>
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.username", "Username")}</span><span class="font-semibold text-right">${user.username || "—"}</span></div>
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.phone", "Phone")}</span><span class="font-semibold text-right">${user.phoneNo || "—"}</span></div>
+          ${user.school ? `<div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.school", "School")}</span><span class="font-semibold text-right">${user.school}</span></div>` : ""}
+          ${user.createdAt ? `<div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.joined", "Joined")}</span><span class="font-semibold text-right">${formatDate(user.createdAt)}</span></div>` : ""}
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.email_verified", "Email Verified")}</span><span class="font-semibold text-right">${user.emailVerified ? `<span class="text-[#059669]">${t("admin_host.yes", "Yes")}</span>` : `<span class="text-[#dc2626]">${t("admin_host.no", "No")}</span>`}</span></div>
         </div>
       </div>
 
       <!-- Review Info -->
       <div>
-        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">Review</h3>
+        <h3 class="text-sm font-semibold text-[#64748b] uppercase tracking-wide mb-3">${t("admin_host.review_info", "Review")}</h3>
         <div class="bg-[#f8f9fc] rounded-2xl p-5 space-y-3">
-          <div class="flex justify-between"><span class="text-[#64748b]">Submitted</span><span class="font-semibold text-right">${formatDate(reg.createdAt)}</span></div>
-          ${reviewedBy.fullname ? `<div class="flex justify-between"><span class="text-[#64748b]">Reviewed By</span><span class="font-semibold text-right">${reviewedBy.fullname}</span></div>` : ""}
-          ${reg.updatedAt ? `<div class="flex justify-between"><span class="text-[#64748b]">Last Updated</span><span class="font-semibold text-right">${formatDate(reg.updatedAt)}</span></div>` : ""}
+          <div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.submitted_date", "Submitted")}</span><span class="font-semibold text-right">${formatDate(reg.createdAt)}</span></div>
+          ${reviewedBy.fullname ? `<div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.reviewed_by", "Reviewed By")}</span><span class="font-semibold text-right">${reviewedBy.fullname}</span></div>` : ""}
+          ${reg.updatedAt ? `<div class="flex justify-between"><span class="text-[#64748b]">${t("admin_host.reviewed_date", "Last Updated")}</span><span class="font-semibold text-right">${formatDate(reg.updatedAt)}</span></div>` : ""}
         </div>
       </div>
     </div>

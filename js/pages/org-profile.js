@@ -11,6 +11,7 @@ import {
   getOrgActivities
 } from "../api/organizations.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 
 // --- State ---
 let allEvents = [];
@@ -76,10 +77,10 @@ function renderFilteredEvents() {
   if (filtered.length === 0) {
     const emptyMsg =
       currentTab === "upcoming"
-        ? "No upcoming events scheduled at the moment."
+        ? t("org_profile.no_upcoming", "No upcoming events scheduled at the moment.")
         : currentTab === "past"
-        ? "No past events recorded for this organization."
-        : "No events published yet.";
+        ? t("org_profile.no_past", "No past events recorded for this organization.")
+        : t("org_profile.no_events", "No events published yet.");
 
     grid.innerHTML = `
       <div class="col-span-full flex flex-col items-center justify-center text-center py-12 px-4 rounded-2xl bg-white border border-[#ecedfa]">
@@ -87,7 +88,7 @@ function renderFilteredEvents() {
           <span class="material-symbols-outlined text-3xl">event_busy</span>
         </div>
         <p class="font-bold text-sm text-[#191b22]">${emptyMsg}</p>
-        <p class="text-xs text-[#64748b] mt-1">Check back later or follow this organization for announcements.</p>
+        <p class="text-xs text-[#64748b] mt-1" data-i18n="org_profile.activities_desc">Check back later or follow this organization for announcements.</p>
       </div>`;
     return;
   }
@@ -96,8 +97,8 @@ function renderFilteredEvents() {
     .map((e) => {
       const isPast = e.heldDate ? new Date(e.heldDate) < now : false;
       const statusBadge = isPast
-        ? `<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0">Ended</span>`
-        : `<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0">Upcoming</span>`;
+        ? `<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0">${t("org_profile.ended", "Ended")}</span>`
+        : `<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0">${t("org_profile.upcoming", "Upcoming")}</span>`;
 
       return `
         <div data-id="${e._id}" class="event-card cursor-pointer flex flex-col justify-between bg-white border border-[#ecedfa] rounded-[20px] overflow-hidden shadow-sm hover:shadow-lg hover:scale-[1.015] active:scale-[0.99] transition-all duration-200 group">
@@ -153,18 +154,19 @@ function initEventTabs() {
 
 // --- Update Follow Button UI ---
 function updateFollowButtonUI(button, isFollowing) {
+  if (!button) return;
   const labelEl = button.querySelector(".follow-label");
   const iconEl = document.getElementById("follow-icon");
 
   button.dataset.following = isFollowing ? "true" : "false";
 
   if (isFollowing) {
-    if (labelEl) labelEl.textContent = "Following";
+    if (labelEl) labelEl.textContent = t("org_profile.following_btn", "Following");
     if (iconEl) iconEl.textContent = "check";
     button.className =
       "follow-btn flex items-center gap-2 font-semibold text-sm bg-slate-100 text-slate-700 border border-slate-300 px-7 py-2.5 rounded-full shadow-sm hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 active:scale-95 transition-all cursor-pointer";
   } else {
-    if (labelEl) labelEl.textContent = "Follow";
+    if (labelEl) labelEl.textContent = t("org_profile.follow_btn", "Follow");
     if (iconEl) iconEl.textContent = "add";
     button.className =
       "follow-btn flex items-center gap-2 font-semibold text-sm bg-primary text-white px-7 py-2.5 rounded-full shadow-md hover:shadow-primary/25 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer";
@@ -321,7 +323,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (reviewsLabel) {
-    reviewsLabel.textContent = `${reviewCount} Platform Reviews`;
+    reviewsLabel.textContent = `${reviewCount} ${t("org_profile.platform_reviews", "Platform Reviews")}`;
   }
 
   // --- Social links ---
@@ -392,7 +394,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const res = await uploadOrgAvatar(orgId, file);
           if (res.avatar) {
             avatarImg.src = res.avatar;
-            showToast("Organization logo updated successfully!");
+            showToast(t("org_profile.logo_updated", "Organization logo updated successfully!"));
           }
         } catch (error) {
           console.error("Failed to upload avatar:", error);
@@ -409,7 +411,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const res = await uploadOrgCover(orgId, file);
           if (res.coverImage) {
             coverImg.style.backgroundImage = `url('${res.coverImage}')`;
-            showToast("Organization cover photo updated successfully!");
+            showToast(t("org_profile.cover_updated", "Organization cover photo updated successfully!"));
           }
         } catch (error) {
           console.error("Failed to upload cover:", error);
@@ -435,13 +437,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch (err) {
           if (err.name !== "AbortError") {
             await navigator.clipboard.writeText(window.location.href);
-            showToast("Organization profile link copied to clipboard!");
+            showToast(t("org_profile.link_copied", "Organization profile link copied to clipboard!"));
           }
         }
       } else {
         try {
           await navigator.clipboard.writeText(window.location.href);
-          showToast("Organization profile link copied to clipboard!");
+          showToast(t("org_profile.link_copied", "Organization profile link copied to clipboard!"));
         } catch {
           showToast("Failed to copy link.", true);
         }
@@ -456,7 +458,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     followBtn.addEventListener("click", async () => {
       if (!isAuthenticated()) {
-        showToast("Please log in to follow organizations.", true);
+        showToast(t("org_profile.login_required_follow", "Please log in to follow organizations."), true);
         setTimeout(() => {
           window.location.href = `/login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
         }, 1200);
@@ -469,7 +471,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           followersCountEl.textContent = result.followerCount ?? 0;
         }
         updateFollowButtonUI(followBtn, result.isFollowing);
-        showToast(result.isFollowing ? "You are now following this organization!" : "Unfollowed organization.");
+        showToast(result.isFollowing ? t("org_profile.now_following", "You are now following this organization!") : t("org_profile.unfollowed", "Unfollowed organization."));
       } catch (error) {
         console.error("Follow toggle failed:", error);
         showToast(error.message || "Follow request failed. Please try again.", true);
@@ -487,4 +489,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Failed to load organization events:", err);
     renderFilteredEvents();
   }
+
+  window.addEventListener("language-changed", () => {
+    applyTranslation();
+    if (reviewsLabel) {
+      reviewsLabel.textContent = `${reviewCount} ${t("org_profile.platform_reviews", "Platform Reviews")}`;
+    }
+    if (followBtn) {
+      updateFollowButtonUI(followBtn, followBtn.dataset.following === "true");
+    }
+    renderFilteredEvents();
+  });
 });

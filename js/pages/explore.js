@@ -263,7 +263,7 @@ async function loadRecommendations() {
             const pct = Number.isFinite(a.percentage) ? a.percentage : (a.score ? Math.round(a.score * 100) : null);
             const matchBadgeHTML = pct !== null ? `
                 <div class="recommendation-match-pill">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> ${pct}% Match
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> ${pct}% ${t("explore.match_pill", "Match")}
                 </div>
             ` : '';
 
@@ -303,13 +303,13 @@ window.addEventListener('springwave:ai-match-updated', (e) => {
     if (card) {
         let pill = card.querySelector('.recommendation-match-pill');
         if (pill) {
-            pill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% Match`;
+            pill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% ${t("explore.match_pill", "Match")}`;
         } else {
             const thumb = card.querySelector('.recommendation-thumb');
             if (thumb) {
                 const newPill = document.createElement('div');
                 newPill.className = 'recommendation-match-pill';
-                newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% Match`;
+                newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% ${t("explore.match_pill", "Match")}`;
                 thumb.prepend(newPill);
             }
         }
@@ -1696,9 +1696,16 @@ function initMapSelector() {
     });
 }
 
-/* =============================
-   EXPLORE POST MODAL
-   ============================= */
+if (typeof window !== "undefined") {
+    window.addEventListener("language-changed", async () => {
+        if (currentFilteredActivities && currentFilteredActivities.length > 0) {
+            await renderCardsDirect(currentFilteredActivities);
+        } else if (allActivities && allActivities.length > 0) {
+            await renderCardsDirect(allActivities);
+        }
+        loadRecommendations().catch(() => {});
+    });
+}
 
 
 

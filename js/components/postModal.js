@@ -5,12 +5,25 @@ import { createDiscussionWithScope } from "../api/forum.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
 import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
 import { addBadgeNotification } from "../lib/notifications.js";
+import { applyTranslation, t } from "../lib/i18n.js";
 
 let isInitialized = false;
 
 // We'll keep the DOM elements here
 let overlay, backdrop, closeBtn, cancelBtn, publishBtn, titleInput, contentInput, tagsInput, eventInfo;
 let currentActivity = null;
+
+function renderEventInfo(activity) {
+    if (!eventInfo || !activity) return;
+    eventInfo.innerHTML = `
+      <span class="material-symbols-outlined text-blue-600">event</span>
+      <div class="forum-post-event-info">
+        <span class="text-sm font-medium text-slate-800">${activity.title}</span>
+        <span class="text-xs text-slate-500">${t("post_modal.linked_hint", "This discussion will be linked to this event")}</span>
+      </div>
+      <span class="material-symbols-outlined text-blue-600">check_circle</span>
+    `;
+}
 
 async function ensurePostModalElements() {
     if (isInitialized) return;
@@ -33,6 +46,8 @@ async function ensurePostModalElements() {
     contentInput = document.getElementById("explorePostContent");
     tagsInput = document.getElementById("explorePostTags");
     eventInfo = document.getElementById("explorePostEventInfo");
+
+    if (overlay) applyTranslation(overlay);
 
     closeBtn?.addEventListener("click", closePostModal);
     cancelBtn?.addEventListener("click", closePostModal);
@@ -128,9 +143,9 @@ async function ensurePostModalElements() {
 
             const discId = result._id || result.id;
             showSuccessToast(
-                "Discussion posted successfully! Click here to view",
+                t("post_modal.toast_success", "Discussion posted successfully! Click here to view"),
                 discId ? `./community.html?discussion=${discId}` : null,
-                "View Discussion Detail"
+                t("post_modal.toast_view", "View Discussion Detail")
             );
 
             if (result?.newBadges && Array.isArray(result.newBadges) && result.newBadges.length > 0) {
@@ -162,14 +177,7 @@ export async function openPostModal(activity) {
     titleInput.value = "";
     contentInput.value = "";
     tagsInput.value = "";
-    eventInfo.innerHTML = `
-      <span class="material-symbols-outlined text-blue-600">event</span>
-      <div class="forum-post-event-info">
-        <span class="text-sm font-medium text-slate-800">${activity.title}</span>
-        <span class="text-xs text-slate-500">This discussion will be linked to this event</span>
-      </div>
-      <span class="material-symbols-outlined text-blue-600">check_circle</span>
-    `;
+    renderEventInfo(activity);
     
     overlay.style.display = "flex";
     requestAnimationFrame(() => overlay.classList.add("active"));
@@ -200,7 +208,7 @@ function showSuccessToast(message, linkUrl, linkText = "View Discussion Detail")
         <span class="material-symbols-outlined">check_circle</span>
       </div>
       <div class="success-toast-body">
-        <span class="success-toast-heading">Success!</span>
+        <span class="success-toast-heading">${t("common.success", "Success!")}</span>
         <span class="success-toast-message">${message}</span>
         ${linkUrl ? `<span class="success-toast-link">${linkText || "View Discussion Detail"}</span>` : ""}
       </div>
@@ -259,4 +267,11 @@ function showSuccessToast(message, linkUrl, linkText = "View Discussion Detail")
         closeToast();
       }
     }, 6000);
+}
+
+if (typeof window !== "undefined") {
+    window.addEventListener("language-changed", () => {
+        if (overlay) applyTranslation(overlay);
+        if (currentActivity) renderEventInfo(currentActivity);
+    });
 }

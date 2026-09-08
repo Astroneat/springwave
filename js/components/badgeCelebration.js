@@ -813,6 +813,20 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
     `;
   }
 
+  const tierLabel = t("badges.rarity." + badge.tier, tierMeta.label);
+  const badgeWord = t("badges.badge_word", "Badge");
+  const stampText = t("badges.stamps." + badge.tier, tierMeta.stampText);
+  const badgeTitle = t("badges.list." + badge.key + ".label", badge.label);
+  const badgeDesc = t("badges.list." + badge.key + ".desc", badge.desc);
+  const catKey = (badge.category || "Community").toLowerCase();
+  const catLabel = t("badges.categories." + catKey, badge.category || "Community");
+  const catHeading = t("badges.category_label", "Category:");
+  const statusHeading = t("badges.status_label", "Status:");
+  const statusValue = isInspect ? t("badges.status_unlocked", "Unlocked in Profile") : t("badges.status_new", "Newly Achieved!");
+  const replayBtnText = t("badges.celebration.replay_btn", "Replay FX");
+  const viewProfileBtnText = t("badges.celebration.view_profile_btn", "View in Profile");
+  const closeAria = t("badges.celebration.close_btn", "Close modal");
+
   const modalOverlay = document.createElement("div");
   modalOverlay.id = "badge-celebration-modal";
   modalOverlay.className = "badge-modal-overlay active";
@@ -822,14 +836,14 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
   modalOverlay.innerHTML = `
     <div class="badge-modal-backdrop"></div>
     <div class="badge-modal-card tier-${badge.tier}">
-      <button class="badge-modal-close" aria-label="Close modal">
+      <button class="badge-modal-close" aria-label="${closeAria}">
         <span class="material-symbols-outlined text-lg">close</span>
       </button>
 
       <div class="badge-modal-top">
         <div class="badge-modal-pills-group">
           <span class="badge-modal-tier-pill" style="background: ${tierMeta.bg}; color: ${tierMeta.primary}; border: 1px solid ${tierMeta.border};">
-            <span class="material-symbols-outlined text-xs">military_tech</span> ${tierMeta.label} Badge
+            <span class="material-symbols-outlined text-xs">military_tech</span> ${tierLabel} ${badgeWord}
           </span>
           <span class="badge-modal-xp-pill" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #0f172a;">
             +${badge.xp || 25} XP
@@ -846,28 +860,28 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
         </div>
         <!-- Tactile Graffiti Stamp -->
         <div class="badge-graffiti-stamp tier-${badge.tier}">
-          <span>${tierMeta.stampText}</span>
+          <span>${stampText}</span>
         </div>
       </div>
 
       <div class="badge-modal-content">
-        <h3 class="badge-modal-title tier-${badge.tier}">${badge.label}</h3>
-        <p class="badge-modal-desc">${badge.desc}</p>
+        <h3 class="badge-modal-title tier-${badge.tier}">${badgeTitle}</h3>
+        <p class="badge-modal-desc">${badgeDesc}</p>
         <div class="badge-modal-meta-row">
-          <span><strong>Category:</strong> ${badge.category || "Community"}</span>
+          <span><strong>${catHeading}</strong> ${catLabel}</span>
           <span>●</span>
-          <span><strong>Status:</strong> ${isInspect ? "Unlocked in Profile" : "Newly Achieved!"}</span>
+          <span><strong>${statusHeading}</strong> ${statusValue}</span>
         </div>
       </div>
 
       <div class="badge-modal-actions">
         <button type="button" class="badge-modal-btn replay-btn" id="badge-replay-fx-btn">
           <span class="material-symbols-outlined text-sm">celebration</span>
-          <span>Replay FX</span>
+          <span>${replayBtnText}</span>
         </button>
         ${!isProfilePage ? `
         <a href="/profile.html#badge-${badge.key}" class="badge-modal-btn primary-btn tier-${badge.tier}" id="badge-view-profile-btn">
-          <span>View in Profile</span>
+          <span>${viewProfileBtnText}</span>
           <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </a>
         ` : ""}
