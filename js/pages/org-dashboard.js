@@ -4349,6 +4349,8 @@ function initCertLayoutDesigner() {
   const saveBtn = document.getElementById("cert-designer-save-btn");
   const sampleBtn = document.getElementById("cert-designer-sample-btn");
   const sampleBtnText = document.getElementById("cert-sample-btn-text");
+  const undoBtn = document.getElementById("cert-designer-undo-btn");
+  const redoBtn = document.getElementById("cert-designer-redo-btn");
 
   const stage = document.getElementById("cert-canvas-stage");
   const artboardWrapper = document.getElementById("cert-artboard-wrapper");
@@ -4405,6 +4407,93 @@ function initCertLayoutDesigner() {
   let isGridVisible = false;
   let currentGridType = "50";
   let isMagnetActive = true;
+
+  // History Stack for Undo / Forward (Ctrl+Z / Ctrl+Y)
+  const MAX_HISTORY = 40;
+  let history = [];
+  let historyIndex = -1;
+  let isRestoringHistory = false;
+  let arrowNudgeDebounce = null;
+
+  function createSnapshot() {
+    return {
+      config: JSON.parse(JSON.stringify(currentConfig)),
+      activeFieldKey: activeFieldKey,
+    };
+  }
+
+  function updateUndoRedoUI() {
+    const canUndo = historyIndex > 0;
+    const canRedo = historyIndex >= 0 && historyIndex < history.length - 1;
+
+    if (undoBtn) {
+      undoBtn.disabled = !canUndo;
+    }
+    if (redoBtn) {
+      redoBtn.disabled = !canRedo;
+    }
+  }
+
+  function pushHistoryState() {
+    if (isRestoringHistory) return;
+
+    const snapshot = createSnapshot();
+
+    if (historyIndex >= 0 && history[historyIndex]) {
+      const currStr = JSON.stringify(history[historyIndex].config);
+      const newStr = JSON.stringify(snapshot.config);
+      if (currStr === newStr) {
+        history[historyIndex].activeFieldKey = activeFieldKey;
+        return;
+      }
+    }
+
+    if (historyIndex >= 0) {
+      history = history.slice(0, historyIndex + 1);
+    } else {
+      history = [];
+    }
+
+    history.push(snapshot);
+    if (history.length > MAX_HISTORY) {
+      history.shift();
+    }
+    historyIndex = history.length - 1;
+    updateUndoRedoUI();
+  }
+
+  function restoreHistoryState(snapshot) {
+    if (!snapshot || !snapshot.config) return;
+
+    isRestoringHistory = true;
+    try {
+      currentConfig = JSON.parse(JSON.stringify(snapshot.config));
+      activeFieldKey = snapshot.activeFieldKey || "userName";
+      if (!currentConfig.fields[activeFieldKey]) {
+        activeFieldKey = "userName";
+      }
+
+      renderArtboardCustomFields();
+      renderLayersPanel();
+      applyAllFieldsToDOM();
+      syncInspectorUI();
+      updateUndoRedoUI();
+    } finally {
+      isRestoringHistory = false;
+    }
+  }
+
+  function undo() {
+    if (historyIndex <= 0) return;
+    historyIndex--;
+    restoreHistoryState(history[historyIndex]);
+  }
+
+  function redo() {
+    if (historyIndex < 0 || historyIndex >= history.length - 1) return;
+    historyIndex++;
+    restoreHistoryState(history[historyIndex]);
+  }
 
   const STATIC_FIELD_KEYS = new Set(["userName", "qrCode", "certCode", "issueDate", "eventTitle"]);
 
@@ -4540,6 +4629,7 @@ function initCertLayoutDesigner() {
     renderLayersPanel();
     applyAllFieldsToDOM();
     syncInspectorUI();
+    pushHistoryState();
   }
 
   // Delete a custom field
@@ -4561,6 +4651,7 @@ function initCertLayoutDesigner() {
     renderLayersPanel();
     applyAllFieldsToDOM();
     syncInspectorUI();
+    pushHistoryState();
   }
 
   // Quick preset add button handler
@@ -4637,6 +4728,7 @@ function initCertLayoutDesigner() {
     renderLayersPanel();
     applyAllFieldsToDOM();
     syncInspectorUI();
+    pushHistoryState();
   }
 
   // Render comprehensive Layers Panel (Custom Layers & System Fields)
@@ -4725,6 +4817,7 @@ function initCertLayoutDesigner() {
           applyFieldStyleToDOM(key);
           renderLayersPanel();
           syncInspectorUI();
+          pushHistoryState();
         });
 
         row.querySelector(".btn-layer-duplicate").addEventListener("click", (e) => {
@@ -4803,6 +4896,7 @@ function initCertLayoutDesigner() {
         applyFieldStyleToDOM(key);
         renderLayersPanel();
         syncInspectorUI();
+        pushHistoryState();
       });
 
       systemSection.appendChild(row);
@@ -5257,6 +5351,12 @@ function initCertLayoutDesigner() {
         if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
       } catch {}
       el.classList.remove("opacity-90", "scale-105", "shadow-xl");
+
+      const finalX = currentConfig.fields[fieldKey]?.x;
+      const finalY = currentConfig.fields[fieldKey]?.y;
+      if (finalX !== initialFieldX || finalY !== initialFieldY) {
+        pushHistoryState();
+      }
     };
 
     el.addEventListener("pointerup", handleEnd);
@@ -5274,6 +5374,7 @@ function initCertLayoutDesigner() {
       if (!currentConfig.fields[activeFieldKey]) return;
       currentConfig.fields[activeFieldKey].enabled = e.target.checked;
       applyFieldStyleToDOM(activeFieldKey);
+      pushHistoryState();
     });
 
     // Font select
@@ -5281,6 +5382,7 @@ function initCertLayoutDesigner() {
       if (!currentConfig.fields[activeFieldKey]) return;
       currentConfig.fields[activeFieldKey].fontFamily = e.target.value;
       applyFieldStyleToDOM(activeFieldKey);
+      pushHistoryState();
     });
 
     // Font / QR Size range
@@ -5298,6 +5400,9 @@ function initCertLayoutDesigner() {
       }
       applyFieldStyleToDOM(activeFieldKey);
     });
+    sizeInput?.addEventListener("change", () => {
+      pushHistoryState();
+    });
 
     // Color picker & hex text
     const colorInput = document.getElementById("field-ctrl-color");
@@ -5311,6 +5416,9 @@ function initCertLayoutDesigner() {
         applyFieldStyleToDOM(activeFieldKey);
       }
     });
+    colorInput?.addEventListener("change", () => {
+      pushHistoryState();
+    });
 
     hexInput?.addEventListener("change", (e) => {
       let val = e.target.value.trim();
@@ -5319,6 +5427,7 @@ function initCertLayoutDesigner() {
       if (currentConfig.fields[activeFieldKey]) {
         currentConfig.fields[activeFieldKey].color = val;
         applyFieldStyleToDOM(activeFieldKey);
+        pushHistoryState();
       }
     });
 
@@ -5331,6 +5440,7 @@ function initCertLayoutDesigner() {
         if (hexInput) hexInput.value = c;
         currentConfig.fields[activeFieldKey].color = c;
         applyFieldStyleToDOM(activeFieldKey);
+        pushHistoryState();
       });
     });
 
@@ -5339,6 +5449,7 @@ function initCertLayoutDesigner() {
       if (!currentConfig.fields[activeFieldKey]) return;
       currentConfig.fields[activeFieldKey].fontWeight = e.target.value;
       applyFieldStyleToDOM(activeFieldKey);
+      pushHistoryState();
     });
 
     // Spacing
@@ -5346,6 +5457,7 @@ function initCertLayoutDesigner() {
       if (!currentConfig.fields[activeFieldKey]) return;
       currentConfig.fields[activeFieldKey].letterSpacing = parseInt(e.target.value, 10) || 0;
       applyFieldStyleToDOM(activeFieldKey);
+      pushHistoryState();
     });
 
     // Uppercase toggle
@@ -5354,6 +5466,7 @@ function initCertLayoutDesigner() {
       currentConfig.fields[activeFieldKey].uppercase = !currentConfig.fields[activeFieldKey].uppercase;
       syncInspectorUI();
       applyFieldStyleToDOM(activeFieldKey);
+      pushHistoryState();
     });
 
     // Align buttons
@@ -5364,6 +5477,7 @@ function initCertLayoutDesigner() {
         currentConfig.fields[activeFieldKey].align = align;
         syncInspectorUI();
         applyFieldStyleToDOM(activeFieldKey);
+        pushHistoryState();
       });
     });
 
@@ -5384,6 +5498,9 @@ function initCertLayoutDesigner() {
         fieldActiveName.textContent = txt ? (txt.length > 22 ? txt.slice(0, 20) + "..." : txt) : "Text tùy chỉnh";
       }
     });
+    document.getElementById("field-ctrl-custom-val")?.addEventListener("change", () => {
+      pushHistoryState();
+    });
 
     // Dynamic Tokens Inserter
     document.querySelectorAll(".token-insert-btn").forEach(btn => {
@@ -5403,6 +5520,7 @@ function initCertLayoutDesigner() {
         currentConfig.fields[activeFieldKey].text = newVal;
         applyFieldStyleToDOM(activeFieldKey);
         renderLayersPanel();
+        pushHistoryState();
       });
     });
 
@@ -5416,6 +5534,7 @@ function initCertLayoutDesigner() {
         if (customValInput) customValInput.value = val;
         applyFieldStyleToDOM(activeFieldKey);
         renderLayersPanel();
+        pushHistoryState();
       });
     });
 
@@ -5451,6 +5570,9 @@ function initCertLayoutDesigner() {
         applyFieldStyleToDOM("qrCode");
       }
     });
+    qrSizeSlider?.addEventListener("change", () => {
+      pushHistoryState();
+    });
 
     qrFrameSelect?.addEventListener("change", (e) => {
       const val = e.target.value;
@@ -5460,6 +5582,7 @@ function initCertLayoutDesigner() {
           qrFrameOptions.classList.toggle("hidden", val === "none");
         }
         applyFieldStyleToDOM("qrCode");
+        pushHistoryState();
       }
     });
 
@@ -5471,6 +5594,9 @@ function initCertLayoutDesigner() {
         applyFieldStyleToDOM("qrCode");
       }
     });
+    qrColorInput?.addEventListener("change", () => {
+      pushHistoryState();
+    });
 
     qrColorHex?.addEventListener("change", (e) => {
       let val = e.target.value.trim();
@@ -5479,6 +5605,7 @@ function initCertLayoutDesigner() {
       if (currentConfig.fields.qrCode) {
         currentConfig.fields.qrCode.qrColorDark = val;
         applyFieldStyleToDOM("qrCode");
+        pushHistoryState();
       }
     });
 
@@ -5490,6 +5617,7 @@ function initCertLayoutDesigner() {
         if (qrColorHex) qrColorHex.value = color;
         currentConfig.fields.qrCode.qrColorDark = color;
         applyFieldStyleToDOM("qrCode");
+        pushHistoryState();
       });
     });
 
@@ -5501,6 +5629,9 @@ function initCertLayoutDesigner() {
         applyFieldStyleToDOM("qrCode");
       }
     });
+    qrBorderColorInput?.addEventListener("change", () => {
+      pushHistoryState();
+    });
 
     qrBorderHex?.addEventListener("change", (e) => {
       let val = e.target.value.trim();
@@ -5509,6 +5640,7 @@ function initCertLayoutDesigner() {
       if (currentConfig.fields.qrCode) {
         currentConfig.fields.qrCode.qrBorderColor = val;
         applyFieldStyleToDOM("qrCode");
+        pushHistoryState();
       }
     });
 
@@ -5517,6 +5649,7 @@ function initCertLayoutDesigner() {
       if (currentConfig.fields.qrCode) {
         currentConfig.fields.qrCode.qrTransparentBg = checked;
         applyFieldStyleToDOM("qrCode");
+        pushHistoryState();
       }
     });
 
@@ -5535,6 +5668,7 @@ function initCertLayoutDesigner() {
           b.classList.toggle("text-slate-700", !isMatch);
         });
         applyFieldStyleToDOM("qrCode");
+        pushHistoryState();
       });
     });
 
@@ -5546,6 +5680,7 @@ function initCertLayoutDesigner() {
       field.align = "center";
       applyFieldStyleToDOM(activeFieldKey);
       syncInspectorUI();
+      pushHistoryState();
     });
 
     // Quick Center Y button
@@ -5555,6 +5690,7 @@ function initCertLayoutDesigner() {
       field.y = 50.0;
       applyFieldStyleToDOM(activeFieldKey);
       syncInspectorUI();
+      pushHistoryState();
     });
 
     // Grid toggle button
@@ -5584,6 +5720,7 @@ function initCertLayoutDesigner() {
       if (isNaN(val) || !currentConfig.fields[activeFieldKey]) return;
       currentConfig.fields[activeFieldKey].x = Math.max(0, Math.min(100, val));
       applyFieldStyleToDOM(activeFieldKey);
+      pushHistoryState();
     });
 
     document.getElementById("field-ctrl-y")?.addEventListener("change", (e) => {
@@ -5591,11 +5728,50 @@ function initCertLayoutDesigner() {
       if (isNaN(val) || !currentConfig.fields[activeFieldKey]) return;
       currentConfig.fields[activeFieldKey].y = Math.max(0, Math.min(100, val));
       applyFieldStyleToDOM(activeFieldKey);
+      pushHistoryState();
     });
 
     // Keyboard Shortcuts & Arrow Nudge
     window.addEventListener("keydown", (e) => {
       if (overlay.hasAttribute("hidden") || !overlay.classList.contains("active")) return;
+
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      // Handle Undo / Redo shortcuts
+      if (cmdOrCtrl) {
+        const isZ = e.key === "z" || e.key === "Z";
+        const isY = e.key === "y" || e.key === "Y";
+
+        if (isZ || isY) {
+          const activeEl = document.activeElement;
+          const tag = activeEl?.tagName;
+          const isTextInput = (tag === "INPUT" && ["text", "number", "search"].includes(activeEl.type)) || tag === "TEXTAREA";
+
+          // If actively typing inside a text input or textarea, let browser handle native text editing undo/redo
+          if (isTextInput) return;
+
+          if (isZ) {
+            if (e.shiftKey) {
+              // Ctrl + Shift + Z -> Redo
+              e.preventDefault();
+              redo();
+            } else {
+              // Ctrl + Z -> Undo
+              e.preventDefault();
+              undo();
+            }
+            return;
+          }
+
+          if (isY) {
+            // Ctrl + Y -> Redo
+            e.preventDefault();
+            redo();
+            return;
+          }
+        }
+      }
 
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
@@ -5637,6 +5813,12 @@ function initCertLayoutDesigner() {
         const yInput = document.getElementById("field-ctrl-y");
         if (xInput) xInput.value = field.x;
         if (yInput) yInput.value = field.y;
+
+        // Debounced history push on arrow key nudge
+        clearTimeout(arrowNudgeDebounce);
+        arrowNudgeDebounce = setTimeout(() => {
+          pushHistoryState();
+        }, 350);
       }
     });
   }
@@ -5699,6 +5881,11 @@ function initCertLayoutDesigner() {
     renderArtboardGrid();
     updateMagnetBtnUI();
 
+    // Initialize history stack on modal open
+    history = [createSnapshot()];
+    historyIndex = 0;
+    updateUndoRedoUI();
+
     overlay.removeAttribute("hidden");
     overlay.classList.add("active");
     document.body.style.overflow = "hidden";
@@ -5715,6 +5902,10 @@ function initCertLayoutDesigner() {
 
   closeBtn?.addEventListener("click", closeModal);
   backdrop?.addEventListener("click", closeModal);
+
+  // Undo & Redo (Forward) Button handlers
+  undoBtn?.addEventListener("click", undo);
+  redoBtn?.addEventListener("click", redo);
 
   // Toggle Sample Data / Tokens
   sampleBtn?.addEventListener("click", () => {
@@ -5734,6 +5925,7 @@ function initCertLayoutDesigner() {
     activeFieldKey = "userName";
     applyAllFieldsToDOM();
     syncInspectorUI();
+    pushHistoryState();
   });
 
   // Save Layout
