@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initLocationStep();
     initCategoriesStep();
     initSkillsStep();
+    prefillFromUserProfile(user);
 
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
@@ -44,6 +45,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadExistingRoadmap(id);
     }
 });
+
+function prefillFromUserProfile(user) {
+    if (!user) return;
+    const goalInput = document.getElementById('goal-input');
+    if (goalInput && !goalInput.value.trim()) {
+        if (user.profile?.goal) {
+            goalInput.value = user.profile.goal;
+        } else if (user.major || user.profile?.major) {
+            const major = user.major || user.profile?.major;
+            goalInput.value = `Phát triển toàn diện kiến thức chuyên môn và kỹ năng thực chiến ngành ${major}`;
+        }
+    }
+
+    if (Array.isArray(user.profile?.skills) && user.profile.skills.length > 0 && typeof window.addSkillTag === 'function') {
+        user.profile.skills.slice(0, 4).forEach(s => window.addSkillTag(s));
+    }
+}
 
 async function loadFooter() {
     try {
@@ -363,6 +381,7 @@ function initSkillsStep() {
     });
     
     window.getSkills = () => Array.from(skills);
+    window.addSkillTag = addSkill;
 }
 
 async function handleGenerate() {
@@ -437,42 +456,70 @@ function renderResult(roadmap) {
     const commentEl = document.getElementById('ai-comment');
     if (commentEl) commentEl.textContent = comment;
     
-    const chart = roadmap.aiAnalysis?.spiderChart;
-    if (chart) {
-        renderSpiderChart([
-            chart.communication || 0,
-            chart.technical || 0,
-            chart.creativity || 0,
-            chart.socialImpact || 0,
-            chart.leadership || 0,
-            chart.teamwork || 0
-        ]);
-    }
+    const baseline = roadmap.aiAnalysis?.baselineSpiderChart;
+    const projected = roadmap.aiAnalysis?.projectedSpiderChart || roadmap.aiAnalysis?.spiderChart;
     
+    const extractValues = (chart) => {
+        if (!chart) return [50, 50, 50, 50, 50, 50];
+        return [
+            chart.communication || 50,
+            chart.technical || 50,
+            chart.creativity || 50,
+            chart.socialImpact || 50,
+            chart.leadership || 50,
+            chart.teamwork || 50
+        ];
+    };
+    
+    const baselineValues = baseline ? extractValues(baseline) : null;
+    const projectedValues = extractValues(projected);
+    
+    renderSpiderChart(baselineValues, projectedValues);
     renderTimeline(roadmap.timeline);
 }
 
-function renderSpiderChart(values) {
+function renderSpiderChart(baselineValues, projectedValues) {
     const chartEl = document.getElementById('spider-chart');
     if (!chartEl || typeof Chart === 'undefined') return;
     const ctx = chartEl.getContext('2d');
     if (window.spiderChartInstance) window.spiderChartInstance.destroy();
     
+    const datasets = [];
+
+    if (baselineValues && baselineValues.length === 6) {
+        datasets.push({
+            label: 'Nền tảng hiện tại (Baseline)',
+            data: baselineValues,
+            backgroundColor: 'rgba(148, 163, 184, 0.16)',
+            borderColor: '#94a3b8',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            pointBackgroundColor: '#94a3b8',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 1.5,
+            pointRadius: 3,
+            pointHoverRadius: 5
+        });
+    }
+
+    datasets.push({
+        label: 'Dự phóng sau lộ trình (Projected)',
+        data: projectedValues && projectedValues.length === 6 ? projectedValues : [60, 60, 60, 60, 60, 60],
+        backgroundColor: 'rgba(23, 85, 186, 0.20)',
+        borderColor: '#1755ba',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#1755ba',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6
+    });
+
     window.spiderChartInstance = new Chart(ctx, {
         type: 'radar',
         data: {
             labels: ['Communication', 'Technical', 'Creativity', 'Social Impact', 'Leadership', 'Teamwork'],
-            datasets: [{ 
-                data: values.length === 6 ? values : [50,50,50,50,50,50], 
-                backgroundColor: 'rgba(23, 85, 186, 0.14)', 
-                borderColor: '#1755ba', 
-                borderWidth: 2.5,
-                pointBackgroundColor: '#1755ba',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
+            datasets
         },
         options: {
             responsive: true,
@@ -481,13 +528,13 @@ function renderSpiderChart(values) {
                 r: {
                     beginAtZero: true,
                     max: 100,
-                    ticks: { stepSize: 20, font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94a3b8' },
+                    ticks: { stepSize: 20, font: { family: 'Plus Jakarta Sans', size: 9 }, color: '#94a3b8' },
                     grid: { color: '#e2e8f0' },
                     angleLines: { color: '#f1f5f9' },
                     pointLabels: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '700' }, color: '#334155' }
                 }
             },
-            animation: { duration: 1200, easing: 'easeOutQuart' },
+            animation: { duration: 1000, easing: 'easeOutQuart' },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -530,25 +577,57 @@ function renderTimeline(timeline) {
         const hasAlts = (item.alternativeEvents && item.alternativeEvents.length > 0);
         const milestoneNum = String(index + 1).padStart(2, '0');
         
+        // Pedagogical phase badge styling
+        const phase = item.phase || 'foundation';
+        let phaseBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+        let phaseIcon = 'fa-compass';
+        if (phase === 'practice') {
+            phaseBadgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+            phaseIcon = 'fa-flask';
+        } else if (phase === 'capstone') {
+            phaseBadgeClass = 'bg-amber-50 text-amber-800 border-amber-200';
+            phaseIcon = 'fa-trophy';
+        }
+        
+        const phaseLabel = item.phaseLabel || (phase === 'foundation' ? 'Giai đoạn 1: Nền tảng' : phase === 'practice' ? 'Giai đoạn 2: Thực chiến' : 'Giai đoạn 3: Bứt phá');
+        const fitScorePill = item.fitScore ? `<span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80"><i class="fa-solid fa-bolt mr-1"></i>${item.fitScore}% Phù hợp</span>` : '';
+        const certBadge = ev.hasCertificate ? `<span class="bg-amber-100 text-amber-800 text-[10px] px-2.5 py-1 rounded-full font-bold whitespace-nowrap border border-amber-200"><i class="fa-solid fa-award mr-1"></i>Certificate</span>` : '';
+        const categoryBadge = ev.category?.name ? `<span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">${escapeHtml(ev.category.name)}</span>` : '';
+
+        const reasonBox = item.reason ? `
+            <div class="mt-3 p-3 bg-blue-50/60 rounded-xl border border-blue-100/90 text-xs text-slate-700 leading-relaxed">
+                <div class="font-bold text-blue-900 flex items-center gap-1.5 mb-1">
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-[11px]"></i>
+                    <span class="text-[11px] uppercase tracking-wider">Mục tiêu sư phạm của mốc này:</span>
+                </div>
+                <p class="text-slate-600 text-xs leading-relaxed">${escapeHtml(item.reason)}</p>
+            </div>
+        ` : '';
+
         html += `
             <div class="roadmap-milestone-node">
                 <div class="roadmap-milestone-pin" title="Milestone ${milestoneNum}"></div>
                 <div class="roadmap-milestone-card">
                     ${thumbHtml}
                     <div class="roadmap-card-content">
-                        <div class="roadmap-card-header">
-                            <div>
-                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/80 mr-2">Milestone ${milestoneNum}</span>
-                                <h3 class="roadmap-card-title inline-block mt-1">${escapeHtml(ev.title)}</h3>
-                            </div>
-                            ${ev.hasCertificate ? `<span class="bg-amber-100 text-amber-800 text-[10px] px-2.5 py-1 rounded-full font-bold whitespace-nowrap border border-amber-200"><i class="fa-solid fa-award mr-1"></i>Certificate</span>` : ''}
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/80">Milestone ${milestoneNum}</span>
+                            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${phaseBadgeClass} flex items-center gap-1">
+                                <i class="fa-solid ${phaseIcon} text-[9px]"></i>
+                                <span>${escapeHtml(phaseLabel)}</span>
+                            </span>
+                            ${fitScorePill}
+                            ${certBadge}
+                            ${categoryBadge}
                         </div>
-                        <div class="roadmap-meta-row">
+                        <h3 class="roadmap-card-title text-base md:text-lg font-bold text-slate-900 line-clamp-2">${escapeHtml(ev.title)}</h3>
+                        <div class="roadmap-meta-row mt-2">
                             <span class="roadmap-meta-item"><i class="fa-regular fa-calendar text-blue-600"></i> ${dateStr}</span>
                             <span class="roadmap-meta-item"><i class="fa-solid fa-location-dot text-rose-500"></i> ${escapeHtml(ev.location || 'Online / Hybrid')}</span>
                         </div>
-                        <p class="roadmap-card-desc">${escapeHtml(ev.description || '')}</p>
-                        <div class="roadmap-card-actions">
+                        <p class="roadmap-card-desc mt-2">${escapeHtml(ev.description || '')}</p>
+                        ${reasonBox}
+                        <div class="roadmap-card-actions mt-4">
                             <button onclick="window.openEventPopup('${ev._id}')" class="roadmap-action-btn view">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                 <span>${t('roadmap.view_details', 'View Details')}</span>
@@ -556,7 +635,7 @@ function renderTimeline(timeline) {
                             ${hasAlts ? `
                             <button onclick="window.openSwipeModal(${index})" class="roadmap-action-btn swap">
                                 <i class="fa-solid fa-arrows-rotate"></i>
-                                <span>${t('roadmap.replace_event', 'Swap Event')}</span>
+                                <span>${t('roadmap.replace_event', 'Swap Event')} (${item.alternativeEvents.length})</span>
                             </button>` : ''}
                         </div>
                     </div>

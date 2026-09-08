@@ -256,8 +256,20 @@
             <h2 class="text-xl font-bold text-slate-900">Your Tailored Growth Trajectory</h2>
             <div id="ai-comment" class="roadmap-ai-text"></div>
           </div>
-          <div class="w-full flex items-center justify-center p-2 bg-slate-50 rounded-2xl border border-slate-100">
-            <canvas id="spider-chart" width="280" height="280" aria-label="Spider chart of user competencies"></canvas>
+          <div class="w-full flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div class="flex items-center justify-center gap-4 mb-2 text-[11px] font-bold">
+              <span class="inline-flex items-center gap-1.5 text-slate-500">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                <span data-i18n="roadmap.baseline_legend">Nền tảng hiện tại (Baseline)</span>
+              </span>
+              <span class="inline-flex items-center gap-1.5 text-blue-700">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#1755ba]"></span>
+                <span data-i18n="roadmap.projected_legend">Dự phóng sau lộ trình (Projected)</span>
+              </span>
+            </div>
+            <div class="relative w-full max-w-[300px] aspect-square">
+              <canvas id="spider-chart" aria-label="Spider chart of user competencies"></canvas>
+            </div>
           </div>
         </div>
         
