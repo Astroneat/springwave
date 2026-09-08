@@ -192,7 +192,7 @@ async function request(endpoint, options = {}) {
     await ensureSession();
     checkRateLimit();
 
-    const isAiEndpoint = /^\/(chatbot|recommendations\/explain|roadmap\/generate|profile\/generate|survey\/submit)/.test(endpoint);
+    const isAiEndpoint = /^\/(chatbot|recommendations|roadmap\/generate|profile\/generate|survey\/submit)/.test(endpoint);
     const isPriority = options.priority === true || isAiEndpoint;
 
     await enqueueRequest(isPriority);

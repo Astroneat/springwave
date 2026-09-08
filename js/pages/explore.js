@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await loadNavbar();
     await initExplore();
-    await loadRecommendations();
+    loadRecommendations().catch(() => {});
     await initChatbot();
     initializePage();
 
