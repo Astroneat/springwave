@@ -18,7 +18,10 @@
     { "source": "/quiz", "destination": "/quiz.html" },
     { "source": "/about", "destination": "/about.html" },
     { "source": "/admin-host", "destination": "/admin-host.html" },
-    { "source": "/my-tickets", "destination": "/my-tickets.html" }
+    { "source": "/my-tickets", "destination": "/my-tickets.html" },
+    { "source": "/policy", "destination": "/policy.html" },
+    { "source": "/privacy", "destination": "/policy.html" },
+    { "source": "/terms", "destination": "/policy.html" }
   ],
   "headers": [
     {

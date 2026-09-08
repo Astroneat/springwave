@@ -63,6 +63,7 @@ export default defineConfig({
         adminAnalytics: resolve(__dirname, "admin-analytics.html"),
         adminUniversities: resolve(__dirname, "admin-universities.html"),
         certificate: resolve(__dirname, "certificate.html"),
+        policy: resolve(__dirname, "policy.html"),
       },
       output: {
         assetFileNames: (assetInfo) => {
