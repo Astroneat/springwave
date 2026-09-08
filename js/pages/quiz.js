@@ -732,6 +732,7 @@ async function finishQuiz() {
   const clientEval = evaluatePersonaClientSide(answers);
   let resolvedPersona = clientEval.personaKey;
   let generatedProfile = null;
+  let newBadges = [];
 
   const answerData = answers.map((selectedIndices, qIndex) => ({
     questionIndex: qIndex,
@@ -769,15 +770,32 @@ async function finishQuiz() {
 
     if (isStudentVerified(user)) {
       try {
-        // Submit survey in parallel without blocking
-        submitSurvey(answerData).catch((err) => console.warn("Survey submission failed:", err));
+        const surveyPromise = submitSurvey(answerData).catch((err) => {
+          console.warn("Survey submission failed:", err);
+          return null;
+        });
 
         const currentLang = getLang();
         console.log("[Quiz] Requesting AI profile generation with traits (lang=" + currentLang + "):", semanticTraits);
         // Wait up to 35s for AI evaluation response (LLMs usually take 6-15s)
-        const profilePromise = generateProfile(answerData, resolvedPersona, semanticTraits, currentLang);
+        const profilePromise = generateProfile(answerData, resolvedPersona, semanticTraits, currentLang).catch((err) => {
+          console.error("[Quiz] AI Profile evaluation error:", err);
+          return null;
+        });
         const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 35000));
-        const profileRes = await Promise.race([profilePromise, timeoutPromise]);
+        
+        const [surveyRes, profileRes] = await Promise.all([
+          surveyPromise,
+          Promise.race([profilePromise, timeoutPromise]),
+        ]);
+
+        if (surveyRes?.newBadges && Array.isArray(surveyRes.newBadges)) {
+          newBadges.push(...surveyRes.newBadges);
+        }
+        if (profileRes?.newBadges && Array.isArray(profileRes.newBadges)) {
+          newBadges.push(...profileRes.newBadges);
+        }
+        newBadges = [...new Set(newBadges)];
         
         console.log("[Quiz] AI profile response received:", profileRes);
 
@@ -799,6 +817,13 @@ async function finishQuiz() {
     } else {
       console.warn("[Quiz] User is not student verified, skipping AI profile generation");
     }
+  } else {
+    // Unauthenticated/guest users: trigger celebration once per guest browser session
+    const guestCelebrated = sessionStorage.getItem("springwave_guest_self_discovery_celebrated");
+    if (!guestCelebrated) {
+      sessionStorage.setItem("springwave_guest_self_discovery_celebrated", "true");
+      newBadges.push("self_discovery");
+    }
   }
 
   localStorage.setItem("springwave_quiz_completed", "true");
@@ -811,6 +836,7 @@ async function finishQuiz() {
     answerData,
     semanticTraits,
     profilesByLang,
+    newBadges,
   };
   lastResultData = resultData;
   renderResults(resolvedPersona, resultData);
@@ -988,9 +1014,12 @@ function renderResults(personaKey, resultData = {}) {
     showScreen("quizStart");
   });
 
-  // Trigger Achievement Celebration with Graffiti & Confetti FX
-  setTimeout(() => {
-    triggerBadgeCelebration("self_discovery");
-  }, 450);
+  // Trigger Achievement Celebration with Graffiti & Confetti FX only if newly unlocked
+  if (resultData?.newBadges?.includes("self_discovery")) {
+    setTimeout(() => {
+      triggerBadgeCelebration("self_discovery");
+    }, 450);
+    resultData.newBadges = resultData.newBadges.filter((b) => b !== "self_discovery");
+  }
 }
 
