@@ -42,10 +42,10 @@
 <section class="text-center mb-12">
 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed mb-4">
 <span class="material-symbols-outlined text-[16px]">verified_user</span>
-<span class="font-label-md text-label-md">Official Host Registration</span>
+<span class="font-label-md text-label-md" data-i18n="register_host.badge">Official Host Registration</span>
 </div>
-<h1 class="font-headline-lg text-headline-lg text-primary mb-4">Register Your Organization</h1>
-<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px] mx-auto">
+<h1 class="font-headline-lg text-headline-lg text-primary mb-4" data-i18n="register_host.title">Register Your Organization</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px] mx-auto" data-i18n="register_host.subtitle">
                     Join SpringWave as a host to share opportunities and connect with talented students across Vietnam.
                 </p>
 </section>
@@ -57,37 +57,37 @@
 <div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
 <span class="material-symbols-outlined">corporate_fare</span>
 </div>
-<h2 class="font-headline-md text-headline-md text-on-surface">Organization Details</h2>
+<h2 class="font-headline-md text-headline-md text-on-surface" data-i18n="register_host.section1_title">Organization Details</h2>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 <div class="md:col-span-2">
-<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="orgName">Organization Name</label>
-<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="orgName" name="orgName" placeholder="e.g., Vietnam Student Association" required="" type="text"/>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="orgName" data-i18n="register_host.org_name">Organization Name</label>
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="orgName" name="orgName" placeholder="e.g., Vietnam Student Association" data-i18n-placeholder="register_host.org_name_placeholder" required="" type="text"/>
 </div>
 <div class="md:col-span-2">
-<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="orgUniversity">Trường Đại học trực thuộc / Affiliated University</label>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="orgUniversity" data-i18n="register_host.university">Trường Đại học trực thuộc / Affiliated University</label>
 <div class="relative">
 <select class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all appearance-none pr-10" id="orgUniversity" name="university">
-<option value="">Tự do / Không thuộc trường nào (Independent)</option>
+<option value="" data-i18n="register_host.university_independent">Tự do / Không thuộc trường nào (Independent)</option>
 </select>
 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
 <span class="material-symbols-outlined text-[20px]">expand_more</span>
 </div>
 </div>
-<p class="font-caption text-outline mt-1.5 text-xs">Chọn trường đại học nếu CLB/tổ chức trực thuộc một trường, hoặc để "Tự do" nếu là tổ chức độc lập.</p>
+<p class="font-caption text-outline mt-1.5 text-xs" data-i18n="register_host.university_hint">Chọn trường đại học nếu CLB/tổ chức trực thuộc một trường, hoặc để "Tự do" nếu là tổ chức độc lập.</p>
 </div>
 <div class="md:col-span-2">
-<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="thirdPartyName">Third Party Sponsor / Reference (Optional)</label>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="thirdPartyName" data-i18n="register_host.third_party_sponsor">Third Party Sponsor / Reference (Optional)</label>
 <div class="relative flex items-center">
-<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="thirdPartyName" name="thirdPartyName" placeholder="e.g. University Admin" type="text"/>
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="thirdPartyName" name="thirdPartyName" placeholder="e.g. University Admin" data-i18n-placeholder="register_host.third_party_sponsor_placeholder" type="text"/>
 </div>
 </div>
 <div>
-<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="thirdPartyPhone">Reference Phone Number</label>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="thirdPartyPhone" data-i18n="register_host.reference_phone">Reference Phone Number</label>
 <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="thirdPartyPhone" name="thirdPartyPhone" placeholder="+84 000 000 000" type="tel"/>
 </div>
 <div>
-<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="phoneNo">Your Phone Number</label>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="phoneNo" data-i18n="register_host.your_phone">Your Phone Number</label>
 <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="phoneNo" name="phoneNo" placeholder="+84 000 000 000" required="" type="tel"/>
 </div>
 </div>
@@ -99,32 +99,32 @@
 <div class="w-10 h-10 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
 <span class="material-symbols-outlined">person_outline</span>
 </div>
-                        <h2 class="font-headline-md text-headline-md text-on-surface">Owner Details</h2>
-                        </div>
-                        <div class="space-y-6">
-                        <div>
-                        <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="representativeName">Representative Full Name</label>
-                        <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="representativeName" name="representativeName" placeholder="Full name as per ID" required="" type="text"/>
-                        </div>
-                        <div>
-                        <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="cccdNumber">CCCD / Citizen ID Number</label>
-                        <input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="cccdNumber" name="cccdNumber" placeholder="e.g. 123456789" type="text"/>
-                        </div>
-                        <div>
-                        <label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Upload ID Card (Front &amp; Back)</label>
-                        <div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden">
-                        <span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2" id="cccdIcon">cloud_upload</span>
-                        <p class="font-body-md text-on-surface-variant mb-1 text-center" id="cccdLabel">Click to upload or drag and drop</p>
-                        <p class="font-caption text-outline text-center" id="cccdHint">PNG, JPG or PDF up to 10MB</p>
-                        <input class="absolute inset-0 opacity-0 cursor-pointer" id="cccdImage" name="cccdImage" accept="image/*,application/pdf" type="file"/>
-                        <!-- Secure Badge -->
-                        <div class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-                        <span class="material-symbols-outlined text-[16px]">lock</span>
-                        <span class="text-[10px] font-bold tracking-wider uppercase">Secure Encryption</span>
-                        </div>
-                        </div>
-                        <div id="cccdPreview" class="mt-2 hidden"></div>
-                        </div>
+<h2 class="font-headline-md text-headline-md text-on-surface" data-i18n="register_host.section2_title">Owner Details</h2>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="representativeName" data-i18n="register_host.rep_name">Representative Full Name</label>
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="representativeName" name="representativeName" placeholder="Full name as per ID" data-i18n-placeholder="register_host.rep_name_placeholder" required="" type="text"/>
+</div>
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="cccdNumber" data-i18n="register_host.cccd_number">CCCD / Citizen ID Number</label>
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="cccdNumber" name="cccdNumber" placeholder="e.g. 123456789" data-i18n-placeholder="register_host.cccd_placeholder" type="text"/>
+</div>
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" data-i18n="register_host.upload_cccd">Upload ID Card (Front &amp; Back)</label>
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer group relative overflow-hidden">
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-2" id="cccdIcon">cloud_upload</span>
+<p class="font-body-md text-on-surface-variant mb-1 text-center" id="cccdLabel" data-i18n="register_host.upload_cccd_label">Click to upload or drag and drop</p>
+<p class="font-caption text-outline text-center" id="cccdHint" data-i18n="register_host.upload_cccd_hint">PNG, JPG or PDF up to 10MB</p>
+<input class="absolute inset-0 opacity-0 cursor-pointer" id="cccdImage" name="cccdImage" accept="image/*,application/pdf" type="file"/>
+<!-- Secure Badge -->
+<div class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="text-[10px] font-bold tracking-wider uppercase" data-i18n="register_host.secure_encryption">Secure Encryption</span>
+</div>
+</div>
+<div id="cccdPreview" class="mt-2 hidden"></div>
+</div>
 </div>
 </div>
 <div class="h-px w-full bg-outline-variant/30 mb-12"></div>
@@ -134,42 +134,42 @@
 <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
 <span class="material-symbols-outlined">assignment_turned_in</span>
 </div>
-<h2 class="font-headline-md text-headline-md text-on-surface">Verification</h2>
+<h2 class="font-headline-md text-headline-md text-on-surface" data-i18n="register_host.section3_title">Verification</h2>
 </div>
 <div class="space-y-6">
 <div>
-<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="thirdPartyRelation">Third Party Relation</label>
-<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="thirdPartyRelation" name="thirdPartyRelation" placeholder="e.g. Dean of Faculty" type="text"/>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" for="thirdPartyRelation" data-i18n="register_host.third_party_relation">Third Party Relation</label>
+<input class="w-full h-12 px-4 rounded-xl border-outline-variant bg-surface-container-low text-on-surface focus:ring-primary focus:border-primary input-focus-glow transition-all" id="thirdPartyRelation" name="thirdPartyRelation" placeholder="e.g. Dean of Faculty" data-i18n-placeholder="register_host.third_party_relation_placeholder" type="text"/>
 </div>
 <div>
-<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2">Supporting Documents</label>
+<label class="block font-label-lg text-label-lg text-on-surface-variant mb-2" data-i18n="register_host.supporting_docs">Supporting Documents</label>
 <div class="space-y-4">
-                        <div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container border border-outline-variant">
-                        <div class="w-10 h-10 rounded bg-white flex items-center justify-center text-outline">
-                        <span class="material-symbols-outlined">description</span>
-                        </div>
-                        <div class="flex-grow">
-                        <h4 class="font-label-lg text-on-surface">Legal Papers / Certificates</h4>
-                        <p class="font-caption text-outline">Upload official registration documents</p>
-                        </div>
-                        <button class="px-4 py-2 bg-white rounded-lg border border-outline-variant font-label-md text-primary hover:bg-primary-fixed transition-colors relative overflow-hidden" type="button">
-                            Upload
-                            <input type="file" id="credibility" name="credibility" accept="image/*,application/pdf" multiple class="absolute inset-0 opacity-0 cursor-pointer"/>
-                        </button>
-                        </div>
-                        <div id="credibilityPreview" class="flex flex-wrap gap-2 mt-2"></div>
-                        <div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container border border-outline-variant">
-                        <div class="w-10 h-10 rounded bg-white flex items-center justify-center text-outline">
-                        <span class="material-symbols-outlined">link</span>
-                        </div>
-                        <div class="flex-grow">
-                        <h4 class="font-label-lg text-on-surface">Social Links / Website</h4>
-                        <p class="font-caption text-outline">Evidence of active online presence</p>
-                        </div>
-                        <button class="px-4 py-2 bg-white rounded-lg border border-outline-variant font-label-md text-primary hover:bg-primary-fixed transition-colors" id="addLinkBtn" type="button">Add Links</button>
-                        </div>
-                        <div id="linksContainer" class="space-y-3 mt-2"></div>
-                        <div id="linksList" class="flex flex-wrap gap-2 mt-2"></div>
+<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container border border-outline-variant">
+<div class="w-10 h-10 rounded bg-white flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-label-lg text-on-surface" data-i18n="register_host.legal_papers">Legal Papers / Certificates</h4>
+<p class="font-caption text-outline" data-i18n="register_host.legal_papers_desc">Upload official registration documents</p>
+</div>
+<button class="px-4 py-2 bg-white rounded-lg border border-outline-variant font-label-md text-primary hover:bg-primary-fixed transition-colors relative overflow-hidden" type="button">
+    <span data-i18n="register_host.upload_btn">Upload</span>
+    <input type="file" id="credibility" name="credibility" accept="image/*,application/pdf" multiple class="absolute inset-0 opacity-0 cursor-pointer"/>
+</button>
+</div>
+<div id="credibilityPreview" class="flex flex-wrap gap-2 mt-2"></div>
+<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container border border-outline-variant">
+<div class="w-10 h-10 rounded bg-white flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">link</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-label-lg text-on-surface" data-i18n="register_host.social_links">Social Links / Website</h4>
+<p class="font-caption text-outline" data-i18n="register_host.social_links_desc">Evidence of active online presence</p>
+</div>
+<button class="px-4 py-2 bg-white rounded-lg border border-outline-variant font-label-md text-primary hover:bg-primary-fixed transition-colors" id="addLinkBtn" type="button" data-i18n="register_host.add_links_btn">Add Links</button>
+</div>
+<div id="linksContainer" class="space-y-3 mt-2"></div>
+<div id="linksList" class="flex flex-wrap gap-2 mt-2"></div>
 </div>
 </div>
 </div>
@@ -178,15 +178,15 @@
 <div class="mt-16 flex flex-col items-center gap-6">
     <div id="turnstile-container" class="mb-4 flex justify-center"></div>
 <p class="font-caption text-outline text-center max-w-[500px]">
-                        By clicking Submit, you agree to our <a href="/policy.html?tab=terms" class="text-primary underline font-medium">Host Terms of Service</a> and <a href="/policy.html" class="text-primary underline font-medium">Privacy Policy</a>. Our team will review your application within 2-3 business days.
-                    </p>
+    <span data-i18n="register_host.terms_note">By clicking Submit, you agree to our Host Terms of Service and Privacy Policy. Our team will review your application within 2-3 business days.</span>
+</p>
 <button class="w-full h-14 rounded-full bg-gradient-to-r from-primary-container to-secondary text-white font-headline-md text-label-lg flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all group" type="submit">
-<span>Submit for Approval</span>
+<span data-i18n="register_host.submit_btn">Submit for Approval</span>
 <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">send</span>
 </button>
-<button class="px-8 py-3 rounded-full border border-primary text-primary font-label-lg hover:bg-primary-fixed/30 transition-colors" type="button">
-                        Save as Draft
-                    </button>
+<button class="px-8 py-3 rounded-full border border-primary text-primary font-label-lg hover:bg-primary-fixed/30 transition-colors" type="button" data-i18n="register_host.save_draft">
+    Save as Draft
+</button>
 </div>
 </form>
 </div>

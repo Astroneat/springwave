@@ -35,12 +35,12 @@
         <!-- HEADER -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             <div>
-                <h1 class="font-headline-lg text-[32px] md:text-[40px] font-extrabold text-[#191b22]">Platform Analytics</h1>
-                <p class="text-[#64748b] text-base mt-1">System-wide metrics, category engagement, and master reports</p>
+                <h1 class="font-headline-lg text-[32px] md:text-[40px] font-extrabold text-[#191b22]" data-i18n="admin_analytics.title">Platform Analytics</h1>
+                <p class="text-[#64748b] text-base mt-1" data-i18n="admin_analytics.subtitle">System-wide metrics, category engagement, and master reports</p>
             </div>
             <div class="flex items-center gap-3">
                 <button id="export-master-excel-btn" class="py-2.5 px-5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease shadow-md active:scale-95">
-                    <i class="fa-solid fa-file-excel"></i> Export Master Excel (.xlsx)
+                    <i class="fa-solid fa-file-excel"></i> <span data-i18n="admin_analytics.export_master">Export Master Excel (.xlsx)</span>
                 </button>
             </div>
         </div>
@@ -48,41 +48,41 @@
         <!-- ADMIN NAV -->
         <div class="admin-tabs-scroll">
             <a href="/admin.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-calendar-days mr-1.5"></i> Events
+                <i class="fa-solid fa-calendar-days mr-1.5"></i> <span data-i18n="admin.nav_events">Events</span>
             </a>
             <a href="/admin-host.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-users-gear mr-1.5"></i> Host Registrations
+                <i class="fa-solid fa-users-gear mr-1.5"></i> <span data-i18n="admin.nav_hosts">Host Registrations</span>
             </a>
             <a href="/admin-student-verification.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-graduation-cap mr-1.5"></i> Student Verification
+                <i class="fa-solid fa-graduation-cap mr-1.5"></i> <span data-i18n="admin.nav_student_verify">Student Verification</span>
             </a>
             <a href="/admin-categories.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-tags mr-1.5"></i> Categories
+                <i class="fa-solid fa-tags mr-1.5"></i> <span data-i18n="admin.nav_categories">Categories</span>
             </a>
             <a href="/admin-universities.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-building-columns mr-1.5"></i> Universities
+                <i class="fa-solid fa-building-columns mr-1.5"></i> <span data-i18n="admin.nav_universities">Universities</span>
             </a>
             <a href="/admin-analytics.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-chart-pie mr-1.5"></i> Analytics & Reports
+                <i class="fa-solid fa-chart-pie mr-1.5"></i> <span data-i18n="admin.nav_analytics">Analytics & Reports</span>
             </a>
         </div>
 
         <!-- KPI GRID -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Total Events</p>
+                <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_analytics.kpi_total_events">Total Events</p>
                 <p class="text-[32px] font-extrabold text-[#191b22] mt-1" id="admin-stat-events">0</p>
             </div>
             <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Total Users</p>
+                <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_analytics.kpi_total_users">Total Users</p>
                 <p class="text-[32px] font-extrabold text-primary mt-1" id="admin-stat-users">0</p>
             </div>
             <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Verified Students</p>
+                <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_analytics.kpi_verified_students">Verified Students</p>
                 <p class="text-[32px] font-extrabold text-emerald-600 mt-1" id="admin-stat-students">0</p>
             </div>
             <div class="bg-white rounded-2xl p-5 border border-[#ecedfa] shadow-sm">
-                <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Total Check-ins</p>
+                <p class="text-xs font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_analytics.kpi_total_checkins">Total Check-ins</p>
                 <p class="text-[32px] font-extrabold text-amber-500 mt-1" id="admin-stat-checkins">0</p>
             </div>
         </div>
@@ -90,14 +90,14 @@
         <!-- CHARTS GRID -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div class="bg-white rounded-[24px] p-6 border border-[#ecedfa] shadow-sm">
-                <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Event Categories Breakdown</h3>
+                <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4" data-i18n="admin_analytics.chart_categories">Event Categories Breakdown</h3>
                 <div class="h-[260px] flex items-center justify-center relative">
                     <canvas id="chart-admin-categories"></canvas>
                 </div>
             </div>
 
             <div class="bg-white rounded-[24px] p-6 border border-[#ecedfa] shadow-sm">
-                <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4">Student Verification Status</h3>
+                <h3 class="font-headline-md text-base font-bold text-[#191b22] mb-4" data-i18n="admin_analytics.chart_verification">Student Verification Status</h3>
                 <div class="h-[260px] flex items-center justify-center relative">
                     <canvas id="chart-admin-verification"></canvas>
                 </div>
@@ -107,18 +107,18 @@
         <!-- TOP ORGANIZATIONS LEADERBOARD -->
         <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-[#ecedfa] flex items-center justify-between">
-                <h3 class="font-headline-md text-lg font-bold text-[#191b22]">Top Organizations Leaderboard</h3>
+                <h3 class="font-headline-md text-lg font-bold text-[#191b22]" data-i18n="admin_analytics.leaderboard_title">Top Organizations Leaderboard</h3>
                 <span class="text-sm text-[#64748b]" id="org-count-label">0 organizations</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-[#ecedfa] bg-[#f8f9fc] text-left text-xs font-semibold text-[#64748b]">
-                            <th class="py-3.5 px-6">Rank & Organization</th>
-                            <th class="py-3.5 px-4">Owner</th>
-                            <th class="py-3.5 px-4 text-center">Events Hosted</th>
-                            <th class="py-3.5 px-4 text-center">Total Registrations</th>
-                            <th class="py-3.5 px-6 text-right">Avg Rating</th>
+                            <th class="py-3.5 px-6" data-i18n="admin_analytics.col_rank_org">Rank & Organization</th>
+                            <th class="py-3.5 px-4" data-i18n="admin_analytics.col_owner">Owner</th>
+                            <th class="py-3.5 px-4 text-center" data-i18n="admin_analytics.col_events">Events Hosted</th>
+                            <th class="py-3.5 px-4 text-center" data-i18n="admin_analytics.col_registrations">Total Registrations</th>
+                            <th class="py-3.5 px-6 text-right" data-i18n="admin_analytics.col_rating">Avg Rating</th>
                         </tr>
                     </thead>
                     <tbody id="org-leaderboard-body"></tbody>

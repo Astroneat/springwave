@@ -14,6 +14,8 @@ let userFavouriteIds = null;
 let prefetchPromise = null;
 let activeOnCloseCallback = null;
 let underlyingModalToRestore = null;
+let currentOpenActivity = null;
+let currentBackText = "";
 const activityCache = new Map();
 
 if (typeof window !== "undefined") {
@@ -155,7 +157,7 @@ export async function openEventPopup(activityID, options = {}) {
     container.innerHTML = `
         <div class="popup-loading-container">
             <div class="editorial-spinner"></div>
-            <p class="text-xs font-semibold text-slate-400 mt-3 animate-pulse">Loading event details...</p>
+            <p class="text-xs font-semibold text-slate-400 mt-3 animate-pulse">${t("event_popup.loading", "Loading event details...")}</p>
         </div>
     `;
     overlay.style.zIndex = "12500";
@@ -169,10 +171,12 @@ export async function openEventPopup(activityID, options = {}) {
         activity = activityCache.get(activityID);
     }
 
-    const isCachedOrPassed = !!activity;
+    // Check if the activity object is incomplete (e.g. organization is just an unpopulated ID string without a name)
+    const hasIncompleteOrg = activity && activity.organization && (typeof activity.organization !== 'object' || !activity.organization?.name);
+    const isCachedOrPassed = !!activity && !hasIncompleteOrg;
 
     // Prefetch user participation/favorites in parallel with fetching activity data
-    const activityPromise = activity 
+    const activityPromise = (activity && !hasIncompleteOrg)
         ? Promise.resolve(activity) 
         : getActivityById(activityID).then(resp => {
             const act = resp.activity;
@@ -190,6 +194,9 @@ export async function openEventPopup(activityID, options = {}) {
         return;
     }
 
+    currentOpenActivity = activity;
+    currentBackText = backText;
+
     container.innerHTML = buildPopupHTML(activity, backText);
 
     initParticipateButton(activityID);
@@ -201,11 +208,16 @@ export async function openEventPopup(activityID, options = {}) {
             const freshActivity = resp.activity;
             if (freshActivity) {
                 activityCache.set(activityID, freshActivity);
+                currentOpenActivity = freshActivity;
                 updatePopupWithFreshData(freshActivity);
             }
         }).catch(err => console.warn("Failed to revalidate activity details:", err));
     }
 
+    bindPopupInteractiveElements(container, activity, activityID, options);
+}
+
+function bindPopupInteractiveElements(container, activity, activityID, options = {}) {
     container.querySelectorAll("#back-btn, .event-modal-close-btn").forEach(btn => {
         btn.addEventListener("click", closeEventPopup);
     });
@@ -221,7 +233,7 @@ export async function openEventPopup(activityID, options = {}) {
             } else {
                 navigator.clipboard.writeText(url).then(() => {
                     const orig = currentBtn.innerHTML;
-                    currentBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-600"></i> <span>Copied!</span>`;
+                    currentBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-600"></i> <span>${t("event_popup.copied", "Copied!")}</span>`;
                     setTimeout(() => { currentBtn.innerHTML = orig; }, 2000);
                 }).catch(() => { });
             }
@@ -313,7 +325,7 @@ export function openImageLightbox(src, alt = "Event banner") {
             <div class="lightbox-actions-top">
                 <a href="${src}" target="_blank" rel="noopener noreferrer" class="lightbox-action-btn" title="Open original in new tab">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    <span>Open full</span>
+                    <span>${t("event_popup.open_full", "Open full")}</span>
                 </a>
             </div>
             <button type="button" class="lightbox-close-btn" aria-label="Close image preview" title="Close">
@@ -347,6 +359,8 @@ export function openImageLightbox(src, alt = "Event banner") {
 }
 
 export function closeEventPopup() {
+    currentOpenActivity = null;
+    currentBackText = "";
     const overlay = document.getElementById("popup-overlay");
     const container = document.getElementById("popup-container");
     if (!overlay || !container) return;
@@ -400,7 +414,7 @@ function buildAttachmentsHTML(attachments) {
             </div>
             <div class="event-file-meta">
                 <span class="event-file-name" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</span>
-                <span class="event-file-subtext">Click to download resource</span>
+                <span class="event-file-subtext">${t("event_popup.download_hint", "Click to download resource")}</span>
             </div>
             <div class="event-file-download-icon">
                 <i class="fa-solid fa-arrow-down"></i>
@@ -413,13 +427,27 @@ function updatePopupWithFreshData(a) {
     const container = document.getElementById("popup-container");
     if (!container) return;
 
-    // Update participant count
+    // Update participant count & slots progress
     const participantCount = a.participants?.length || 0;
-    const valEls = container.querySelectorAll(".participants-count-val");
-    valEls.forEach(valEl => {
-        valEl.dataset.count = participantCount;
-        valEl.textContent = t("explore.registered_count", { n: participantCount }, `${participantCount} registered`);
-    });
+    const slotsRows = container.querySelectorAll(".event-slots-row");
+    if (slotsRows.length > 0 && a.slots) {
+        slotsRows.forEach(row => {
+            row.dataset.totalSlots = a.slots;
+            const totalEl = row.querySelector(".slots-total-val");
+            if (totalEl) totalEl.textContent = a.slots;
+        });
+    } else if (a.slots && Number(a.slots) > 0) {
+        // Upgrade any standard capacity row to the slots row
+        container.querySelectorAll(".event-sidebar-details-list").forEach(list => {
+            const rows = list.querySelectorAll(".event-sidebar-info-row");
+            rows.forEach(r => {
+                if (r.querySelector(".sidebar-info-icon.capacity")) {
+                    r.outerHTML = buildParticipantsAndSlotsHTML(a, participantCount);
+                }
+            });
+        });
+    }
+    updateEventCountUI(participantCount);
 
     // Update description
     const descEl = container.querySelector(".popup-description-val");
@@ -439,6 +467,153 @@ function updatePopupWithFreshData(a) {
         if (sectionEl) sectionEl.style.display = "";
     } else {
         if (sectionEl) sectionEl.style.display = "none";
+    }
+
+    // Update Host Card when fresh data arrives
+    const isNonPartner = a.isNonPartner === true;
+    const hostOrgName = typeof a.organization === 'object' ? a.organization?.name : null;
+    const hostUnitName = isNonPartner 
+        ? (a.hostName || a.createdByName || t("common.unknown")) 
+        : (hostOrgName || a.hostName || (a.organization ? t("common.organization", "Organization") : a.createdByName) || t("common.unknown"));
+    const hostAvatar = isNonPartner ? null : (typeof a.organization === 'object' && a.organization?.avatar ? a.organization.avatar : null);
+    const orgId = typeof a.organization === 'object' ? a.organization?._id : (typeof a.organization === 'string' && a.organization ? a.organization : null);
+
+    const hostCard = container.querySelector(".event-host-card");
+    if (hostCard) {
+        const hostNameEl = hostCard.querySelector(".event-host-name");
+        if (hostNameEl && hostUnitName) hostNameEl.textContent = hostUnitName;
+
+        const avatarWrapper = hostCard.querySelector(".event-host-avatar");
+        if (avatarWrapper) {
+            if (hostAvatar) {
+                avatarWrapper.className = "event-host-avatar";
+                avatarWrapper.innerHTML = `<img src="${escapeAttr(hostAvatar)}" alt="${escapeHtml(hostUnitName)}" />`;
+            } else {
+                avatarWrapper.className = "event-host-avatar initial";
+                avatarWrapper.textContent = (hostUnitName[0] || 'U').toUpperCase();
+            }
+        }
+
+        const existingLink = hostCard.querySelector(".event-host-profile-link");
+        if (!isNonPartner && orgId) {
+            if (existingLink) {
+                existingLink.href = `/org-profile.html?orgId=${orgId}`;
+            } else {
+                const link = document.createElement("a");
+                link.href = `/org-profile.html?orgId=${orgId}`;
+                link.className = "event-host-profile-link";
+                link.title = "View organization profile";
+                link.innerHTML = `<span>Organizer Profile</span><i class="fa-solid fa-arrow-right"></i>`;
+                hostCard.appendChild(link);
+            }
+        } else if (existingLink) {
+            existingLink.remove();
+        }
+    }
+}
+
+function getSolidColorClass(pct) {
+    if (pct >= 100) return 'fill-full';
+    if (pct >= 85) return 'fill-warning';
+    return 'fill-normal';
+}
+
+function getSolidTagHTML(participantCount, totalSlots) {
+    if (participantCount >= totalSlots) {
+        return `<span class="event-slots-tag full">${t("explore.slots_full", "Đã hết chỗ")}</span>`;
+    }
+    const pct = Math.min(100, Math.round((participantCount / totalSlots) * 100));
+    const remaining = Math.max(0, totalSlots - participantCount);
+    if (pct >= 85) {
+        return `<span class="event-slots-tag warning">${t("explore.slots_almost_full", "Sắp hết chỗ")}</span>`;
+    }
+    return `<span class="event-slots-tag available">${t("explore.slots_left", { n: remaining }, `Còn ${remaining} chỗ`)}</span>`;
+}
+
+function buildParticipantsAndSlotsHTML(a, participantCount) {
+    if (a.isNonPartner) return '';
+    const totalSlots = (a.slots !== undefined && a.slots !== null && Number(a.slots) > 0) ? Number(a.slots) : 0;
+
+    if (totalSlots > 0) {
+        const pct = Math.min(100, Math.round((participantCount / totalSlots) * 100));
+        const colorClass = getSolidColorClass(pct);
+        const tagHTML = getSolidTagHTML(participantCount, totalSlots);
+        const unit = t("explore.slots_unit", "chỗ");
+
+        return `
+        <div class="event-sidebar-info-row event-slots-row" data-total-slots="${totalSlots}">
+            <div class="sidebar-info-icon capacity"><i class="fa-solid fa-users"></i></div>
+            <div class="sidebar-info-meta">
+                <div class="event-slots-wrapper">
+                    <div class="event-slots-header">
+                        <span class="sidebar-info-label">${t("explore.slots_capacity", "Participants")}</span>
+                        <div class="event-slots-tag-container">${tagHTML}</div>
+                    </div>
+                    <div class="event-slots-header">
+                        <div class="event-slots-ratio">
+                            <span class="participants-count-val" data-count="${participantCount}">${participantCount}</span>
+                            <span class="slots-total">/ <span class="slots-total-val">${totalSlots}</span> ${unit}</span>
+                        </div>
+                        <span class="event-slots-pct text-[11px] font-bold text-slate-600">${pct}%</span>
+                    </div>
+                    <div class="event-slots-track" role="progressbar" aria-valuenow="${participantCount}" aria-valuemin="0" aria-valuemax="${totalSlots}">
+                        <div class="event-slots-fill ${colorClass}" style="width: ${pct}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    return `
+    <div class="event-sidebar-info-row">
+        <div class="sidebar-info-icon capacity"><i class="fa-solid fa-users"></i></div>
+        <div class="sidebar-info-meta">
+            <span class="sidebar-info-label">${t("description.participants", "Registered")}</span>
+            <p class="sidebar-info-value participants-count-val" data-count="${participantCount}">${t("explore.registered_count", { n: participantCount }, `${participantCount} students`)}</p>
+        </div>
+    </div>`;
+}
+
+function updateEventCountUI(count) {
+    const valEls = document.querySelectorAll(".participants-count-val");
+    valEls.forEach(el => {
+        el.dataset.count = count;
+    });
+
+    const slotsRows = document.querySelectorAll(".event-slots-row");
+    if (slotsRows.length > 0) {
+        slotsRows.forEach(row => {
+            const totalSlots = parseInt(row.dataset.totalSlots, 10);
+            if (!isNaN(totalSlots) && totalSlots > 0) {
+                const pct = Math.min(100, Math.round((count / totalSlots) * 100));
+                const countVal = row.querySelector(".participants-count-val");
+                if (countVal) countVal.textContent = count;
+
+                const pctEl = row.querySelector(".event-slots-pct");
+                if (pctEl) pctEl.textContent = `${pct}%`;
+
+                const fillEl = row.querySelector(".event-slots-fill");
+                if (fillEl) {
+                    fillEl.style.width = `${pct}%`;
+                    fillEl.classList.remove("fill-normal", "fill-warning", "fill-full");
+                    fillEl.classList.add(getSolidColorClass(pct));
+                }
+
+                const trackEl = row.querySelector(".event-slots-track");
+                if (trackEl) {
+                    trackEl.setAttribute("aria-valuenow", count);
+                }
+
+                const tagContainer = row.querySelector(".event-slots-tag-container");
+                if (tagContainer) {
+                    tagContainer.innerHTML = getSolidTagHTML(count, totalSlots);
+                }
+            }
+        });
+    } else {
+        valEls.forEach(el => {
+            el.textContent = t("explore.registered_count", { n: count }, `${count} students`);
+        });
     }
 }
 
@@ -470,9 +645,11 @@ function buildPopupHTML(a, backText) {
 
     const isNonPartner = a.isNonPartner === true;
     const hostOrgName = typeof a.organization === 'object' ? a.organization?.name : null;
-    const hostUnitName = isNonPartner ? (a.hostName || a.createdByName || t("common.unknown")) : (hostOrgName || a.hostName || a.createdByName || t("common.unknown"));
+    const hostUnitName = isNonPartner 
+        ? (a.hostName || a.createdByName || t("common.unknown")) 
+        : (hostOrgName || a.hostName || (a.organization ? t("common.organization", "Organization") : a.createdByName) || t("common.unknown"));
     const hostAvatar = isNonPartner ? null : (typeof a.organization === 'object' && a.organization?.avatar ? a.organization.avatar : null);
-    const orgId = typeof a.organization === 'object' ? a.organization?._id : (a.organization || a.createdBy);
+    const orgId = typeof a.organization === 'object' ? a.organization?._id : (typeof a.organization === 'string' && a.organization ? a.organization : null);
 
     const extUrl = isNonPartner ? (a.registrationLink || a.source?.url || '') : (a.source?.url || '');
     const participateBtnText = isNonPartner ? (t("explore.register_external", "Đăng ký tại trang gốc") || "Đăng ký tại trang gốc") : (extUrl ? t("explore.explore_more", "Explore more") : t("explore.participate", "Register for Event"));
@@ -529,7 +706,7 @@ function buildPopupHTML(a, backText) {
                     </div>
                     ${!isNonPartner && orgId ? `
                     <a href="/org-profile.html?orgId=${orgId}" class="event-host-profile-link" title="View organization profile">
-                        <span>Organizer Profile</span>
+                        <span>${t("event_popup.organizer_profile", "Organizer Profile")}</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </a>` : ''}
                 </div>
@@ -548,7 +725,7 @@ function buildPopupHTML(a, backText) {
                     <div class="event-sidebar-details-card">
                         <div class="event-sidebar-details-header">
                             <i class="fa-solid fa-circle-info text-blue-600"></i>
-                            <span>Event Details</span>
+                            <span>${t("event_popup.event_details", "Event Details")}</span>
                         </div>
 
                         <div class="event-sidebar-details-list">
@@ -584,15 +761,8 @@ function buildPopupHTML(a, backText) {
                                 </div>
                             </div>
 
-                            <!-- Participants -->
-                            ${!isNonPartner ? `
-                            <div class="event-sidebar-info-row">
-                                <div class="sidebar-info-icon capacity"><i class="fa-solid fa-users"></i></div>
-                                <div class="sidebar-info-meta">
-                                    <span class="sidebar-info-label">${t("description.participants", "Registered")}</span>
-                                    <p class="sidebar-info-value participants-count-val" data-count="${participantCount}">${t("explore.registered_count", { n: participantCount }, `${participantCount} students`)}</p>
-                                </div>
-                            </div>` : ''}
+                            <!-- Participants & Slots -->
+                            ${buildParticipantsAndSlotsHTML(a, participantCount)}
                         </div>
                     </div>
 
@@ -601,10 +771,10 @@ function buildPopupHTML(a, backText) {
                         <div class="event-ai-card-header">
                             <div class="flex items-center gap-2">
                                 <span class="ai-sparkle-badge"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
-                                <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">AI Match</span>
+                                <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">${t("event_popup.ai_match", "AI Match")}</span>
                             </div>
                             <button type="button" class="ai-match-trigger-btn ai-match-btn" title="Calculate Match">
-                                <span>Check Match</span>
+                                <span>${t("event_popup.check_match", "Check Match")}</span>
                             </button>
                         </div>
 
@@ -692,7 +862,7 @@ function buildPopupHTML(a, backText) {
                     <div class="event-sidebar-details-card">
                         <div class="event-sidebar-details-header">
                             <i class="fa-solid fa-circle-info text-blue-600"></i>
-                            <span>Event Details</span>
+                            <span>${t("event_popup.event_details", "Event Details")}</span>
                         </div>
 
                         <div class="event-sidebar-details-list">
@@ -728,15 +898,8 @@ function buildPopupHTML(a, backText) {
                                 </div>
                             </div>
 
-                            <!-- Participants -->
-                            ${!isNonPartner ? `
-                            <div class="event-sidebar-info-row">
-                                <div class="sidebar-info-icon capacity"><i class="fa-solid fa-users"></i></div>
-                                <div class="sidebar-info-meta">
-                                    <span class="sidebar-info-label">${t("description.participants", "Registered")}</span>
-                                    <p class="sidebar-info-value participants-count-val" data-count="${participantCount}">${t("explore.registered_count", { n: participantCount }, `${participantCount} students`)}</p>
-                                </div>
-                            </div>` : ''}
+                            <!-- Participants & Slots -->
+                            ${buildParticipantsAndSlotsHTML(a, participantCount)}
                         </div>
                     </div>
 
@@ -745,10 +908,10 @@ function buildPopupHTML(a, backText) {
                         <div class="event-ai-card-header">
                             <div class="flex items-center gap-2">
                                 <span class="ai-sparkle-badge"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
-                                <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">AI Match</span>
+                                <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">${t("event_popup.ai_match", "AI Match")}</span>
                             </div>
                             <button type="button" class="ai-match-trigger-btn ai-match-btn" title="Calculate Match">
-                                <span>Check Match</span>
+                                <span>${t("event_popup.check_match", "Check Match")}</span>
                             </button>
                         </div>
 
@@ -804,6 +967,11 @@ function setParticipated(activity) {
 function disableParticipationButtons(activity) {
     if (!activity) return;
     const status = getEventStatus(activity);
+    const participantCount = activity.participants?.length || 0;
+    const totalSlots = (activity.slots !== undefined && activity.slots !== null && Number(activity.slots) > 0) ? Number(activity.slots) : 0;
+    const isFull = totalSlots > 0 && participantCount >= totalSlots;
+    const isParticipating = isAuthenticated() && userParticipatedIds && userParticipatedIds.has(String(activity.activityID || activity._id));
+
     if (status === 'ended' || status === 'ongoing' || status === 'registration_closed') {
         const btns = document.querySelectorAll(".participate");
         btns.forEach(btn => {
@@ -820,6 +988,18 @@ function disableParticipationButtons(activity) {
                 } else {
                     span.textContent = t("explore.ended") || "Ended";
                 }
+            }
+        });
+    } else if (isFull && !isParticipating) {
+        const btns = document.querySelectorAll(".participate");
+        btns.forEach(btn => {
+            if (btn.dataset.externalUrl) return;
+            btn.disabled = true;
+            btn.classList.add("disabled", "opacity-60", "cursor-not-allowed");
+            btn.style.pointerEvents = "none";
+            const span = btn.querySelector("span");
+            if (span) {
+                span.textContent = t("explore.slots_full", "Đã hết chỗ") || "Fully booked";
             }
         });
     }
@@ -939,6 +1119,20 @@ function initParticipateButton(activityID) {
 
             const isActive = btn.classList.contains("active");
 
+            // Check if slots are full when attempting to join
+            if (!isActive) {
+                const slotsRow = document.querySelector(".event-slots-row");
+                if (slotsRow && slotsRow.dataset.totalSlots) {
+                    const totalSlots = parseInt(slotsRow.dataset.totalSlots, 10);
+                    const valEls = document.querySelectorAll(".participants-count-val");
+                    const currentCount = valEls.length > 0 ? (parseInt(valEls[0].dataset.count, 10) || 0) : 0;
+                    if (totalSlots > 0 && currentCount >= totalSlots) {
+                        alert(t("explore.slots_full", "Sự kiện đã hết chỗ tham gia!"));
+                        return;
+                    }
+                }
+            }
+
             const proceedAction = async () => {
                 lastClick = now;
 
@@ -951,12 +1145,7 @@ function initParticipateButton(activityID) {
                 const newCount = isActive ? Math.max(0, initialCount - 1) : initialCount + 1;
 
                 // Helper to update participant count elements
-                const updateCountUI = (count) => {
-                    valEls.forEach(el => {
-                        el.dataset.count = count;
-                        el.textContent = t("explore.registered_count", { n: count }, `${count} students`);
-                    });
-                };
+                const updateCountUI = updateEventCountUI;
 
                 // Update participant counter optimistically
                 updateCountUI(newCount);
@@ -1038,7 +1227,7 @@ function initAIMatchButton(container, activityID) {
 
     function setBtnLoading() {
         btns.forEach(b => {
-            b.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Analyzing...</span>`;
+            b.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${t("ai_recommend.analyzing", "Analyzing...")}</span>`;
         });
     }
 
@@ -1051,14 +1240,14 @@ function initAIMatchButton(container, activityID) {
     function resetBtn() {
         btns.forEach(b => {
             b.disabled = false;
-            b.innerHTML = `<span>Check Match</span>`;
+            b.innerHTML = `<span>${t("event_popup.check_match", "Check Match")}</span>`;
         });
     }
 
     btns.forEach(btn => {
         btn.addEventListener("click", async () => {
             if (!isAuthenticated()) {
-                alert("Please login first to use AI Match!");
+                alert(t("explore.please_login", "Please login first to use AI Match!"));
                 return;
             }
 
@@ -1361,5 +1550,20 @@ async function initEventComments(eventId, container) {
         listEl.innerHTML = '<div class="no-comments-box"><p class="text-xs text-slate-400">Failed to load comments</p></div>';
         if (seeMoreBtn) seeMoreBtn.style.display = 'none';
     }
+}
+
+if (typeof window !== "undefined") {
+    window.addEventListener("language-changed", () => {
+        const overlay = document.getElementById("popup-overlay");
+        const container = document.getElementById("popup-container");
+        if (overlay && overlay.classList.contains("active") && container && currentOpenActivity) {
+            const actId = currentOpenActivity.activityID || currentOpenActivity._id;
+            const backText = currentBackText || t("explore.back") || "Back";
+            container.innerHTML = buildPopupHTML(currentOpenActivity, backText);
+            initParticipateButton(actId);
+            disableParticipationButtons(currentOpenActivity);
+            bindPopupInteractiveElements(container, currentOpenActivity, actId);
+        }
+    });
 }
 

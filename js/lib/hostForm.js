@@ -683,6 +683,8 @@ export async function initEditMode(eventId) {
     if (locationLngEl && event.locationLng) locationLngEl.value = event.locationLng;
     if (hostNameEl) hostNameEl.value = event.hostName || event.createdByName || '';
     if (registrationLinkEl) registrationLinkEl.value = event.registrationLink || '';
+    const slotsEl = document.getElementById("slots");
+    if (slotsEl) slotsEl.value = (event.slots !== undefined && event.slots !== null && Number(event.slots) > 0) ? event.slots : '';
 
     // Thumbnail preview
     if (event.thumbnail && thumbPreview) {
@@ -922,6 +924,16 @@ export function initFormSubmit(orgId, onSuccess) {
         formData.append("description", description);
         formData.append("location", location);
         formData.append("type", type);
+
+        const slotsVal = document.getElementById("slots")?.value?.trim();
+        if (slotsVal) {
+            const parsedSlots = parseInt(slotsVal, 10);
+            if (!isNaN(parsedSlots) && parsedSlots > 0) {
+                formData.append("slots", String(parsedSlots));
+            }
+        } else if (isEdit) {
+            formData.append("slots", "");
+        }
 
         if (isNonPartnerMode && user?.role === 'admin') {
             if (!registrationLink) {

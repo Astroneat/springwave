@@ -7,6 +7,7 @@ import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/n
 import { formatDate } from "../lib/utils.js";
 import { API_BASE_URL } from "../config.js";
 import { openEventPopup } from "../components/eventPopup.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 
 let allTickets = [];
 let showPast = false;
@@ -39,28 +40,28 @@ function statusBadgeHTML(status) {
     cancelled: 'bg-rose-50 text-rose-700 border-rose-200/50',
   };
   const labels = {
-    active: 'Active',
-    checked_in: 'Checked In',
-    expired: 'Expired',
-    cancelled: 'Cancelled',
+    active: t('my_events.status_active', 'Active'),
+    checked_in: t('my_events.status_checked_in', 'Checked In'),
+    expired: t('my_events.status_expired', 'Expired'),
+    cancelled: t('my_events.status_cancelled', 'Cancelled'),
   };
   const cls = map[status] || 'bg-slate-50 text-slate-600 border-slate-200/50';
   return `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${cls} border">${labels[status] || status}</span>`;
 }
 
-function canRateEvent(t) {
-  const event = t.event || {};
-  if (t.review) return false;
+function canRateEvent(tkt) {
+  const event = tkt.event || {};
+  if (tkt.review) return false;
   if (event.hasAttendance) {
-    return t.checkIn && t.checkIn.status === 'present';
+    return tkt.checkIn && tkt.checkIn.status === 'present';
   }
   return true;
 }
 
-function getRatingText(t) {
-  if (t.review) return `You rated: ${t.review.rating}/5`;
-  if (!canRateEvent(t)) return 'Check in to rate';
-  return 'Rate Event';
+function getRatingText(tkt) {
+  if (tkt.review) return t('my_events.you_rated', { rating: tkt.review.rating }).replace('{{rating}}', tkt.review.rating);
+  if (!canRateEvent(tkt)) return t('my_events.check_in_to_rate', 'Check in to rate');
+  return t('my_events.rate_event', 'Rate Event');
 }
 
 function renderEvents() {
@@ -73,8 +74,8 @@ function renderEvents() {
 
   const activeBadge = document.getElementById("active-count-badge");
   const inactiveBadge = document.getElementById("inactive-count-badge");
-  if (activeBadge) activeBadge.textContent = `${activeEvents.length} Active`;
-  if (inactiveBadge) inactiveBadge.textContent = `${pastEvents.length} Past`;
+  if (activeBadge) activeBadge.textContent = `${activeEvents.length} ${t('my_events.active_tab', 'Active')}`;
+  if (inactiveBadge) inactiveBadge.textContent = `${pastEvents.length} ${t('my_events.past_tab', 'Past')}`;
 
   const eventsToDisplay = showPast ? validTickets : activeEvents;
 
@@ -82,59 +83,63 @@ function renderEvents() {
     list.innerHTML = `
       <div class="text-center py-16 bg-white border border-[#ecedfa] rounded-2xl">
         <span class="material-symbols-outlined text-5xl text-[#64748b] mb-4">event_busy</span>
-        <p class="text-lg font-semibold text-[#191b22]">No events found</p>
-        <p class="text-sm text-[#64748b] mt-1">${showPast ? "You haven't participated in any events yet." : "You don't have any active events right now."}</p>
-        <a href="/explore.html" class="inline-block mt-5 px-6 py-2.5 rounded-xl bg-[#1755ba] text-white text-sm font-medium hover:bg-[#1755ba]/90 transition-all shadow-sm">Explore Events</a>
+        <p class="text-lg font-semibold text-[#191b22]">${t('my_events.no_events', 'No events found')}</p>
+        <p class="text-sm text-[#64748b] mt-1">${showPast ? t('my_events.no_events_desc_past', "You haven't participated in any events yet.") : t('my_events.no_events_desc_active', "You don't have any active events right now.")}</p>
+        <a href="/explore.html" class="inline-block mt-5 px-6 py-2.5 rounded-xl bg-[#1755ba] text-white text-sm font-medium hover:bg-[#1755ba]/90 transition-all shadow-sm">${t('my_events.explore_btn', 'Explore Events')}</a>
       </div>`;
     return;
   }
 
-  list.innerHTML = eventsToDisplay.map(t => {
-    const event = t.event || {};
+  list.innerHTML = eventsToDisplay.map(tkt => {
+    const event = tkt.event || {};
     const eventDate = event.heldDate ? formatDate(event.heldDate) : "TBD";
-    const status = getTicketStatus(t);
-    const expired = isEventExpired(t);
+    const status = getTicketStatus(tkt);
+    const expired = isEventExpired(tkt);
 
     let checkInInfo = '';
-    if (t.checkIn && t.checkIn.status === 'present') {
-      const time = t.checkIn.checkedInAt ? formatDate(t.checkIn.checkedInAt) : '';
+    if (tkt.checkIn && tkt.checkIn.status === 'present') {
+      const time = tkt.checkIn.checkedInAt ? formatDate(tkt.checkIn.checkedInAt) : '';
       checkInInfo = `
         <div class="flex items-center gap-1.5 text-xs text-emerald-600">
           <span class="material-symbols-outlined text-[16px]">check_circle</span>
-          <span class="font-medium">Checked in</span>
+          <span class="font-medium">${t('my_events.checked_in', 'Checked in')}</span>
           ${time ? `<span class="text-slate-400">• ${time}</span>` : ''}
         </div>`;
     }
 
-    const canRate = canRateEvent(t);
-    const hasCertificate = !!t.certificate;
+    const canRate = canRateEvent(tkt);
+    const hasCertificate = !!tkt.certificate;
     const eventId = event._id || '';
     const eventTitle = event.title || 'Unknown Event';
     const safeTitle = eventTitle.replace(/'/g, "\\'");
 
     let actionButtons = '';
-    if (expired || isInactive(t)) {
+    if (expired || isInactive(tkt)) {
       if (canRate) {
         actionButtons += `
           <button class="rate-event-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1755ba] bg-[#1755ba]/10 hover:bg-[#1755ba]/25 transition-all" data-event-id="${eventId}" data-event-title="${safeTitle}">
-            <i class="fa-regular fa-star mr-1"></i>Rate Event
+            <i class="fa-regular fa-star mr-1"></i>${t('my_events.rate_event', 'Rate Event')}
           </button>`;
-      } else if (t.review) {
+      } else if (tkt.review) {
         actionButtons += `
           <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50">
-            <i class="fa-solid fa-star text-amber-500"></i> ${t.review.rating}/5
+            <i class="fa-solid fa-star text-amber-500"></i> ${tkt.review.rating}/5
           </span>`;
       }
       if (hasCertificate) {
         actionButtons += `
-          <button class="view-cert-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-all" data-cert-code="${t.certificate.certificateCode}" data-event-title="${safeTitle}">
-            <i class="fa-solid fa-award mr-1"></i>Certificate
+          <button class="view-cert-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-all" data-cert-code="${tkt.certificate.certificateCode}" data-event-title="${safeTitle}">
+            <i class="fa-solid fa-award mr-1"></i>${t('my_events.certificate', 'Certificate')}
           </button>`;
       }
     }
 
+    const statusBottomText = status === 'checked_in' 
+      ? t('my_events.attended', 'Attended') 
+      : (status === 'cancelled' ? t('my_events.status_cancelled', 'Cancelled') : t('my_events.ended', 'Ended'));
+
     return `
-      <div class="group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${expired || isInactive(t) ? "opacity-80" : ""}">
+      <div class="group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${expired || isInactive(tkt) ? "opacity-80" : ""}">
         <div class="relative w-full md:w-48 h-36 md:h-auto min-h-[144px] flex-shrink-0 bg-slate-100 overflow-hidden cursor-pointer event-card-preview" data-event-id="${eventId}">
           <img src="${event.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" 
                alt="${eventTitle}" 
@@ -149,7 +154,7 @@ function renderEvents() {
           <div class="min-w-0">
             <div class="hidden md:flex items-center justify-between gap-2 mb-2">
               ${statusBadgeHTML(status)}
-              ${expired ? '<span class="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 font-medium">Event ended</span>' : ''}
+              ${expired ? `<span class="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 font-medium">${t('my_events.event_ended', 'Event ended')}</span>` : ''}
             </div>
             <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2 cursor-pointer event-card-preview" data-event-id="${eventId}" title="${eventTitle}">${eventTitle}</h3>
             
@@ -173,7 +178,7 @@ function renderEvents() {
           </div>` : `
           <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-400">
             <span class="material-symbols-outlined text-[16px]">info</span>
-            <span>Participate and check in to unlock features</span>
+            <span>${t('my_events.unlock_features', 'Participate and check in to unlock features')}</span>
           </div>`}
         </div>
 
@@ -187,15 +192,15 @@ function renderEvents() {
         </div>
 
         <div class="w-full md:w-44 p-5 flex flex-col items-center justify-center bg-slate-50/50 md:bg-transparent flex-shrink-0">
-          ${t.qrImageUrl && status === 'active'
+          ${tkt.qrImageUrl && status === 'active'
             ? `
-            <img src="${t.qrImageUrl}" alt="QR Code" class="w-24 h-24 rounded-xl border border-slate-200 bg-white p-1" />
-            <span class="mt-2 text-[10px] font-mono text-slate-400 uppercase">${t.qrCode ? t.qrCode.slice(0, 8) : 'N/A'}</span>
+            <img src="${tkt.qrImageUrl}" alt="QR Code" class="w-24 h-24 rounded-xl border border-slate-200 bg-white p-1" />
+            <span class="mt-2 text-[10px] font-mono text-slate-400 uppercase">${tkt.qrCode ? tkt.qrCode.slice(0, 8) : 'N/A'}</span>
             `
             : `
             <div class="w-24 h-24 rounded-xl bg-slate-100 border border-slate-200 flex flex-col items-center justify-center text-slate-400 gap-1 select-none">
               <span class="material-symbols-outlined text-3xl">${status === 'checked_in' ? 'check_circle' : 'event_busy'}</span>
-              <span class="text-[9px] font-bold uppercase tracking-wider">${status === 'checked_in' ? 'Attended' : (status === 'cancelled' ? 'Cancelled' : 'Ended')}</span>
+              <span class="text-[9px] font-bold uppercase tracking-wider">${statusBottomText}</span>
             </div>
             `
           }
@@ -330,7 +335,7 @@ function initModals() {
     const content = document.getElementById("rate-review-content").value.trim();
     const btn = document.getElementById("submit-rate-btn");
     btn.disabled = true;
-    btn.textContent = "Submitting...";
+    btn.textContent = t("my_events.rate_modal_submitting", "Submitting...");
     try {
       await addEventReview(currentRateEventId, selectedRating, content);
       closeRateModal();
@@ -343,10 +348,10 @@ function initModals() {
       }
       renderEvents();
     } catch (err) {
-      alert(err.message || "Failed to submit review");
+      alert(err.message || t("my_events.rate_modal_failed", "Failed to submit review"));
     } finally {
       btn.disabled = false;
-      btn.textContent = "Submit Review";
+      btn.textContent = t("my_events.rate_modal_submit", "Submit Review");
     }
   });
 
@@ -381,9 +386,9 @@ async function loadPage() {
       list.innerHTML = `
         <div class="text-center py-16 bg-white border border-[#ecedfa] rounded-2xl">
           <span class="material-symbols-outlined text-5xl text-[#64748b] mb-4">event_busy</span>
-          <p class="text-lg font-semibold text-[#191b22]">No events yet</p>
-          <p class="text-sm text-[#64748b] mt-1">Participate in an event to get started.</p>
-          <a href="/explore.html" class="inline-block mt-5 px-6 py-2.5 rounded-xl bg-[#1755ba] text-white text-sm font-medium hover:bg-[#1755ba]/90 transition-all shadow-sm">Explore Events</a>
+          <p class="text-lg font-semibold text-[#191b22]">${t("my_events.no_events_yet", "No events yet")}</p>
+          <p class="text-sm text-[#64748b] mt-1">${t("my_events.no_events_yet_desc", "Participate in an event to get started.")}</p>
+          <a href="/explore.html" class="inline-block mt-5 px-6 py-2.5 rounded-xl bg-[#1755ba] text-white text-sm font-medium hover:bg-[#1755ba]/90 transition-all shadow-sm">${t("my_events.explore_btn", "Explore Events")}</a>
         </div>`;
       return;
     }
@@ -405,11 +410,11 @@ async function loadPage() {
           showPast = !showPast;
           if (showPast) {
             toggleIcon.textContent = "visibility_off";
-            toggleText.textContent = "Hide Past Events";
+            toggleText.textContent = t("my_events.hide_past_btn", "Hide Past Events");
             toggleBtn.classList.add("bg-slate-100");
           } else {
             toggleIcon.textContent = "visibility";
-            toggleText.textContent = "Show Past Events";
+            toggleText.textContent = t("my_events.show_past_btn", "Show Past Events");
             toggleBtn.classList.remove("bg-slate-100");
           }
           renderEvents();
@@ -420,8 +425,17 @@ async function loadPage() {
     renderEvents();
   } catch (err) {
     console.error("Failed to load events:", err);
-    list.innerHTML = `<div class="text-center py-12 text-red-500 font-medium bg-white border border-red-100 rounded-2xl">Failed to load events. Please try again later.</div>`;
+    list.innerHTML = `<div class="text-center py-12 text-red-500 font-medium bg-white border border-red-100 rounded-2xl">${t("my_events.failed_load", "Failed to load events. Please try again later.")}</div>`;
   }
 }
+
+window.addEventListener("language-changed", () => {
+  applyTranslation();
+  const toggleText = document.getElementById("toggle-expired-text");
+  if (toggleText) {
+    toggleText.textContent = showPast ? t("my_events.hide_past_btn", "Hide Past Events") : t("my_events.show_past_btn", "Show Past Events");
+  }
+  renderEvents();
+});
 
 loadPage();

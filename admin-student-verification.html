@@ -25,18 +25,18 @@
     <main class="pt-[120px] max-w-[1280px] mx-auto px-6 md:px-10 pb-16">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             <div>
-                <h1 class="font-headline-lg text-[32px] md:text-[40px] font-extrabold text-[#191b22]">Student Verification</h1>
-                <p class="text-[#64748b] text-base mt-1">Review and approve student verification requests</p>
+                <h1 class="font-headline-lg text-[32px] md:text-[40px] font-extrabold text-[#191b22]" data-i18n="admin_student_verify.title">Student Verification</h1>
+                <p class="text-[#64748b] text-base mt-1" data-i18n="admin_student_verify.subtitle">Review and approve student verification requests</p>
             </div>
             <div class="flex items-center gap-3">
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8] text-sm"></i>
-                    <input type="text" id="search-input" placeholder="Search by student ID, name, or email..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[200px] outline-none focus:border-primary transition-colors" />
+                    <input type="text" id="search-input" placeholder="Search by student ID, name, or email..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[200px] outline-none focus:border-primary transition-colors" data-i18n-placeholder="admin_student_verify.search_placeholder" />
                 </div>
                 <select id="school-filter" class="px-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary transition-colors">
-                    <option value="">All Schools</option>
+                    <option value="" data-i18n="admin_student_verify.all_schools">All Schools</option>
                 </select>
-                <button id="refresh-btn" class="w-10 h-10 rounded-full border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f1f5f9] transition-all spring-ease" title="Refresh">
+                <button id="refresh-btn" class="w-10 h-10 rounded-full border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f1f5f9] transition-all spring-ease" title="Refresh" data-i18n-title="admin_student_verify.refresh">
                     <i class="fa-solid fa-rotate"></i>
                 </button>
             </div>
@@ -46,17 +46,17 @@
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <input type="checkbox" id="select-all" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
-                <label for="select-all" class="text-sm font-medium text-[#191b22]">Select All</label>
+                <label for="select-all" class="text-sm font-medium text-[#191b22]" data-i18n="admin_student_verify.select_all">Select All</label>
                 <span id="selected-count" class="text-sm text-[#64748b]">0 selected</span>
             </div>
             <div class="flex gap-2">
                 <button id="batch-approve" class="px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
-                    <i class="fa-solid fa-check mr-1.5"></i> Approve
+                    <i class="fa-solid fa-check mr-1.5"></i> <span data-i18n="admin_student_verify.btn_batch_approve">Approve</span>
                 </button>
                 <button id="batch-reject" class="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors">
-                    <i class="fa-solid fa-ban mr-1.5"></i> Reject
+                    <i class="fa-solid fa-ban mr-1.5"></i> <span data-i18n="admin_student_verify.btn_batch_reject">Reject</span>
                 </button>
-                <button id="batch-cancel" class="px-4 py-2 rounded-lg border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold hover:bg-[#f8f9fc] transition-colors">
+                <button id="batch-cancel" class="px-4 py-2 rounded-lg border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold hover:bg-[#f8f9fc] transition-colors" data-i18n="admin_student_verify.btn_cancel">
                     Cancel
                 </button>
             </div>
@@ -68,7 +68,7 @@
                     <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-primary">
                         <i class="fa-solid fa-file-pen text-lg"></i>
                     </div>
-                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Total</span>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_student_verify.stat_total">Total</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-total">—</p>
             </div>
@@ -77,7 +77,7 @@
                     <div class="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600">
                         <i class="fa-solid fa-clock text-lg"></i>
                     </div>
-                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Pending</span>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_student_verify.stat_pending">Pending</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-pending">—</p>
             </div>
@@ -86,7 +86,7 @@
                     <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
                         <i class="fa-solid fa-check-circle text-lg"></i>
                     </div>
-                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Approved</span>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_student_verify.stat_approved">Approved</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-approved">—</p>
             </div>
@@ -95,7 +95,7 @@
                     <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
                         <i class="fa-solid fa-ban text-lg"></i>
                     </div>
-                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide">Rejected</span>
+                    <span class="text-[13px] font-semibold text-[#64748b] uppercase tracking-wide" data-i18n="admin_student_verify.stat_rejected">Rejected</span>
                 </div>
                 <p class="text-[32px] font-extrabold text-[#191b22]" id="stat-rejected">—</p>
             </div>
@@ -103,45 +103,45 @@
         <!-- ADMIN NAV -->
         <div class="admin-tabs-scroll" id="admin-nav">
             <a href="/admin.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-calendar-days mr-1.5"></i> Events
+                <i class="fa-solid fa-calendar-days mr-1.5"></i> <span data-i18n="admin.nav_events">Events</span>
             </a>
             <a href="/admin-host.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-users-gear mr-1.5"></i> Host Registrations
+                <i class="fa-solid fa-users-gear mr-1.5"></i> <span data-i18n="admin.nav_hosts">Host Registrations</span>
             </a>
             <a href="/admin-student-verification.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-graduation-cap mr-1.5"></i> Student Verification
+                <i class="fa-solid fa-graduation-cap mr-1.5"></i> <span data-i18n="admin.nav_student_verify">Student Verification</span>
             </a>
             <a href="/admin-categories.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-tags mr-1.5"></i> Categories
+                <i class="fa-solid fa-tags mr-1.5"></i> <span data-i18n="admin.nav_categories">Categories</span>
             </a>
             <a href="/admin-universities.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-building-columns mr-1.5"></i> Universities
+                <i class="fa-solid fa-building-columns mr-1.5"></i> <span data-i18n="admin.nav_universities">Universities</span>
             </a>
             <a href="/admin-analytics.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-chart-pie mr-1.5"></i> Analytics & Reports
+                <i class="fa-solid fa-chart-pie mr-1.5"></i> <span data-i18n="admin.nav_analytics">Analytics & Reports</span>
             </a>
         </div>
         <div class="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
-            <button class="tab-btn active" data-tab="all">All</button>
-            <button class="tab-btn" data-tab="pending">Pending</button>
-            <button class="tab-btn" data-tab="approved">Approved</button>
-            <button class="tab-btn" data-tab="rejected">Rejected</button>
+            <button class="tab-btn active" data-tab="all" data-i18n="admin_student_verify.tab_all">All</button>
+            <button class="tab-btn" data-tab="pending" data-i18n="admin_student_verify.tab_pending">Pending</button>
+            <button class="tab-btn" data-tab="approved" data-i18n="admin_student_verify.tab_approved">Approved</button>
+            <button class="tab-btn" data-tab="rejected" data-i18n="admin_student_verify.tab_rejected">Rejected</button>
         </div>
         <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b border-[#ecedfa]">
-                <h2 class="font-headline-md text-xl font-bold text-[#191b22]">Verification Requests</h2>
+                <h2 class="font-headline-md text-xl font-bold text-[#191b22]" data-i18n="admin_student_verify.card_title">Verification Requests</h2>
                 <span class="text-sm text-[#64748b] font-medium" id="table-count">0 requests</span>
             </div>
             <div class="overflow-x-auto table-responsive-container">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Student ID</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell">Name</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell">School</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden sm:table-cell">Submitted</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Status</th>
-                            <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Actions</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_student_verify.col_id">Student ID</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell" data-i18n="admin_student_verify.col_name">Name</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell" data-i18n="admin_student_verify.col_school">School</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden sm:table-cell" data-i18n="admin_student_verify.col_submitted">Submitted</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_student_verify.col_status">Status</th>
+                            <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_student_verify.col_action">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="table-body"></tbody>
@@ -149,21 +149,21 @@
             </div>
             <div id="table-loading" class="hidden text-center py-16 text-[#94a3b8]">
                 <div class="spinner"></div>
-                <p class="text-base font-semibold mt-4">Loading verification requests...</p>
+                <p class="text-base font-semibold mt-4" data-i18n="admin_student_verify.loading">Loading verification requests...</p>
             </div>
             <div id="table-empty" class="hidden text-center py-16 text-[#94a3b8]">
                 <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
-                <p class="text-base font-semibold">No verification requests found</p>
+                <p class="text-base font-semibold" data-i18n="admin_student_verify.no_requests">No verification requests found</p>
             </div>
         </div>
         <div class="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4" id="pagination" hidden>
             <span id="pagination-info" class="text-sm text-[#64748b]"></span>
             <div class="flex gap-2">
                 <button id="prev-page" class="btn btn-secondary px-4 py-2 disabled:opacity-40" disabled>
-                    <i class="fa-solid fa-chevron-left mr-1.5"></i> Previous
+                    <i class="fa-solid fa-chevron-left mr-1.5"></i> <span data-i18n="admin_student_verify.prev">Previous</span>
                 </button>
                 <button id="next-page" class="btn btn-secondary px-4 py-2 disabled:opacity-40">
-                    Next <i class="fa-solid fa-chevron-right ml-1.5"></i>
+                    <span data-i18n="admin_student_verify.next">Next</span> <i class="fa-solid fa-chevron-right ml-1.5"></i>
                 </button>
             </div>
         </div>
@@ -172,7 +172,7 @@
         <div class="popup-backdrop" id="detail-backdrop"></div>
         <div class="popup-container !max-w-[840px] !p-0 max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl">
             <div class="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[#ecedfa] bg-white">
-                <h2 class="text-xl font-bold text-[#191b22]" id="detail-title">Verification Details</h2>
+                <h2 class="text-xl font-bold text-[#191b22]" id="detail-title" data-i18n="admin_student_verify.modal_title">Verification Details</h2>
                 <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] spring-ease" id="detail-close">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -190,12 +190,12 @@
             <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                 <i class="fa-solid fa-check text-green-600 text-2xl"></i>
             </div>
-            <h3 class="text-xl font-bold text-[#191b22] mb-2">Approve Verification</h3>
-            <p class="text-sm text-[#64748b] mb-6">Approve student <strong id="approve-name">this student</strong> (MSSV: <strong id="approve-sid"></strong>)?</p>
+            <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin_student_verify.approve_title">Approve Verification</h3>
+            <p class="text-sm text-[#64748b] mb-6" id="approve-desc">Approve student <strong id="approve-name">this student</strong> (MSSV: <strong id="approve-sid"></strong>)?</p>
             <div class="flex gap-3">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="approve-cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="approve-cancel" data-i18n="admin_student_verify.btn_cancel">Cancel</button>
                 <button class="flex-1 py-3 rounded-xl border-none bg-[#059669] text-white font-semibold text-sm spring-ease hover:bg-[#047857] active:scale-95" id="approve-confirm">
-                    <i class="fa-solid fa-check mr-1.5"></i> Approve
+                    <i class="fa-solid fa-check mr-1.5"></i> <span data-i18n="admin_student_verify.btn_approve">Approve</span>
                 </button>
             </div>
         </div>
@@ -206,13 +206,13 @@
             <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                 <i class="fa-solid fa-ban text-red-500 text-2xl"></i>
             </div>
-            <h3 class="text-xl font-bold text-[#191b22] mb-2">Reject Verification</h3>
-            <p class="text-sm text-[#64748b] mb-4">Reject student <strong id="reject-name">this student</strong>?</p>
-            <textarea id="reject-note" class="w-full px-4 py-3 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm resize-none mb-4" rows="3" placeholder="Reason for rejection (optional)"></textarea>
+            <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin_student_verify.reject_title">Reject Verification</h3>
+            <p class="text-sm text-[#64748b] mb-4" id="reject-desc">Reject student <strong id="reject-name">this student</strong>?</p>
+            <textarea id="reject-note" class="w-full px-4 py-3 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm resize-none mb-4" rows="3" placeholder="Reason for rejection (optional)" data-i18n-placeholder="admin_student_verify.reject_placeholder"></textarea>
             <div class="flex gap-3">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="reject-cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="reject-cancel" data-i18n="admin_student_verify.btn_cancel">Cancel</button>
                 <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="reject-confirm">
-                    <i class="fa-solid fa-ban mr-1.5"></i> Reject
+                    <i class="fa-solid fa-ban mr-1.5"></i> <span data-i18n="admin_student_verify.btn_reject">Reject</span>
                 </button>
             </div>
         </div>

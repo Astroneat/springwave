@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await loadNavbar();
     await initExplore();
-    await loadRecommendations();
+    loadRecommendations().catch(() => {});
     await initChatbot();
     initializePage();
 
@@ -263,7 +263,7 @@ async function loadRecommendations() {
             const pct = Number.isFinite(a.percentage) ? a.percentage : (a.score ? Math.round(a.score * 100) : null);
             const matchBadgeHTML = pct !== null ? `
                 <div class="recommendation-match-pill">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> ${pct}% Match
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> ${pct}% ${t("explore.match_pill", "Match")}
                 </div>
             ` : '';
 
@@ -303,13 +303,13 @@ window.addEventListener('springwave:ai-match-updated', (e) => {
     if (card) {
         let pill = card.querySelector('.recommendation-match-pill');
         if (pill) {
-            pill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% Match`;
+            pill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% ${t("explore.match_pill", "Match")}`;
         } else {
             const thumb = card.querySelector('.recommendation-thumb');
             if (thumb) {
                 const newPill = document.createElement('div');
                 newPill.className = 'recommendation-match-pill';
-                newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% Match`;
+                newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% ${t("explore.match_pill", "Match")}`;
                 thumb.prepend(newPill);
             }
         }
@@ -761,7 +761,7 @@ async function renderCardsDirect(activities) {
             const hostOrgName = typeof activity.organization === 'object' ? activity.organization?.name : null;
             const orgUni = activity.organization?.university;
             const uniShort = orgUni?.shortName || activity.source?.school;
-            const baseHost = hostOrgName || activity.hostName || activity.createdByName || t("common.unknown") || "Unknown";
+            const baseHost = hostOrgName || activity.hostName || (activity.organization ? t("common.organization", "Organization") : activity.createdByName) || t("common.unknown") || "Unknown";
             hostSpan.textContent = uniShort ? `${baseHost} (${uniShort})` : baseHost;
         }
         
@@ -1120,8 +1120,22 @@ function initCardClickHandlers() {
                 if (active) await removeFavourite(id);
                 else {
                     await addFavourite(id);
-                    if (cachedFavIds && cachedFavIds.size >= 5 && !localStorage.getItem("springwave_has_earned_explorer")) {
-                        localStorage.setItem("springwave_has_earned_explorer", "true");
+                    const currentUserId = user?._id || user?.id || "guest";
+                    const explorerKey = `springwave_has_earned_explorer_${currentUserId}`;
+
+                    let alreadyHasBadge = false;
+                    try {
+                        const contribRaw = localStorage.getItem(`springwave_contrib_${currentUserId}`);
+                        if (contribRaw) {
+                            const contrib = JSON.parse(contribRaw);
+                            if (contrib?.badges?.includes("active_explorer")) {
+                                alreadyHasBadge = true;
+                            }
+                        }
+                    } catch {}
+
+                    if (cachedFavIds && cachedFavIds.size >= 5 && !localStorage.getItem(explorerKey) && !alreadyHasBadge) {
+                        localStorage.setItem(explorerKey, "true");
                         setTimeout(() => {
                             triggerBadgeCelebration("active_explorer");
                         }, 500);
@@ -1203,7 +1217,7 @@ function buildPopupHTML(a, backText) {
     }).join("");
 
     const hostOrgName = typeof a.organization === 'object' ? a.organization?.name : null;
-    const displayHost = hostOrgName || a.hostName || a.createdByName || t("common.unknown");
+    const displayHost = hostOrgName || a.hostName || (a.organization ? t("common.organization", "Organization") : a.createdByName) || t("common.unknown");
 
     const safeTitle = escapeHtml(a.title || "");
     const safeBack = escapeHtml(backText);
@@ -1682,9 +1696,16 @@ function initMapSelector() {
     });
 }
 
-/* =============================
-   EXPLORE POST MODAL
-   ============================= */
+if (typeof window !== "undefined") {
+    window.addEventListener("language-changed", async () => {
+        if (currentFilteredActivities && currentFilteredActivities.length > 0) {
+            await renderCardsDirect(currentFilteredActivities);
+        } else if (allActivities && allActivities.length > 0) {
+            await renderCardsDirect(allActivities);
+        }
+        loadRecommendations().catch(() => {});
+    });
+}
 
 
 

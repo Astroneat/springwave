@@ -45,7 +45,7 @@ export function t(key, params = {}, fallback = '') {
 
   if (val === undefined) return defaultText;
   if (typeof val === "string") {
-    return val.replace(/\{\{(\w+)\}\}/g, (_, p) => actualParams[p] ?? `{{${p}}}`);
+    return val.replace(/\{{1,2}(\w+)\}{1,2}/g, (_, p) => actualParams[p] ?? `{{${p}}}`);
   }
   return val;
 }

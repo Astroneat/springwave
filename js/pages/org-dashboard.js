@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { CDN_DOMAIN } from "../config.js";
-import { t, getLang } from "../lib/i18n.js";
+import { t, getLang, applyTranslation } from "../lib/i18n.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar } from "../components/navbar.js";
@@ -645,14 +645,27 @@ async function openEventDetailModal(eventId) {
 
       <!-- Quick Metrics Strip -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div class="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-users text-lg"></i>
+        <div class="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 flex flex-col justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-users text-lg"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-medium text-slate-500 uppercase tracking-wide truncate">${t("description.participants", "Participants")}</p>
+              <p class="text-lg font-bold text-slate-900 truncate">${event.participants?.length || 0}${event.slots ? ` / ${event.slots}` : ''}</p>
+            </div>
           </div>
-          <div class="min-w-0">
-            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide truncate">${t("description.participants", "Participants")}</p>
-            <p class="text-lg font-bold text-slate-900 truncate">${event.participants?.length || 0}</p>
-          </div>
+          ${event.slots ? `
+            <div class="mt-2.5">
+              <div class="flex justify-between text-[11px] font-semibold text-slate-500 mb-1">
+                <span>${Math.min(100, Math.round(((event.participants?.length || 0) / event.slots) * 100))}%</span>
+                <span>${Math.max(0, event.slots - (event.participants?.length || 0))} ${t("explore.slots_unit", "chỗ")} còn lại</span>
+              </div>
+              <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300/60">
+                <div class="h-full rounded-full transition-all" style="width: ${Math.min(100, Math.round(((event.participants?.length || 0) / event.slots) * 100))}%; background-color: ${((event.participants?.length || 0) >= event.slots) ? '#dc2626' : (((event.participants?.length || 0) / event.slots) >= 0.85 ? '#d97706' : '#2563eb')};"></div>
+              </div>
+            </div>
+          ` : ''}
         </div>
 
         <div class="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100 flex items-center gap-3">
@@ -6871,3 +6884,14 @@ async function loadOrgAnalytics() {
     console.error("Load Org Analytics error:", err);
   }
 }
+
+window.addEventListener("language-changed", () => {
+  applyTranslation();
+  renderOrgDropdown();
+  if (typeof renderEventsTable === "function") {
+    renderEventsTable();
+  }
+  if (typeof loadOrgAnalytics === "function" && currentSection === "analytics") {
+    loadOrgAnalytics();
+  }
+});

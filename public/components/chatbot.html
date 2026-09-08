@@ -42,17 +42,17 @@
 
     <!-- Suggestion Chips -->
     <div class="chatbot-suggestions" id="chatbot-suggestions" role="group" aria-label="Quick prompts">
-      <button class="chip-btn" data-suggest="Sắp tới có sự kiện nào hot không?">
-        <i class="fa-solid fa-fire text-amber-500" aria-hidden="true"></i> Sự kiện sắp tới
+      <button class="chip-btn" data-suggest="Sắp tới có sự kiện nào hot không?" data-suggest-key="chatbot.suggestions.events_prompt">
+        <i class="fa-solid fa-fire text-amber-500" aria-hidden="true"></i> <span data-i18n="chatbot.suggestions.events">Sự kiện sắp tới</span>
       </button>
-      <button class="chip-btn" data-suggest="Cho mình xem vé đã đăng ký">
-        <i class="fa-solid fa-ticket text-blue-500" aria-hidden="true"></i> Vé của tôi
+      <button class="chip-btn" data-suggest="Cho mình xem vé đã đăng ký" data-suggest-key="chatbot.suggestions.tickets_prompt">
+        <i class="fa-solid fa-ticket text-blue-500" aria-hidden="true"></i> <span data-i18n="chatbot.suggestions.tickets">Vé của tôi</span>
       </button>
-      <button class="chip-btn" data-suggest="Xem thống kê hoạt động của mình">
-        <i class="fa-solid fa-chart-pie text-emerald-500" aria-hidden="true"></i> Thống kê
+      <button class="chip-btn" data-suggest="Xem thống kê hoạt động của mình" data-suggest-key="chatbot.suggestions.stats_prompt">
+        <i class="fa-solid fa-chart-pie text-emerald-500" aria-hidden="true"></i> <span data-i18n="chatbot.suggestions.stats">Thống kê</span>
       </button>
-      <button class="chip-btn" data-suggest="Cộng đồng thảo luận có gì mới?">
-        <i class="fa-solid fa-comments text-indigo-500" aria-hidden="true"></i> Thảo luận
+      <button class="chip-btn" data-suggest="Cộng đồng thảo luận có gì mới?" data-suggest-key="chatbot.suggestions.forum_prompt">
+        <i class="fa-solid fa-comments text-indigo-500" aria-hidden="true"></i> <span data-i18n="chatbot.suggestions.forum">Thảo luận</span>
       </button>
     </div>
 
@@ -74,7 +74,7 @@
       <div class="chatbot-qr-header">
         <div class="chatbot-qr-title">
           <i class="fa-solid fa-qrcode text-blue-600" aria-hidden="true"></i>
-          <span>Mã QR Check-in</span>
+          <span data-i18n="chatbot.qr_modal.title">Mã QR Check-in</span>
         </div>
         <button class="chatbot-qr-close" id="chatbot-qr-close" type="button" title="Đóng" aria-label="Close QR modal">
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
@@ -86,9 +86,9 @@
           <img src="" alt="QR Code Check-in" id="chatbot-qr-image" class="chatbot-qr-img" />
         </div>
         <div class="chatbot-qr-code-text" id="chatbot-qr-code-text">Mã vé: #------</div>
-        <p class="chatbot-qr-hint">Xuất trình mã này tại bàn tiếp đón của sự kiện để điểm danh nhanh chóng.</p>
+        <p class="chatbot-qr-hint" data-i18n="chatbot.qr_modal.hint">Xuất trình mã này tại bàn tiếp đón của sự kiện để điểm danh nhanh chóng.</p>
         <button type="button" class="chatbot-qr-download-btn" id="chatbot-qr-download-btn">
-          <i class="fa-solid fa-download" aria-hidden="true"></i> Tải ảnh QR Code
+          <i class="fa-solid fa-download" aria-hidden="true"></i> <span data-i18n="chatbot.qr_modal.download_btn">Tải ảnh QR Code</span>
         </button>
       </div>
     </div>
