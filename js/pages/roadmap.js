@@ -17,6 +17,9 @@ let map, circle, marker;
 let selectedLocation = { lat: 10.7769, lng: 106.7009, address: '' };
 let generatedRoadmapId = null;
 let timelineData = [];
+let currentRoadmap = null;
+let rawCategories = null;
+let skeletonInterval = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!isAuthenticated()) {
@@ -39,6 +42,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     initSkillsStep();
     prefillFromUserProfile(user);
 
+    window.addEventListener("language-changed", handleLanguageChanged);
+
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
     if (id) {
@@ -54,7 +59,7 @@ function prefillFromUserProfile(user) {
             goalInput.value = user.profile.goal;
         } else if (user.major || user.profile?.major) {
             const major = user.major || user.profile?.major;
-            goalInput.value = `Phát triển toàn diện kiến thức chuyên môn và kỹ năng thực chiến ngành ${major}`;
+            goalInput.value = t('roadmap.default_goal', { major }) || `Phát triển toàn diện kiến thức chuyên môn và kỹ năng thực chiến ngành ${major}`;
         }
     }
 
@@ -99,7 +104,14 @@ function initWizard() {
     // Goal preset suggestions
     document.querySelectorAll('.roadmap-preset-pill').forEach(btn => {
         btn.addEventListener('click', () => {
-            const preset = btn.getAttribute('data-preset');
+            const key = btn.getAttribute('data-preset-key');
+            let preset = '';
+            if (key) {
+                preset = t(`roadmap.preset_${key}_val`);
+            }
+            if (!preset || preset === `roadmap.preset_${key}_val`) {
+                preset = btn.getAttribute('data-preset') || btn.textContent.trim();
+            }
             const goalInput = document.getElementById('goal-input');
             if (goalInput && preset) {
                 goalInput.value = preset;
@@ -195,6 +207,7 @@ function initWizard() {
     // Result actions
     document.getElementById('btn-confirm')?.addEventListener('click', handleConfirm);
     document.getElementById('btn-regenerate')?.addEventListener('click', () => {
+        hideRoadmapSkeleton();
         document.getElementById('roadmap-result')?.classList.add('hidden');
         document.getElementById('roadmap-wizard')?.classList.remove('hidden');
         document.getElementById('roadmap-stepper-wrap')?.classList.remove('hidden');
@@ -223,7 +236,7 @@ function showStep(n) {
 
     const counterLabel = document.getElementById('step-counter-label');
     if (counterLabel) {
-        counterLabel.textContent = `Step ${n} of ${MAX_STEPS}`;
+        counterLabel.textContent = t('roadmap.step_counter', { current: n, total: MAX_STEPS });
     }
 
     const btnBack = document.getElementById('btn-back');
@@ -249,7 +262,7 @@ function validateStep(n) {
     if (n === 1) {
         const goal = document.getElementById('goal-input')?.value.trim();
         if (!goal) {
-            showNoticeBox({ id: 'err-goal', message: 'Vui lòng nhập mục tiêu của bạn.', type: 'warning', once: false, containerId: 'notice-container' });
+            showNoticeBox({ id: 'err-goal', message: t('roadmap.err_goal', 'Please enter your primary growth goal.'), type: 'warning', once: false, containerId: 'notice-container' });
             return false;
         }
         return true;
@@ -258,11 +271,11 @@ function validateStep(n) {
         const start = document.getElementById('start-date')?.value;
         const end = document.getElementById('end-date')?.value;
         if (!start || !end) {
-            showNoticeBox({ id: 'err-date-req', message: 'Vui lòng chọn ngày bắt đầu và kết thúc.', type: 'warning', once: false, containerId: 'notice-container' });
+            showNoticeBox({ id: 'err-date-req', message: t('roadmap.err_date_req', 'Please select both start and end dates.'), type: 'warning', once: false, containerId: 'notice-container' });
             return false;
         }
         if (new Date(start) > new Date(end)) {
-            showNoticeBox({ id: 'err-date-range', message: 'Ngày bắt đầu không được lớn hơn ngày kết thúc.', type: 'warning', once: false, containerId: 'notice-container' });
+            showNoticeBox({ id: 'err-date-range', message: t('roadmap.err_date_range', 'Start date cannot be after end date.'), type: 'warning', once: false, containerId: 'notice-container' });
             return false;
         }
         return true;
@@ -319,28 +332,58 @@ function initLocationStep() {
     });
 }
 
+function getCategoryLabel(cat) {
+    if (!cat) return '';
+    const rawName = cat.name || '';
+    const slug = (cat.slug || rawName).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const directKey = `roadmap.categories_map.${slug}`;
+    const directVal = t(directKey);
+    if (directVal && directVal !== directKey) {
+        return directVal;
+    }
+    if (slug.includes('academic') || slug.includes('hocthuat') || slug.includes('nghiencuu')) return t('roadmap.categories_map.academic', {}, rawName);
+    if (slug.includes('career') || slug.includes('nghenghiep') || slug.includes('vieclam')) return t('roadmap.categories_map.career', {}, rawName);
+    if (slug.includes('sport') || slug.includes('thethao')) return t('roadmap.categories_map.sports', {}, rawName);
+    if (slug.includes('art') || slug.includes('nghethuat') || slug.includes('vanhoa')) return t('roadmap.categories_map.arts', {}, rawName);
+    if (slug.includes('tech') || slug.includes('congnghe') || slug.includes('laptrinh')) return t('roadmap.categories_map.technology', {}, rawName);
+    if (slug.includes('volunt') || slug.includes('tinhnguyen') || slug.includes('xahoi')) return t('roadmap.categories_map.volunteer', {}, rawName);
+    if (slug.includes('lead') || slug.includes('kynang') || slug.includes('lanhdao')) return t('roadmap.categories_map.leadership', {}, rawName);
+    return rawName;
+}
+
+function renderCategoryChips() {
+    const container = document.getElementById('category-chips');
+    if (!container || !rawCategories) return;
+    const activeIds = new Set(
+        Array.from(container.querySelectorAll('.roadmap-cat-pill.active')).map(el => el.dataset.id)
+    );
+    container.innerHTML = rawCategories.map(c => {
+        const isActive = activeIds.has(c._id);
+        const label = getCategoryLabel(c);
+        return `<div class="roadmap-cat-pill ${isActive ? 'active' : ''}" data-id="${c._id}" tabindex="0" role="checkbox" aria-checked="${isActive ? 'true' : 'false'}">${escapeHtml(label)}</div>`;
+    }).join('');
+
+    container.querySelectorAll('.roadmap-cat-pill').forEach(el => {
+        const toggleCat = () => {
+            const isActive = el.classList.toggle('active');
+            el.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        };
+        el.addEventListener('click', toggleCat);
+        el.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                toggleCat();
+            }
+        });
+    });
+}
+
 async function initCategoriesStep() {
     try {
         const res = await get('/categories');
-        const container = document.getElementById('category-chips');
-        if (res && res.categories && container) {
-            container.innerHTML = res.categories.map(c => 
-                `<div class="roadmap-cat-pill" data-id="${c._id}" tabindex="0" role="checkbox" aria-checked="false">${escapeHtml(c.name)}</div>`
-            ).join('');
-            
-            container.querySelectorAll('.roadmap-cat-pill').forEach(el => {
-                const toggleCat = () => {
-                    const isActive = el.classList.toggle('active');
-                    el.setAttribute('aria-checked', isActive ? 'true' : 'false');
-                };
-                el.addEventListener('click', toggleCat);
-                el.addEventListener('keydown', (e) => {
-                    if (e.key === ' ' || e.key === 'Enter') {
-                        e.preventDefault();
-                        toggleCat();
-                    }
-                });
-            });
+        if (res && res.categories) {
+            rawCategories = res.categories;
+            renderCategoryChips();
         }
     } catch (e) {}
 }
@@ -384,20 +427,63 @@ function initSkillsStep() {
     window.addSkillTag = addSkill;
 }
 
+function showRoadmapSkeleton() {
+    const skeleton = document.getElementById('roadmap-skeleton');
+    const wizard = document.getElementById('roadmap-wizard');
+    const stepper = document.getElementById('roadmap-stepper-wrap');
+    const result = document.getElementById('roadmap-result');
+    
+    wizard?.classList.add('hidden');
+    stepper?.classList.add('hidden');
+    result?.classList.add('hidden');
+    skeleton?.classList.remove('hidden');
+
+    const statusEl = document.getElementById('skeleton-status-text');
+    const statusKeys = [
+        'roadmap.skeleton_status_1',
+        'roadmap.skeleton_status_2',
+        'roadmap.skeleton_status_3',
+        'roadmap.skeleton_status_4'
+    ];
+    let stepIdx = 0;
+    if (statusEl) {
+        statusEl.textContent = t(statusKeys[0]);
+    }
+    clearInterval(skeletonInterval);
+    skeletonInterval = setInterval(() => {
+        stepIdx = (stepIdx + 1) % statusKeys.length;
+        if (statusEl) {
+            statusEl.style.opacity = '0';
+            setTimeout(() => {
+                statusEl.textContent = t(statusKeys[stepIdx]);
+                statusEl.style.opacity = '1';
+            }, 200);
+        }
+    }, 2500);
+}
+
+function hideRoadmapSkeleton() {
+    clearInterval(skeletonInterval);
+    skeletonInterval = null;
+    const skeleton = document.getElementById('roadmap-skeleton');
+    skeleton?.classList.add('hidden');
+}
+
 async function handleGenerate() {
     const btnGenerate = document.getElementById('btn-generate');
     if (btnGenerate?.disabled) return;
     
     if (btnGenerate) btnGenerate.disabled = true;
-    const overlay = document.getElementById('loading-overlay');
-    overlay?.classList.add('active');
+    showRoadmapSkeleton();
 
     try {
         const inputData = gatherData();
         const res = await roadmapApi.generateRoadmap(inputData);
         generatedRoadmapId = res.roadmap._id;
         timelineData = res.roadmap.timeline;
+        currentRoadmap = res.roadmap;
         
+        hideRoadmapSkeleton();
         document.getElementById('roadmap-wizard')?.classList.add('hidden');
         document.getElementById('roadmap-stepper-wrap')?.classList.add('hidden');
         document.getElementById('roadmap-result')?.classList.remove('hidden');
@@ -405,6 +491,9 @@ async function handleGenerate() {
         renderResult(res.roadmap);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
+        hideRoadmapSkeleton();
+        document.getElementById('roadmap-wizard')?.classList.remove('hidden');
+        document.getElementById('roadmap-stepper-wrap')?.classList.remove('hidden');
         const msg = err.status === 429 
             ? t('roadmap.daily_limit') 
             : (err.message || t("roadmap.error_generating"));
@@ -416,7 +505,6 @@ async function handleGenerate() {
             containerId: 'notice-container'
         });
     } finally {
-        overlay?.classList.remove('active');
         if (btnGenerate) btnGenerate.disabled = false;
     }
 }
@@ -452,7 +540,9 @@ function gatherData() {
 }
 
 function renderResult(roadmap) {
-    const comment = roadmap.aiAnalysis?.userComment || t('roadmap.ai_analysis');
+    if (!roadmap) return;
+    currentRoadmap = roadmap;
+    const comment = roadmap.aiAnalysis?.userComment || t('roadmap.ai_analysis', 'AI Strategic Diagnosis');
     const commentEl = document.getElementById('ai-comment');
     if (commentEl) commentEl.textContent = comment;
     
@@ -488,7 +578,7 @@ function renderSpiderChart(baselineValues, projectedValues) {
 
     if (baselineValues && baselineValues.length === 6) {
         datasets.push({
-            label: 'Nền tảng hiện tại (Baseline)',
+            label: t('roadmap.baseline_legend', 'Current Baseline'),
             data: baselineValues,
             backgroundColor: 'rgba(148, 163, 184, 0.16)',
             borderColor: '#94a3b8',
@@ -503,7 +593,7 @@ function renderSpiderChart(baselineValues, projectedValues) {
     }
 
     datasets.push({
-        label: 'Dự phóng sau lộ trình (Projected)',
+        label: t('roadmap.projected_legend', 'Projected Outcome'),
         data: projectedValues && projectedValues.length === 6 ? projectedValues : [60, 60, 60, 60, 60, 60],
         backgroundColor: 'rgba(23, 85, 186, 0.20)',
         borderColor: '#1755ba',
@@ -515,10 +605,19 @@ function renderSpiderChart(baselineValues, projectedValues) {
         pointHoverRadius: 6
     });
 
+    const fontSettings = { family: '"Google Sans", "Google Sans Flex", sans-serif' };
+
     window.spiderChartInstance = new Chart(ctx, {
         type: 'radar',
         data: {
-            labels: ['Communication', 'Technical', 'Creativity', 'Social Impact', 'Leadership', 'Teamwork'],
+            labels: [
+                t('roadmap.dim_communication', 'Communication'),
+                t('roadmap.dim_technical', 'Technical'),
+                t('roadmap.dim_creativity', 'Creativity'),
+                t('roadmap.dim_social_impact', 'Social Impact'),
+                t('roadmap.dim_leadership', 'Leadership'),
+                t('roadmap.dim_teamwork', 'Teamwork')
+            ],
             datasets
         },
         options: {
@@ -528,10 +627,10 @@ function renderSpiderChart(baselineValues, projectedValues) {
                 r: {
                     beginAtZero: true,
                     max: 100,
-                    ticks: { stepSize: 20, font: { family: 'Plus Jakarta Sans', size: 9 }, color: '#94a3b8' },
+                    ticks: { stepSize: 20, font: { ...fontSettings, size: 9 }, color: '#94a3b8' },
                     grid: { color: '#e2e8f0' },
                     angleLines: { color: '#f1f5f9' },
-                    pointLabels: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '700' }, color: '#334155' }
+                    pointLabels: { font: { ...fontSettings, size: 11, weight: '700' }, color: '#334155' }
                 }
             },
             animation: { duration: 1000, easing: 'easeOutQuart' },
@@ -539,8 +638,8 @@ function renderSpiderChart(baselineValues, projectedValues) {
                 legend: { display: false },
                 tooltip: {
                     backgroundColor: '#0f172a',
-                    titleFont: { family: 'Plus Jakarta Sans', weight: '700' },
-                    bodyFont: { family: 'Plus Jakarta Sans' },
+                    titleFont: { ...fontSettings, weight: '700' },
+                    bodyFont: fontSettings,
                     padding: 10,
                     cornerRadius: 8
                 }
@@ -589,29 +688,33 @@ function renderTimeline(timeline) {
             phaseIcon = 'fa-trophy';
         }
         
-        const phaseLabel = item.phaseLabel || (phase === 'foundation' ? 'Giai đoạn 1: Nền tảng' : phase === 'practice' ? 'Giai đoạn 2: Thực chiến' : 'Giai đoạn 3: Bứt phá');
-        const fitScorePill = item.fitScore ? `<span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80"><i class="fa-solid fa-bolt mr-1"></i>${item.fitScore}% Phù hợp</span>` : '';
-        const certBadge = ev.hasCertificate ? `<span class="bg-amber-100 text-amber-800 text-[10px] px-2.5 py-1 rounded-full font-bold whitespace-nowrap border border-amber-200"><i class="fa-solid fa-award mr-1"></i>Certificate</span>` : '';
-        const categoryBadge = ev.category?.name ? `<span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">${escapeHtml(ev.category.name)}</span>` : '';
+        const phaseLabel = phase === 'practice' 
+            ? t('roadmap.phase_practice', 'Phase 2: Practical Application') 
+            : (phase === 'capstone' ? t('roadmap.phase_capstone', 'Phase 3: Breakthrough / Capstone') : t('roadmap.phase_foundation', 'Phase 1: Foundation'));
+        const fitScorePill = item.fitScore ? `<span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80"><i class="fa-solid fa-bolt mr-1"></i>${item.fitScore}% ${t('roadmap.match', 'Match')}</span>` : '';
+        const certBadge = ev.hasCertificate ? `<span class="bg-amber-100 text-amber-800 text-[10px] px-2.5 py-1 rounded-full font-bold whitespace-nowrap border border-amber-200"><i class="fa-solid fa-award mr-1"></i>${t('roadmap.certificate', 'Certificate')}</span>` : '';
+        const categoryBadge = ev.category?.name ? `<span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">${escapeHtml(getCategoryLabel(ev.category))}</span>` : '';
 
         const reasonBox = item.reason ? `
             <div class="mt-3 p-3 bg-blue-50/60 rounded-xl border border-blue-100/90 text-xs text-slate-700 leading-relaxed">
                 <div class="font-bold text-blue-900 flex items-center gap-1.5 mb-1">
                     <i class="fa-solid fa-lightbulb text-amber-500 text-[11px]"></i>
-                    <span class="text-[11px] uppercase tracking-wider">Mục tiêu sư phạm của mốc này:</span>
+                    <span class="text-[11px] uppercase tracking-wider">${t('roadmap.milestone_pedagogical_goal', 'Pedagogical objective for this milestone:')}</span>
                 </div>
                 <p class="text-slate-600 text-xs leading-relaxed">${escapeHtml(item.reason)}</p>
             </div>
         ` : '';
 
+        const milestoneBadgeText = t('roadmap.milestone_badge', 'Milestone');
+
         html += `
             <div class="roadmap-milestone-node">
-                <div class="roadmap-milestone-pin" title="Milestone ${milestoneNum}"></div>
+                <div class="roadmap-milestone-pin" title="${milestoneBadgeText} ${milestoneNum}"></div>
                 <div class="roadmap-milestone-card">
                     ${thumbHtml}
                     <div class="roadmap-card-content">
                         <div class="flex flex-wrap items-center gap-2 mb-2">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/80">Milestone ${milestoneNum}</span>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/80">${milestoneBadgeText} ${milestoneNum}</span>
                             <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${phaseBadgeClass} flex items-center gap-1">
                                 <i class="fa-solid ${phaseIcon} text-[9px]"></i>
                                 <span>${escapeHtml(phaseLabel)}</span>
@@ -675,11 +778,12 @@ window.openSwipeModal = (timelineIndex) => {
             return;
         }
         const thumb = ev.thumbnail ? (ev.thumbnail.startsWith('http') ? ev.thumbnail : CDN_DOMAIN + '/' + ev.thumbnail) : '';
+        const altCountLabel = t('roadmap.alternative_count', { current: currentAltIdx + 1, total: alternatives.length }) || `Alternative ${currentAltIdx + 1} of ${alternatives.length}`;
         stack.innerHTML = `
             <div class="swipe-card">
                 ${thumb ? `<img src="${thumb}" class="w-full h-44 object-cover rounded-2xl mb-4" alt="${escapeHtml(ev.title)}">` : '<div class="w-full h-44 bg-slate-100 rounded-2xl mb-4 flex items-center justify-center text-slate-400"><i class="fa-solid fa-image text-3xl"></i></div>'}
                 <div class="flex items-center justify-between gap-2 mb-2">
-                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">Alternative ${currentAltIdx + 1} of ${alternatives.length}</span>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">${escapeHtml(altCountLabel)}</span>
                     ${ev.hasCertificate ? `<span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200"><i class="fa-solid fa-award"></i> Certificate</span>` : ''}
                 </div>
                 <h3 class="font-bold text-lg text-slate-900 mb-2 line-clamp-2" style="font-family: var(--font-headline-md), 'Aleo', serif;">${escapeHtml(ev.title)}</h3>
@@ -796,23 +900,54 @@ async function handleConfirm() {
 }
 
 async function loadExistingRoadmap(id) {
+    showRoadmapSkeleton();
     try {
         const res = await roadmapApi.getRoadmapById(id);
         if (res && res.roadmap) {
             generatedRoadmapId = res.roadmap._id;
             timelineData = res.roadmap.timeline;
+            currentRoadmap = res.roadmap;
             
+            hideRoadmapSkeleton();
             document.getElementById('roadmap-wizard')?.classList.add('hidden');
             document.getElementById('roadmap-stepper-wrap')?.classList.add('hidden');
             document.getElementById('roadmap-result')?.classList.remove('hidden');
             
             renderResult(res.roadmap);
+        } else {
+            throw new Error(t('roadmap.error_loading', 'Roadmap not found or failed to load.'));
         }
     } catch (e) {
-        showNoticeBox({ id: 'err-load-roadmap', message: 'Roadmap not found', type: 'error', once: false, containerId: 'notice-container' });
+        hideRoadmapSkeleton();
+        showNoticeBox({ id: 'err-load-roadmap', message: e.message || t('roadmap.error_loading', 'Roadmap not found or failed to load.'), type: 'error', once: false, containerId: 'notice-container' });
         setTimeout(() => {
             window.location.href = "/profile.html";
         }, 1500);
+    }
+}
+
+function handleLanguageChanged() {
+    // 1. Update step counter label
+    const counterLabel = document.getElementById('step-counter-label');
+    if (counterLabel) {
+        counterLabel.textContent = t('roadmap.step_counter', { current: currentStep, total: MAX_STEPS });
+    }
+
+    // 2. Re-render category chips in new language
+    renderCategoryChips();
+
+    // 3. If roadmap results are displayed, re-render chart & timeline with new language
+    if (currentRoadmap) {
+        renderResult(currentRoadmap);
+    }
+
+    // 4. If skeleton is active, update the status text in current language
+    const skeleton = document.getElementById('roadmap-skeleton');
+    if (skeleton && !skeleton.classList.contains('hidden')) {
+        const statusEl = document.getElementById('skeleton-status-text');
+        if (statusEl) {
+            statusEl.textContent = t('roadmap.skeleton_status_1');
+        }
     }
 }
 

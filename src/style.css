@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Google Sans';
+  src: local('Google Sans'), local('Google Sans Flex Variable'), local('Google Sans Flex'), local('Google Sans Regular');
+  font-display: swap;
+}
+
 @theme {
   --color-bg-panel: #ffffff;
   --color-accent: #3b6fd4;
@@ -59,14 +65,14 @@
   --color-on-secondary: #ffffff;
   --color-on-background: #191b22;
 
-  --font-label-md: "Inter", sans-serif;
-  --font-caption: "Inter", sans-serif;
-  --font-headline-md: "Inter", "Plus Jakarta Sans", sans-serif;
-  --font-body-lg: "Inter", sans-serif;
-  --font-headline-lg: "Inter", "Plus Jakarta Sans", sans-serif;
-  --font-body-md: "Inter", sans-serif;
-  --font-display-lg-mobile: "Inter", "Plus Jakarta Sans", sans-serif;
-  --font-display-lg: "Inter", "Plus Jakarta Sans", sans-serif;
+  --font-label-md: "Google Sans", "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
+  --font-caption: "Google Sans", "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
+  --font-headline-md: "Google Sans", "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
+  --font-body-lg: "Google Sans", "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
+  --font-headline-lg: "Google Sans", "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
+  --font-body-md: "Google Sans", "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
+  --font-display-lg-mobile: "Google Sans", "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
+  --font-display-lg: "Google Sans", "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
 
   --text-label-md: 14px;
   --text-caption: 12px;
@@ -232,7 +238,9 @@
 html,
 body {
   font-family:
-    "Inter",
+    "Google Sans",
+    "Google Sans Flex Variable",
+    "Google Sans Flex",
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
@@ -258,8 +266,9 @@ h4,
 h5,
 h6 {
   font-family:
-    "Inter",
-    "Plus Jakarta Sans",
+    "Google Sans",
+    "Google Sans Flex Variable",
+    "Google Sans Flex",
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
@@ -10469,6 +10478,36 @@ textarea {
    FIGMA NAVBAR CUSTOM STYLES
    ========================================================================== */
 
+/* Navbar Aleo font enforcement */
+#navbar,
+.figma-navbar-container,
+.figma-navbar-brand,
+.figma-navbar-link,
+.figma-navbar-login-btn,
+.figma-navbar-menu,
+#navLinks,
+#navLinks a,
+.lang-label {
+  font-family: "Aleo", serif !important;
+}
+
+/* Explicitly protect icon font families in navbar so Aleo does not overwrite icons */
+#navbar .material-symbols-outlined,
+.figma-navbar-container .material-symbols-outlined {
+  font-family: "Material Symbols Outlined" !important;
+}
+
+#navbar [class*="fa-"],
+#navbar .fa-solid,
+#navbar .fa-regular,
+#navbar .fa-brands,
+.figma-navbar-container [class*="fa-"],
+.figma-navbar-container .fa-solid,
+.figma-navbar-container .fa-regular,
+.figma-navbar-container .fa-brands {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+}
+
 .figma-navbar-container {
   padding: 12px 24px; /* Reduced vertical padding */
   z-index: 50;
@@ -10499,7 +10538,7 @@ textarea {
 }
 
 .figma-navbar-brand {
-  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
+  font-family: "Aleo", serif;
   font-weight: 800;
   font-size: 2.1rem;
   text-decoration: none;
@@ -10707,7 +10746,7 @@ textarea {
 }
 
 .figma-navbar-link {
-  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
+  font-family: "Aleo", serif;
   font-weight: 700; /* Bold font for better recognition */
   font-size: 1.05rem;
   color: rgba(
@@ -10741,7 +10780,7 @@ textarea {
   gap: 8px;
   background: #ffffff; /* High contrast pure white button */
   color: #1e3a8a !important; /* Navy blue text */
-  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
+  font-family: "Aleo", serif;
   font-weight: 800;
   font-size: 1rem;
   padding: 8px 24px;
@@ -17489,6 +17528,40 @@ textarea {
 .roadmap-btn-generate:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(23, 85, 186, 0.4);
+}
+
+/* =========================
+   SKELETON LOADER
+   ========================= */
+
+.roadmap-skeleton-banner {
+  background: linear-gradient(135deg, #f0f7ff 0%, #e0effe 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 20px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(23, 85, 186, 0.08);
+}
+
+.roadmap-milestone-pin.skeleton-pin {
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.3);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 12s linear infinite;
 }
 
 /* =========================

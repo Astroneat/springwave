@@ -11,6 +11,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/google-sans-flex@5.2.5/index.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -37,10 +38,10 @@
       <div class="text-center max-w-2xl mx-auto mb-10">
         <div class="roadmap-header-badge">
           <span class="material-symbols-outlined text-sm">explore</span>
-          <span>AI Growth Navigator</span>
+          <span data-i18n="roadmap.hero_badge">AI Growth Navigator</span>
         </div>
         <h1 class="roadmap-page-title mb-3" data-i18n="roadmap.page_title">Design Your Roadmap</h1>
-        <p class="text-slate-500 text-sm md:text-base leading-relaxed">
+        <p class="text-slate-500 text-sm md:text-base leading-relaxed" data-i18n="roadmap.hero_subtitle">
           Craft an actionable milestone timeline tailored to your career aspirations, schedule availability, and preferred learning domains.
         </p>
       </div>
@@ -50,27 +51,27 @@
         <div class="roadmap-stepper-bar" id="wizard-progress" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="6">
           <div class="roadmap-step-tab active" data-step="1">
             <div class="roadmap-step-tab-progress"></div>
-            <span class="roadmap-step-tab-label">1. Goal</span>
+            <span class="roadmap-step-tab-label" data-i18n="roadmap.step_tab_1">1. Goal</span>
           </div>
           <div class="roadmap-step-tab" data-step="2">
             <div class="roadmap-step-tab-progress"></div>
-            <span class="roadmap-step-tab-label">2. Timeframe</span>
+            <span class="roadmap-step-tab-label" data-i18n="roadmap.step_tab_2">2. Timeframe</span>
           </div>
           <div class="roadmap-step-tab" data-step="3">
             <div class="roadmap-step-tab-progress"></div>
-            <span class="roadmap-step-tab-label">3. Schedule</span>
+            <span class="roadmap-step-tab-label" data-i18n="roadmap.step_tab_3">3. Schedule</span>
           </div>
           <div class="roadmap-step-tab" data-step="4">
             <div class="roadmap-step-tab-progress"></div>
-            <span class="roadmap-step-tab-label">4. Location</span>
+            <span class="roadmap-step-tab-label" data-i18n="roadmap.step_tab_4">4. Location</span>
           </div>
           <div class="roadmap-step-tab" data-step="5">
             <div class="roadmap-step-tab-progress"></div>
-            <span class="roadmap-step-tab-label">5. Fields</span>
+            <span class="roadmap-step-tab-label" data-i18n="roadmap.step_tab_5">5. Fields</span>
           </div>
           <div class="roadmap-step-tab" data-step="6">
             <div class="roadmap-step-tab-progress"></div>
-            <span class="roadmap-step-tab-label">6. Skills</span>
+            <span class="roadmap-step-tab-label" data-i18n="roadmap.step_tab_6">6. Skills</span>
           </div>
         </div>
       </div>
@@ -81,32 +82,32 @@
         <!-- Step 1: Goal -->
         <div class="roadmap-step-pane active" id="step-1" role="tabpanel" aria-label="Step 1: Goal">
           <h2 class="roadmap-step-heading" data-i18n="roadmap.step_goal">What is your primary growth goal?</h2>
-          <p class="roadmap-step-subheading">Describe what you want to achieve or pick a common focus area to get started.</p>
+          <p class="roadmap-step-subheading" data-i18n="roadmap.step_sub_1">Describe what you want to achieve or pick a common focus area to get started.</p>
           
           <div class="roadmap-goal-presets" id="goal-presets">
-            <button type="button" class="roadmap-preset-pill" data-preset="Master full-stack software development and build production-ready web applications.">💻 Software Engineering</button>
-            <button type="button" class="roadmap-preset-pill" data-preset="Enhance leadership, team coordination, and volunteering impact in student organizations.">🤝 Student Leadership</button>
-            <button type="button" class="roadmap-preset-pill" data-preset="Gain practical digital marketing, brand growth, and content strategy experience.">📈 Digital Marketing</button>
-            <button type="button" class="roadmap-preset-pill" data-preset="Improve public speaking, stage presence, and confidence in professional pitching.">🎤 Public Speaking</button>
-            <button type="button" class="roadmap-preset-pill" data-preset="Explore artificial intelligence, data analytics, and prompt engineering foundations.">🤖 AI & Data Science</button>
+            <button type="button" class="roadmap-preset-pill" data-preset-key="swe" data-i18n="roadmap.preset_swe">💻 Software Engineering</button>
+            <button type="button" class="roadmap-preset-pill" data-preset-key="leadership" data-i18n="roadmap.preset_leadership">🤝 Student Leadership</button>
+            <button type="button" class="roadmap-preset-pill" data-preset-key="marketing" data-i18n="roadmap.preset_marketing">📈 Digital Marketing</button>
+            <button type="button" class="roadmap-preset-pill" data-preset-key="speaking" data-i18n="roadmap.preset_speaking">🎤 Public Speaking</button>
+            <button type="button" class="roadmap-preset-pill" data-preset-key="ai" data-i18n="roadmap.preset_ai">🤖 AI & Data Science</button>
           </div>
 
-          <textarea id="goal-input" class="roadmap-textarea" data-i18n="[placeholder]roadmap.goal_placeholder" placeholder="Describe your goal in detail... (e.g. I want to build a portfolio of tech hackathons and gain leadership skills before graduation)" aria-label="Goal description"></textarea>
+          <textarea id="goal-input" class="roadmap-textarea" data-i18n-placeholder="roadmap.goal_placeholder" placeholder="Describe your goal in detail... (e.g. I want to build a portfolio of tech hackathons and gain leadership skills before graduation)" aria-label="Goal description"></textarea>
         </div>
 
         <!-- Step 2: Timeframe -->
         <div class="roadmap-step-pane" id="step-2" role="tabpanel" aria-label="Step 2: Timeframe">
           <h2 class="roadmap-step-heading" data-i18n="roadmap.step_timeframe">Choose your timeline horizon</h2>
-          <p class="roadmap-step-subheading">Set the duration and active date range for your personalized activity schedule.</p>
+          <p class="roadmap-step-subheading" data-i18n="roadmap.step_sub_2">Set the duration and active date range for your personalized activity schedule.</p>
           
           <div class="roadmap-timeframe-toggle">
             <button class="roadmap-timeframe-option active" id="btn-short-term" type="button">
               <span class="timeframe-title" data-i18n="roadmap.short_term">Short-term Sprint (1 Month)</span>
-              <span class="timeframe-desc">Fast-paced sprint focused on immediate workshops and weekend hackathons.</span>
+              <span class="timeframe-desc" data-i18n="roadmap.short_term_desc">Fast-paced sprint focused on immediate workshops and weekend hackathons.</span>
             </button>
             <button class="roadmap-timeframe-option" id="btn-long-term" type="button">
               <span class="timeframe-title" data-i18n="roadmap.long_term">Long-term Milestone (6 Months)</span>
-              <span class="timeframe-desc">Comprehensive semester plan balancing conferences, clubs, and competitions.</span>
+              <span class="timeframe-desc" data-i18n="roadmap.long_term_desc">Comprehensive semester plan balancing conferences, clubs, and competitions.</span>
             </button>
           </div>
 
@@ -125,37 +126,37 @@
         <!-- Step 3: Availability -->
         <div class="roadmap-step-pane" id="step-3" role="tabpanel" aria-label="Step 3: Availability">
           <h2 class="roadmap-step-heading" data-i18n="roadmap.step_availability">Your weekly schedule & preferred time slots</h2>
-          <p class="roadmap-step-subheading">Select your ideal parts of the day and preferred days to participate in events.</p>
+          <p class="roadmap-step-subheading" data-i18n="roadmap.step_sub_3">Select your ideal parts of the day and preferred days to participate in events.</p>
           
           <div class="mb-6">
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Time of Day (Multi-select)</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3" data-i18n="roadmap.time_of_day">Time of Day (Multi-select)</label>
             <div class="roadmap-slot-grid" id="time-chips" role="group" aria-label="Time of day">
               <div class="roadmap-slot-card" data-value="morning" tabindex="0" role="checkbox" aria-checked="false">
                 <div class="slot-icon-box"><i class="fa-regular fa-sun"></i></div>
                 <div>
                   <div class="slot-text-title" data-i18n="roadmap.morning">Morning</div>
-                  <div class="slot-text-sub">08:00 – 12:00</div>
+                  <div class="slot-text-sub" data-i18n="roadmap.morning_time">08:00 – 12:00</div>
                 </div>
               </div>
               <div class="roadmap-slot-card" data-value="afternoon" tabindex="0" role="checkbox" aria-checked="false">
                 <div class="slot-icon-box"><i class="fa-solid fa-sun"></i></div>
                 <div>
                   <div class="slot-text-title" data-i18n="roadmap.afternoon">Afternoon</div>
-                  <div class="slot-text-sub">13:00 – 17:00</div>
+                  <div class="slot-text-sub" data-i18n="roadmap.afternoon_time">13:00 – 17:00</div>
                 </div>
               </div>
               <div class="roadmap-slot-card" data-value="evening" tabindex="0" role="checkbox" aria-checked="false">
                 <div class="slot-icon-box"><i class="fa-regular fa-moon"></i></div>
                 <div>
                   <div class="slot-text-title" data-i18n="roadmap.evening">Evening</div>
-                  <div class="slot-text-sub">18:00 – 22:00</div>
+                  <div class="slot-text-sub" data-i18n="roadmap.evening_time">18:00 – 22:00</div>
                 </div>
               </div>
             </div>
           </div>
 
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Days Preference</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3" data-i18n="roadmap.days_preference">Days Preference</label>
             <div class="roadmap-day-selector" id="day-chips" role="radiogroup" aria-label="Days preference">
               <div class="roadmap-day-pill active" data-value="weekday" data-i18n="roadmap.weekday" tabindex="0" role="radio" aria-checked="true">Weekdays (Mon – Fri)</div>
               <div class="roadmap-day-pill" data-value="weekend" data-i18n="roadmap.weekend" tabindex="0" role="radio" aria-checked="false">Weekends (Sat – Sun)</div>
@@ -167,11 +168,11 @@
         <!-- Step 4: Location -->
         <div class="roadmap-step-pane" id="step-4" role="tabpanel" aria-label="Step 4: Location">
           <h2 class="roadmap-step-heading" data-i18n="roadmap.step_location">Location & Mobility Radius</h2>
-          <p class="roadmap-step-subheading">Pin your living area or campus to prioritize local in-person events within your commute reach.</p>
+          <p class="roadmap-step-subheading" data-i18n="roadmap.step_sub_4">Pin your living area or campus to prioritize local in-person events within your commute reach.</p>
           
           <div class="roadmap-search-bar">
             <span class="material-symbols-outlined search-icon">pin_drop</span>
-            <input type="text" id="location-search" data-i18n="[placeholder]roadmap.search_location" placeholder="Search address, district or campus..." aria-label="Location search">
+            <input type="text" id="location-search" data-i18n-placeholder="roadmap.search_location" placeholder="Search address, district or campus..." aria-label="Location search">
           </div>
 
           <div id="roadmap-map" class="roadmap-map-frame" aria-label="Interactive map"></div>
@@ -187,7 +188,7 @@
         <!-- Step 5: Categories & Certificate -->
         <div class="roadmap-step-pane" id="step-5" role="tabpanel" aria-label="Step 5: Categories">
           <h2 class="roadmap-step-heading" data-i18n="roadmap.step_categories">Domains & Field Interests</h2>
-          <p class="roadmap-step-subheading">Select domains you care about and choose whether accredited certificates are needed.</p>
+          <p class="roadmap-step-subheading" data-i18n="roadmap.step_sub_5">Select domains you care about and choose whether accredited certificates are needed.</p>
           
           <div class="roadmap-categories-wrap" id="category-chips" role="group" aria-label="Event Categories">
             <!-- Dynamically loaded -->
@@ -200,7 +201,7 @@
                 <i class="fa-solid fa-award text-amber-600"></i>
                 <span data-i18n="roadmap.want_certificate">Prioritize Verified Certificate Activities</span>
               </div>
-              <div class="text-xs text-amber-800/80 mt-0.5">Filter for events offering verifiable certificates upon completion.</div>
+              <div class="text-xs text-amber-800/80 mt-0.5" data-i18n="roadmap.cert_desc">Filter for events offering verifiable certificates upon completion.</div>
             </div>
           </label>
         </div>
@@ -208,20 +209,20 @@
         <!-- Step 6: Skills -->
         <div class="roadmap-step-pane" id="step-6" role="tabpanel" aria-label="Step 6: Skills">
           <h2 class="roadmap-step-heading" data-i18n="roadmap.step_skills">Target Skills & Competencies</h2>
-          <p class="roadmap-step-subheading">Add specific skills you aim to develop throughout this journey.</p>
+          <p class="roadmap-step-subheading" data-i18n="roadmap.step_sub_6">Add specific skills you aim to develop throughout this journey.</p>
           
           <div class="roadmap-skills-box" id="skills-container">
-            <input type="text" id="skill-input" class="roadmap-skill-input" data-i18n="[placeholder]roadmap.add_skill" placeholder="Type a skill (e.g. React, Negotiation) and press Enter" aria-label="Add skill tag">
+            <input type="text" id="skill-input" class="roadmap-skill-input" data-i18n-placeholder="roadmap.add_skill" placeholder="Type a skill (e.g. React, Negotiation) and press Enter" aria-label="Add skill tag">
           </div>
 
           <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" data-i18n="roadmap.popular_skills">Suggested Skills:</p>
           <div class="roadmap-skills-suggestions" id="popular-skills">
-            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Communication</button>
-            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Leadership</button>
-            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Teamwork</button>
-            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Problem Solving</button>
-            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Project Management</button>
-            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> Data Analysis</button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> <span data-i18n="roadmap.skill_communication">Communication</span></button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> <span data-i18n="roadmap.skill_leadership">Leadership</span></button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> <span data-i18n="roadmap.skill_teamwork">Teamwork</span></button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> <span data-i18n="roadmap.skill_problem_solving">Problem Solving</span></button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> <span data-i18n="roadmap.skill_project_management">Project Management</span></button>
+            <button type="button" class="roadmap-suggest-chip skill-suggest"><i class="fa-solid fa-plus text-[10px]"></i> <span data-i18n="roadmap.skill_data_analysis">Data Analysis</span></button>
           </div>
         </div>
         
@@ -243,6 +244,98 @@
         </div>
       </div>
       
+      <!-- ROADMAP SKELETON LOADER -->
+      <div id="roadmap-skeleton" class="hidden" role="status" aria-label="Loading roadmap">
+        <!-- Live AI Status Banner -->
+        <div class="roadmap-skeleton-banner mb-8">
+          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-[#1755ba] shrink-0 animate-pulse">
+            <span class="material-symbols-outlined text-xl">auto_awesome</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200" data-i18n="roadmap.skeleton_badge">AI Analysis in Progress</span>
+            </div>
+            <h3 class="text-sm md:text-base font-bold text-slate-900 mt-1" id="skeleton-status-text" data-i18n="roadmap.skeleton_status_1">Analyzing your target skills and learning domains...</h3>
+          </div>
+          <div class="explore-loading-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <!-- Skeleton Hero Card (Diagnosis + Spider Chart) -->
+        <div class="roadmap-result-hero">
+          <div class="roadmap-ai-quote-box">
+            <div class="explore-skeleton-block h-6 w-36 rounded-full mb-2"></div>
+            <div class="explore-skeleton-block h-8 w-3/4 rounded-xl mb-3"></div>
+            <div class="explore-skeleton-block h-4 w-full rounded-lg mb-2"></div>
+            <div class="explore-skeleton-block h-4 w-5/6 rounded-lg mb-2"></div>
+            <div class="explore-skeleton-block h-4 w-2/3 rounded-lg"></div>
+          </div>
+          <div class="w-full flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-100">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="explore-skeleton-block h-4 w-24 rounded-full"></div>
+              <div class="explore-skeleton-block h-4 w-28 rounded-full"></div>
+            </div>
+            <div class="w-48 h-48 rounded-full border-4 border-dashed border-blue-200/60 animate-spin-slow flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full border-2 border-blue-100 flex items-center justify-center bg-white shadow-inner">
+                <span class="material-symbols-outlined text-3xl text-blue-400/70 animate-pulse">radar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Timeline Header -->
+        <div class="mb-8">
+          <div class="explore-skeleton-block h-7 w-48 rounded-xl mb-2"></div>
+          <div class="explore-skeleton-block h-4 w-64 rounded-lg"></div>
+        </div>
+
+        <!-- Skeleton Timeline Flow -->
+        <div class="roadmap-timeline-flow">
+          <div class="roadmap-milestone-node">
+            <div class="roadmap-milestone-pin skeleton-pin"></div>
+            <div class="roadmap-milestone-card">
+              <div class="roadmap-card-thumb explore-skeleton-block"></div>
+              <div class="roadmap-card-content flex-1">
+                <div class="flex flex-wrap gap-2 mb-3">
+                  <div class="explore-skeleton-block h-5 w-20 rounded-full"></div>
+                  <div class="explore-skeleton-block h-5 w-28 rounded-full"></div>
+                  <div class="explore-skeleton-block h-5 w-16 rounded-full"></div>
+                </div>
+                <div class="explore-skeleton-block h-6 w-3/4 rounded-lg mb-3"></div>
+                <div class="explore-skeleton-block h-4 w-1/2 rounded-md mb-3"></div>
+                <div class="explore-skeleton-block h-4 w-full rounded-md mb-2"></div>
+                <div class="explore-skeleton-block h-4 w-4/5 rounded-md mb-4"></div>
+                <div class="flex gap-3">
+                  <div class="explore-skeleton-block h-9 w-28 rounded-xl"></div>
+                  <div class="explore-skeleton-block h-9 w-28 rounded-xl"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="roadmap-milestone-node">
+            <div class="roadmap-milestone-pin skeleton-pin"></div>
+            <div class="roadmap-milestone-card">
+              <div class="roadmap-card-thumb explore-skeleton-block"></div>
+              <div class="roadmap-card-content flex-1">
+                <div class="flex flex-wrap gap-2 mb-3">
+                  <div class="explore-skeleton-block h-5 w-20 rounded-full"></div>
+                  <div class="explore-skeleton-block h-5 w-24 rounded-full"></div>
+                </div>
+                <div class="explore-skeleton-block h-6 w-2/3 rounded-lg mb-3"></div>
+                <div class="explore-skeleton-block h-4 w-2/5 rounded-md mb-3"></div>
+                <div class="explore-skeleton-block h-4 w-full rounded-md mb-2"></div>
+                <div class="explore-skeleton-block h-4 w-3/4 rounded-md mb-4"></div>
+                <div class="flex gap-3">
+                  <div class="explore-skeleton-block h-9 w-28 rounded-xl"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <!-- RESULT VIEW -->
       <div id="roadmap-result" class="hidden">
         
@@ -253,18 +346,18 @@
               <span class="material-symbols-outlined text-xs">auto_awesome</span>
               <span data-i18n="roadmap.ai_analysis">AI Strategic Diagnosis</span>
             </div>
-            <h2 class="text-xl font-bold text-slate-900">Your Tailored Growth Trajectory</h2>
+            <h2 class="text-xl font-bold text-slate-900" data-i18n="roadmap.growth_trajectory">Your Tailored Growth Trajectory</h2>
             <div id="ai-comment" class="roadmap-ai-text"></div>
           </div>
           <div class="w-full flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
             <div class="flex items-center justify-center gap-4 mb-2 text-[11px] font-bold">
               <span class="inline-flex items-center gap-1.5 text-slate-500">
                 <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-                <span data-i18n="roadmap.baseline_legend">Nền tảng hiện tại (Baseline)</span>
+                <span data-i18n="roadmap.baseline_legend">Current Baseline</span>
               </span>
               <span class="inline-flex items-center gap-1.5 text-blue-700">
                 <span class="w-2.5 h-2.5 rounded-full bg-[#1755ba]"></span>
-                <span data-i18n="roadmap.projected_legend">Dự phóng sau lộ trình (Projected)</span>
+                <span data-i18n="roadmap.projected_legend">Projected Outcome</span>
               </span>
             </div>
             <div class="relative w-full max-w-[300px] aspect-square">
@@ -277,7 +370,7 @@
         <div class="flex items-center justify-between mb-8">
           <div>
             <h2 class="text-2xl font-bold text-slate-900" style="font-family: var(--font-headline-lg), 'Aleo', serif;" data-i18n="roadmap.your_timeline">Milestone Timeline</h2>
-            <p class="text-slate-500 text-xs md:text-sm">Sequential curated events mapped to your schedule.</p>
+            <p class="text-slate-500 text-xs md:text-sm" data-i18n="roadmap.timeline_subtitle">Sequential curated events mapped to your schedule.</p>
           </div>
         </div>
 
