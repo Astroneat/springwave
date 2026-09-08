@@ -1091,6 +1091,18 @@ function initAIMatchButton(container, activityID) {
                 const tags = Array.isArray(result?.tags) ? result.tags : [];
                 const breakdown = result?.breakdown || {};
 
+                // Synchronize the evaluated AI score with external components (e.g. explore recommendation cards)
+                try {
+                    window.dispatchEvent(new CustomEvent('springwave:ai-match-updated', {
+                        detail: {
+                            activityID: String(activityID),
+                            percentage: pct,
+                            score: result?.score,
+                            breakdown: result?.breakdown,
+                        }
+                    }));
+                } catch (_) {}
+
                 let badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
                 let progressGradient = "linear-gradient(90deg, #10b981, #059669)";
                 let levelText = isVi ? "Rất phù hợp" : "Strong Match";

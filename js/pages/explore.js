@@ -294,6 +294,28 @@ async function loadRecommendations() {
     }
 }
 
+// Synchronize card badge in real time whenever AI Match score is evaluated or updated in the popup
+window.addEventListener('springwave:ai-match-updated', (e) => {
+    const { activityID, percentage } = e.detail || {};
+    if (!activityID || !Number.isFinite(percentage)) return;
+
+    const card = document.querySelector(`.recommendation-card[data-id="${activityID}"]`);
+    if (card) {
+        let pill = card.querySelector('.recommendation-match-pill');
+        if (pill) {
+            pill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% Match`;
+        } else {
+            const thumb = card.querySelector('.recommendation-thumb');
+            if (thumb) {
+                const newPill = document.createElement('div');
+                newPill.className = 'recommendation-match-pill';
+                newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% Match`;
+                thumb.prepend(newPill);
+            }
+        }
+    }
+});
+
 function initSearchButton() {
     const searchLoc = document.getElementById("search-location");
     const searchPref = document.getElementById("search-pref");
