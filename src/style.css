@@ -61,12 +61,12 @@
 
   --font-label-md: "Inter", sans-serif;
   --font-caption: "Inter", sans-serif;
-  --font-headline-md: "Aleo", "Plus Jakarta Sans", serif;
+  --font-headline-md: "Inter", "Plus Jakarta Sans", sans-serif;
   --font-body-lg: "Inter", sans-serif;
-  --font-headline-lg: "Aleo", "Plus Jakarta Sans", serif;
+  --font-headline-lg: "Inter", "Plus Jakarta Sans", sans-serif;
   --font-body-md: "Inter", sans-serif;
-  --font-display-lg-mobile: "Aleo", "Plus Jakarta Sans", serif;
-  --font-display-lg: "Aleo", "Plus Jakarta Sans", serif;
+  --font-display-lg-mobile: "Inter", "Plus Jakarta Sans", sans-serif;
+  --font-display-lg: "Inter", "Plus Jakarta Sans", sans-serif;
 
   --text-label-md: 14px;
   --text-caption: 12px;
@@ -258,6 +258,7 @@ h4,
 h5,
 h6 {
   font-family:
+    "Inter",
     "Plus Jakarta Sans",
     system-ui,
     -apple-system,
@@ -489,7 +490,7 @@ textarea {
 
 .user-chip {
   @apply cursor-pointer flex items-center gap-2 px-2.5 py-1.5 rounded-full relative transition-all duration-300;
-  font-family: var(--font-headline-md), "Aleo", serif;
+  font-family: var(--font-headline-md), "Inter", sans-serif;
   background: rgba(255, 255, 255, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(12px);
@@ -533,7 +534,7 @@ textarea {
   max-width: calc(100vw - 24px);
   padding: 10px;
   border-radius: 24px;
-  font-family: var(--font-headline-md), "Aleo", serif;
+  font-family: var(--font-headline-md), "Inter", sans-serif;
   background: rgba(255, 255, 255, 0.96);
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.15),
@@ -3219,7 +3220,7 @@ textarea {
 }
 
 .details-card h2 {
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   color: #1c274c;
   @apply mb-[16px] text-lg;
@@ -3244,7 +3245,7 @@ textarea {
 /* ================= RIGHT PANEL ================= */
 
 .title {
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   color: #1c274c;
   @apply text-[36px] mb-1.5;
@@ -10228,7 +10229,7 @@ textarea {
 }
 
 .figma-hero-title {
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: 4rem;
   line-height: 1.4;
@@ -10280,7 +10281,7 @@ textarea {
   display: block;
   text-align: center;
   width: 100%;
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
 }
 
@@ -10324,7 +10325,7 @@ textarea {
   gap: 10px; /* 80% of 12px */
   background: #8cc9e2;
   color: #1c274c;
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: 1.2rem; /* 80% of 1.5rem */
   padding: 14px 35px; /* 80% of 18px 44px */
@@ -10442,7 +10443,7 @@ textarea {
 }
 
 .font-opportunity {
-  font-family: "Aleo", serif;
+  font-family: "Inter", sans-serif;
   font-weight: 800;
   font-size: 0.95em; /* slab-serif size calibration */
   color: #0284c7; /* Sky blue */
@@ -10498,7 +10499,7 @@ textarea {
 }
 
 .figma-navbar-brand {
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: 2.1rem;
   text-decoration: none;
@@ -10592,7 +10593,7 @@ textarea {
   background: transparent;
   border: none;
   outline: none;
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 600;
   font-size: 0.98rem;
   color: #ffffff;
@@ -10706,7 +10707,7 @@ textarea {
 }
 
 .figma-navbar-link {
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 700; /* Bold font for better recognition */
   font-size: 1.05rem;
   color: rgba(
@@ -10740,7 +10741,7 @@ textarea {
   gap: 8px;
   background: #ffffff; /* High contrast pure white button */
   color: #1e3a8a !important; /* Navy blue text */
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: 1rem;
   padding: 8px 24px;
@@ -10784,7 +10785,7 @@ textarea {
 }
 
 .explore-figma-title {
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: 3rem; /* scaled down to 80% */
   color: #1c274c;
@@ -10800,7 +10801,7 @@ textarea {
 }
 
 .explore-figma-desc {
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 600;
   font-size: 1.15rem;
   color: #5d6b98;
@@ -10840,7 +10841,7 @@ textarea {
   background: transparent;
   border: none;
   outline: none;
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 600;
   font-size: 1.25rem;
   color: #1c274c;
@@ -10894,7 +10895,7 @@ textarea {
 }
 
 .sidebar-title-figma {
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: 1rem; /* 16px */
   color: #1c274c;
@@ -10915,7 +10916,7 @@ textarea {
   border-radius: 8px;
   height: 32px;
   padding: 0 12px;
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 600;
   font-size: 0.9rem; /* 14.4px */
   color: #1c274c;
@@ -10948,7 +10949,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 600;
   font-size: 0.9rem;
   color: #1c274c;
@@ -10984,7 +10985,7 @@ textarea {
   border: 1px solid rgba(28, 39, 76, 0.15);
   border-radius: 10px;
   height: 36px;
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 700;
   font-size: 0.875rem;
   color: #1c274c;
@@ -11067,7 +11068,7 @@ textarea {
   background: transparent;
   border: none;
   outline: none;
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 600;
   font-size: 0.95rem;
   color: #1c274c;
@@ -11269,7 +11270,7 @@ textarea {
 }
 
 .map-modal-header h3 {
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: 1.35rem;
   color: #1c274c;
@@ -11479,7 +11480,7 @@ textarea {
 }
 
 .forum-title-figma {
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: clamp(1.85rem, 4.5vw, 3rem);
   color: #1c274c;
@@ -11489,7 +11490,7 @@ textarea {
 }
 
 .forum-desc-figma {
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 600;
   font-size: clamp(0.92rem, 2.2vw, 1.15rem);
   color: #5d6b98;
@@ -11638,7 +11639,7 @@ textarea {
 }
 
 .forum-discussion-title {
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: 1.4rem;
   color: #1c274c;
@@ -11733,7 +11734,7 @@ textarea {
 }
 
 .forum-sidebar-title {
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: 1.15rem;
   color: #1c274c;
@@ -11777,7 +11778,7 @@ textarea {
 }
 
 .forum-sidebar-widget-title {
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   color: #1c274c !important;
   font-size: 1.15rem !important;
@@ -11800,7 +11801,7 @@ textarea {
 }
 
 .forum-event-ref-title {
-  font-family: "Aleo", "Plus Jakarta Sans", serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   font-weight: 700;
   color: #1c274c;
 }
@@ -12554,7 +12555,7 @@ textarea {
 }
 
 .event-modal-title {
-  font-family: var(--font-headline-lg), "Aleo", serif;
+  font-family: var(--font-headline-lg), "Inter", sans-serif;
   font-size: 1.875rem;
   font-weight: 700;
   line-height: 1.25;
@@ -13128,7 +13129,7 @@ textarea {
   border-radius: 16px;
   background: #1755ba;
   color: #ffffff;
-  font-family: var(--font-headline-md), "Aleo", "Plus Jakarta Sans", serif;
+  font-family: var(--font-headline-md), "Inter", "Plus Jakarta Sans", sans-serif;
   font-size: 15px;
   font-weight: 700;
   border: none;
@@ -14189,7 +14190,7 @@ textarea {
   background: #ffffff !important;
   border: 2px solid rgba(28, 39, 76, 0.25) !important;
   color: #1c274c !important;
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif !important;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif !important;
   font-weight: 800 !important;
   font-size: 1.2rem !important;
   padding: 14px 35px !important;
@@ -15256,7 +15257,7 @@ textarea {
   background: #ffffff !important;
   border: 2px solid rgba(28, 39, 76, 0.25) !important;
   color: #1c274c !important;
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif !important;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif !important;
   font-weight: 800 !important;
   font-size: 1.2rem !important;
   padding: 14px 35px !important;
@@ -15994,7 +15995,7 @@ a.popup-host-row:hover .popup-host-avatar {
 .auth-brand-panel {
   @apply relative overflow-hidden flex-col justify-between p-12 hidden;
   background-color: var(--brand-dark);
-  font-family: var(--font-headline-lg), "Aleo", serif;
+  font-family: var(--font-headline-lg), "Inter", sans-serif;
   background-image:
     linear-gradient(
       160deg,
@@ -16034,12 +16035,12 @@ a.popup-host-row:hover .popup-host-avatar {
 
 .auth-brand-logo {
   @apply inline-flex items-center gap-2 text-white font-bold text-xl w-fit;
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
 }
 
 .auth-brand-headline {
   @apply text-4xl xl:text-[2.75rem] font-bold text-white leading-tight mt-auto mb-5 max-w-md;
-  font-family: var(--font-headline-lg), "Aleo", serif;
+  font-family: var(--font-headline-lg), "Inter", sans-serif;
 }
 
 .auth-brand-subtext {
@@ -16079,13 +16080,13 @@ a.popup-host-row:hover .popup-host-avatar {
 .auth-mobile-brand {
   @apply flex lg:hidden items-center gap-2 font-bold text-lg;
   color: var(--brand);
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
 }
 
 .auth-back-link {
   @apply inline-flex items-center gap-1.5 text-sm font-semibold border border-gray-300 rounded-lg px-3 py-1.5;
   color: var(--color-text-secondary);
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   border-color: color-mix(in srgb, var(--color-text-secondary) 25%, transparent);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -16100,7 +16101,7 @@ a.popup-host-row:hover .popup-host-avatar {
 .auth-lang-btn {
   @apply inline-flex items-center gap-1.5 text-sm font-semibold rounded-lg px-3 py-1.5 border border-gray-300 cursor-pointer select-none;
   color: var(--color-text-secondary);
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
   border-color: color-mix(in srgb, var(--color-text-secondary) 25%, transparent);
   background: transparent;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -16124,7 +16125,7 @@ a.popup-host-row:hover .popup-host-avatar {
 .auth-title {
   @apply text-[2rem] sm:text-[2.25rem] font-bold leading-tight;
   color: var(--color-text-primary);
-  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
 }
 
 .auth-subtitle {
@@ -16898,7 +16899,7 @@ textarea {
 }
 
 .roadmap-page-title {
-  font-family: var(--font-headline-lg), "Aleo", serif;
+  font-family: var(--font-headline-lg), "Inter", sans-serif;
   font-size: 2.25rem;
   font-weight: 700;
   line-height: 1.2;
@@ -17003,7 +17004,7 @@ textarea {
 }
 
 .roadmap-step-heading {
-  font-family: var(--font-headline-md), "Aleo", serif;
+  font-family: var(--font-headline-md), "Inter", sans-serif;
   font-size: 1.35rem;
   font-weight: 700;
   color: #0f172a;
@@ -17636,7 +17637,7 @@ textarea {
 }
 
 .roadmap-card-title {
-  font-family: var(--font-headline-md), "Aleo", serif;
+  font-family: var(--font-headline-md), "Inter", sans-serif;
   font-size: 1.125rem;
   font-weight: 700;
   color: #0f172a;
@@ -18252,7 +18253,7 @@ body {
 /* Typography Scale & Hierarchy System */
 .sw-section-title,
 .journey-heading {
-  font-family: "Aleo", serif !important;
+  font-family: "Inter", sans-serif !important;
 }
 
 .sw-eyebrow,

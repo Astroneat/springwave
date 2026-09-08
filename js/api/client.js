@@ -48,6 +48,22 @@ function releaseRequest() {
     }
 }
 
+export function deepNormalizeNFC(val) {
+    if (typeof val === "string") return val.normalize("NFC");
+    if (Array.isArray(val)) return val.map(deepNormalizeNFC);
+    if (val !== null && typeof val === "object") {
+        if (val instanceof Date || val instanceof Blob || (typeof FormData !== "undefined" && val instanceof FormData)) return val;
+        const res = {};
+        for (const k in val) {
+            if (Object.prototype.hasOwnProperty.call(val, k)) {
+                res[k] = deepNormalizeNFC(val[k]);
+            }
+        }
+        return res;
+    }
+    return val;
+}
+
 function checkRateLimit() {
     const now = Date.now();
     while (requestTimestamps.length > 0 && requestTimestamps[0] < now - 1000) {
@@ -264,7 +280,12 @@ async function request(endpoint, options = {}) {
         }
 
         let data = null;
-        try { data = await response.json(); } catch { data = null; }
+        try { 
+            data = await response.json(); 
+            data = deepNormalizeNFC(data);
+        } catch { 
+            data = null; 
+        }
 
         if (!response.ok) {
             if (response.status === 401 && getToken()) {
@@ -309,7 +330,7 @@ export function get(endpoint, options = {}) {
 export function post(endpoint, body, options = {}) {
     return request(endpoint, {
         method: "POST",
-        body: JSON.stringify(body),
+        body: JSON.stringify(deepNormalizeNFC(body)),
         ...options
     });
 }
@@ -317,7 +338,7 @@ export function post(endpoint, body, options = {}) {
 export function put(endpoint, body, options = {}) {
     return request(endpoint, {
         method: "PUT",
-        body: JSON.stringify(body),
+        body: JSON.stringify(deepNormalizeNFC(body)),
         ...options
     });
 }
@@ -325,7 +346,7 @@ export function put(endpoint, body, options = {}) {
 export function patch(endpoint, body, options = {}) {
     return request(endpoint, {
         method: "PATCH",
-        body: JSON.stringify(body),
+        body: JSON.stringify(deepNormalizeNFC(body)),
         ...options
     });
 }
@@ -434,7 +455,8 @@ export async function postStream(endpoint, body, callbacks = {}, options = {}) {
                     if (line.startsWith("data: ")) {
                         const jsonStr = line.slice(6).trim();
                         try {
-                            const data = JSON.parse(jsonStr);
+                            const rawData = JSON.parse(jsonStr);
+                            const data = deepNormalizeNFC(rawData);
                             if (onMessage) onMessage(data);
                         } catch (parseErr) {
                             console.warn("[SSE] JSON parse warning:", parseErr.message, jsonStr);

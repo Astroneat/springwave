@@ -217,8 +217,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // --- Core fields ---
-  document.getElementById("org-name").textContent = org.name || "Unknown Organization";
-  document.getElementById("org-bio").textContent = org.description || "No description provided.";
+  const orgName = (org.name || "Unknown Organization").normalize("NFC");
+  document.getElementById("org-name").textContent = orgName;
+  document.title = `${orgName} | SpringWave`;
+  document.getElementById("org-bio").textContent = (org.description || "No description provided.").normalize("NFC");
 
   // --- University Badge ---
   const uniBadge = document.getElementById("org-university-badge");
@@ -288,17 +290,38 @@ document.addEventListener("DOMContentLoaded", async () => {
   const eventsCountEl = document.getElementById("org-stats-events");
   const followersCountEl = document.getElementById("org-stats-followers");
   const ratingEl = document.getElementById("org-stats-rating");
+  const starEl = document.getElementById("org-stats-star");
   const reviewsLabel = document.getElementById("org-stats-reviews-label");
 
   if (eventsCountEl) eventsCountEl.textContent = org.eventCount ?? 0;
   if (followersCountEl) followersCountEl.textContent = org.followerCount ?? 0;
 
+  const reviewCount = Number(org.reviewCount) || 0;
+  const rawRating = org.averageRating != null ? Number(org.averageRating) : null;
+  const hasRating = reviewCount > 0 && rawRating != null && !isNaN(rawRating) && rawRating > 0;
+
   if (ratingEl) {
-    const avgRating = org.averageRating ? Number(org.averageRating).toFixed(1) : "5.0";
-    ratingEl.textContent = avgRating;
+    if (hasRating) {
+      ratingEl.textContent = rawRating.toFixed(1);
+      ratingEl.className = "font-display-lg text-2xl font-bold text-amber-500";
+    } else {
+      ratingEl.textContent = "N/A";
+      ratingEl.className = "font-display-lg text-2xl font-bold text-slate-400";
+    }
   }
-  if (reviewsLabel && org.reviewCount !== undefined) {
-    reviewsLabel.textContent = `${org.reviewCount || 0} Platform Reviews`;
+
+  if (starEl) {
+    if (hasRating) {
+      starEl.className = "material-symbols-outlined text-amber-400 text-lg";
+      starEl.style.fontVariationSettings = "'FILL' 1";
+    } else {
+      starEl.className = "material-symbols-outlined text-slate-300 text-lg";
+      starEl.style.fontVariationSettings = "'FILL' 0";
+    }
+  }
+
+  if (reviewsLabel) {
+    reviewsLabel.textContent = `${reviewCount} Platform Reviews`;
   }
 
   // --- Social links ---
