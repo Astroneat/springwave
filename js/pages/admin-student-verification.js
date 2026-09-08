@@ -5,6 +5,7 @@ import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate } from "../lib/utils.js";
 import { getVerifications, getVerificationById, approveVerification, rejectVerification, batchApproveVerifications, batchRejectVerifications } from "../api/studentVerification.js";
 import { populateUniversitySelect } from "../api/universities.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 
 let currentTab = "all";
 let currentPage = 1;
@@ -64,6 +65,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   initBatchActions();
   await loadSchools();
   await loadData();
+
+  window.addEventListener("language-changed", () => {
+    applyTranslation();
+    renderStats();
+    loadData();
+  });
 });
 
 async function loadSchools() {
@@ -98,7 +105,7 @@ async function loadData() {
   } catch (err) {
     console.error("Load data error:", err);
     showEmpty();
-    showToast("Failed to load data", "error");
+    showToast(t("admin_student_verify.no_requests", "Failed to load data"), "error");
   } finally {
     isLoading = false;
     hideTableLoading();
@@ -113,7 +120,7 @@ function showTableLoading() {
         <td colspan="6" class="py-16 text-center text-[#94a3b8]">
           <div class="flex flex-col items-center justify-center">
             <div class="spinner"></div>
-            <p class="text-base font-semibold mt-4">Loading verification requests...</p>
+            <p class="text-base font-semibold mt-4">${t("admin_student_verify.loading", "Loading verification requests...")}</p>
           </div>
         </td>
       </tr>
@@ -153,7 +160,7 @@ function renderTable(verifications) {
     return;
   }
 
-  count.textContent = `${totalItems || verifications.length} requests`;
+  count.textContent = t("admin_student_verify.requests_count", { n: totalItems || verifications.length });
 
   tbody.innerHTML = verifications.map(v => `
     <tr class="border-b border-[#e2e8f0] hover:bg-blue-50/40 transition-colors">
@@ -214,9 +221,9 @@ function renderTable(verifications) {
 
 function statusBadge(status) {
   const map = {
-    pending: '<span class="badge badge-pending"><i class="fa-regular fa-clock mr-1"></i>Pending</span>',
-    approved: '<span class="badge badge-approved"><i class="fa-solid fa-check mr-1"></i>Approved</span>',
-    rejected: '<span class="badge badge-rejected"><i class="fa-solid fa-ban mr-1"></i>Rejected</span>',
+    pending: `<span class="badge badge-pending"><i class="fa-regular fa-clock mr-1"></i>${t("admin_student_verify.status_pending", "Pending")}</span>`,
+    approved: `<span class="badge badge-approved"><i class="fa-solid fa-check mr-1"></i>${t("admin_student_verify.status_approved", "Approved")}</span>`,
+    rejected: `<span class="badge badge-rejected"><i class="fa-solid fa-ban mr-1"></i>${t("admin_student_verify.status_rejected", "Rejected")}</span>`,
   };
   return map[status] || status;
 }
@@ -224,16 +231,16 @@ function statusBadge(status) {
 function actionButtons(v) {
   if (v.status !== "pending") {
     return `<button class="view-btn inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-[#e2e8f0] bg-white text-[#64748b] text-xs font-semibold hover:bg-[#f1f5f9] hover:border-[#cbd5e1] spring-ease active:scale-95" data-id="${v._id}">
-      <i class="fa-regular fa-eye text-sm"></i> View
+      <i class="fa-regular fa-eye text-sm"></i> ${t("admin_student_verify.btn_view", "View")}
     </button>`;
   }
   return `
     <div class="flex items-center justify-end gap-1.5">
-      <button class="view-btn w-9 h-9 rounded-lg border border-[#e2e8f0] bg-white text-[#64748b] hover:bg-[#f1f5f9] hover:border-[#cbd5e1] spring-ease active:scale-95 flex items-center justify-center" data-id="${v._id}" title="View Details">
+      <button class="view-btn w-9 h-9 rounded-lg border border-[#e2e8f0] bg-white text-[#64748b] hover:bg-[#f1f5f9] hover:border-[#cbd5e1] spring-ease active:scale-95 flex items-center justify-center" data-id="${v._id}" title="${t("admin_student_verify.btn_view", "View Details")}">
         <i class="fa-regular fa-eye text-sm"></i>
       </button>
       <button class="approve-btn relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border-none bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 spring-ease active:scale-95 shadow-sm shadow-emerald-200" data-id="${v._id}" data-name="${v.submittedBy?.fullname || ''}" data-sid="${v.studentId}">
-        <i class="fa-solid fa-check"></i> Approve
+        <i class="fa-solid fa-check"></i> ${t("admin_student_verify.btn_approve", "Approve")}
       </button>
       <button class="reject-btn relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border-none bg-red-400 text-white text-xs font-semibold hover:bg-red-500 spring-ease active:scale-95 shadow-sm shadow-red-200" data-id="${v._id}" data-name="${v.submittedBy?.fullname || ''}">
         <i class="fa-solid fa-xmark"></i>
@@ -257,7 +264,7 @@ function renderPagination(pagination) {
   totalPages = pagination.totalPages;
   totalItems = pagination.totalItems;
   document.getElementById("pagination-info").textContent =
-    `Page ${pagination.page} of ${pagination.totalPages} (${pagination.totalItems} total)`;
+    t("admin_student_verify.page_info", { page: pagination.page, total: pagination.totalPages, count: pagination.totalItems });
   document.getElementById("prev-page").disabled = currentPage <= 1;
   document.getElementById("next-page").disabled = currentPage >= totalPages;
 }
@@ -279,13 +286,13 @@ function showEmpty() {
         <td colspan="6" class="py-16 text-center text-[#94a3b8]">
           <div class="flex flex-col items-center justify-center">
             <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
-            <p class="text-base font-semibold">No verification requests found</p>
+            <p class="text-base font-semibold">${t("admin_student_verify.no_requests", "No verification requests found")}</p>
           </div>
         </td>
       </tr>
     `;
   }
-  document.getElementById("table-count").textContent = "0 requests";
+  document.getElementById("table-count").textContent = t("admin_student_verify.requests_count", { n: 0 });
 }
 
 /* =========================
@@ -345,18 +352,19 @@ function initBatchActions() {
   // Batch approve
   batchApprove?.addEventListener("click", async () => {
     if (selectedItems.size === 0) return;
-    if (!confirm(`Approve ${selectedItems.size} selected verifications?`)) return;
+    if (!confirm(t("admin_student_verify.batch_approve_confirm", { n: selectedItems.size }))) return;
 
     batchApprove.disabled = true;
     const origHtml = batchApprove.innerHTML;
     batchApprove.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Processing...';
 
     try {
+      const count = selectedItems.size;
       await batchApproveVerifications(Array.from(selectedItems));
       selectedItems.clear();
       updateBatchActions();
       await loadData();
-      showToast(`${selectedItems.size} verifications approved successfully`, "success");
+      showToast(t("admin_student_verify.batch_approved_success", { n: count }), "success");
     } catch (err) {
       showToast(err.message || "Failed to batch approve", "error");
     } finally {
@@ -368,7 +376,7 @@ function initBatchActions() {
   // Batch reject
   batchReject?.addEventListener("click", async () => {
     if (selectedItems.size === 0) return;
-    const note = prompt(`Enter rejection note for ${selectedItems.size} verifications (optional):`);
+    const note = prompt(t("admin_student_verify.reject_reason_prompt", { n: selectedItems.size }));
     if (note === null) return;
 
     batchReject.disabled = true;
@@ -376,11 +384,12 @@ function initBatchActions() {
     batchReject.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Processing...';
 
     try {
+      const count = selectedItems.size;
       await batchRejectVerifications(Array.from(selectedItems), note);
       selectedItems.clear();
       updateBatchActions();
       await loadData();
-      showToast(`${selectedItems.size} verifications rejected`, "success");
+      showToast(t("admin_student_verify.batch_rejected_success", { n: count }), "success");
     } catch (err) {
       showToast(err.message || "Failed to batch reject", "error");
     } finally {
@@ -403,7 +412,7 @@ function initBatchActions() {
     const selectAll = document.getElementById("select-all");
 
     const count = selectedItems.size;
-    selectedCount.textContent = `${count} selected`;
+    selectedCount.textContent = t("admin_student_verify.n_selected", { n: count });
     batchActions.classList.toggle("hidden", !batchMode || count === 0);
 
     if (selectAll) {
@@ -508,7 +517,7 @@ function initPopups() {
       closePopup("approve-overlay");
       actionTarget = null;
       await loadData();
-      showToast("Verification approved successfully", "success");
+      showToast(t("admin_student_verify.approved_success", "Verification approved successfully"), "success");
     } catch (err) {
       showToast(err.message || "Failed to approve", "error");
     } finally {
@@ -533,7 +542,7 @@ function initPopups() {
       actionTarget = null;
       document.getElementById("reject-note").value = "";
       await loadData();
-      showToast("Verification rejected", "success");
+      showToast(t("admin_student_verify.rejected_success", "Verification rejected"), "success");
     } catch (err) {
       showToast(err.message || "Failed to reject", "error");
     } finally {
@@ -558,22 +567,25 @@ async function openDetail(id) {
     const v = data.verification;
     const user = v.submittedBy || {};
     const cardSideHtml = (src, caption) => {
+      const displayCaption = caption === 'Front Side' ? t("admin_student_verify.modal_front", "Front Side")
+        : caption === 'Back Side' ? t("admin_student_verify.modal_back", "Back Side")
+        : caption;
       if (!src) {
         return `
           <div class="p-6 text-center text-[#94a3b8] bg-[#f8fafc] rounded-xl border border-[#e2e8f0]">
             <i class="fa-solid fa-image-slash text-xl mb-1 block"></i>
-            <p class="text-xs font-semibold">No ${caption} Image</p>
+            <p class="text-xs font-semibold">${caption === 'Front Side' ? t("admin_student_verify.no_front_img", "No Front Side Image") : caption === 'Back Side' ? t("admin_student_verify.no_back_img", "No Back Side Image") : t("admin_student_verify.no_card_img", "No Student Card Image")}</p>
           </div>
         `;
       }
       return `
         <div class="space-y-1">
           <p class="text-[10px] font-bold text-[#64748b] uppercase tracking-wider flex items-center justify-between">
-            <span>${caption}</span>
-            <span class="text-[10px] text-[#3b82f6] hover:underline cursor-pointer" onclick="window.open('${src}', '_blank')"><i class="fa-solid fa-expand mr-1"></i>View full</span>
+            <span>${displayCaption}</span>
+            <span class="text-[10px] text-[#3b82f6] hover:underline cursor-pointer" onclick="window.open('${src}', '_blank')"><i class="fa-solid fa-expand mr-1"></i>${t("admin_student_verify.view_full", "View full")}</span>
           </p>
           <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] overflow-hidden group cursor-pointer" onclick="window.open('${src}', '_blank')">
-            <img src="${src}" alt="${caption}" class="w-full rounded-xl object-cover max-h-48 group-hover:scale-105 transition-transform duration-200" onerror="this.parentElement.innerHTML='<div class=\\'p-6 text-center text-[#94a3b8]\\'><i class=\\'fa-solid fa-image-slash text-xl mb-1 block\\'></i><p class=\\'text-xs\\'>Image unavailable</p></div>'"/>
+            <img src="${src}" alt="${displayCaption}" class="w-full rounded-xl object-cover max-h-48 group-hover:scale-105 transition-transform duration-200" onerror="this.parentElement.innerHTML='<div class=\\'p-6 text-center text-[#94a3b8]\\'><i class=\\'fa-solid fa-image-slash text-xl mb-1 block\\'></i><p class=\\'text-xs\\'>${t("admin_student_verify.img_unavailable", "Image unavailable")}</p></div>'"/>
           </div>
         </div>
       `;
@@ -585,14 +597,14 @@ async function openDetail(id) {
 
     // Build info rows with col-span metadata
     const infoFields = [
-      { label: 'Full Name', value: user.fullname || 'Unknown', icon: 'fa-user', fullWidth: false },
+      { label: t("admin_student_verify.col_name", "Full Name"), value: user.fullname || 'Unknown', icon: 'fa-user', fullWidth: false },
       { label: 'Email', value: user.email || '—', icon: 'fa-envelope', fullWidth: false },
-      { label: 'School', value: user.school || '—', icon: 'fa-building-columns', fullWidth: true },
+      { label: t("admin_student_verify.col_school", "School"), value: user.school || '—', icon: 'fa-building-columns', fullWidth: true },
       { label: 'Class / Major', value: `${user.class || '—'} ${user.major ? '/ ' + user.major : ''}`, icon: 'fa-graduation-cap', fullWidth: false },
-      { label: 'Submitted Date', value: formatDate(v.createdAt), icon: 'fa-calendar', fullWidth: false },
+      { label: t("admin_student_verify.col_submitted", "Submitted Date"), value: formatDate(v.createdAt), icon: 'fa-calendar', fullWidth: false },
     ];
     if (v.reviewedBy?.fullname) {
-      infoFields.push({ label: 'Reviewed By', value: v.reviewedBy.fullname, icon: 'fa-user-check', fullWidth: true });
+      infoFields.push({ label: t("admin_student_verify.reviewed_by", "Reviewed By"), value: v.reviewedBy.fullname, icon: 'fa-user-check', fullWidth: true });
     }
 
     body.innerHTML = `
@@ -628,7 +640,7 @@ async function openDetail(id) {
           ${v.reviewNote ? `
             <div class="bg-red-50/80 rounded-xl px-4 py-3 border border-red-200 mt-2">
               <p class="text-[11px] font-bold text-red-600 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <i class="fa-solid fa-pen"></i>Review Note
+                <i class="fa-solid fa-pen"></i>${t("admin_student_verify.review_note", "Review Note")}
               </p>
               <p class="text-sm text-red-700 font-medium">${v.reviewNote}</p>
             </div>
@@ -638,7 +650,7 @@ async function openDetail(id) {
         <!-- Card images column -->
         <div class="lg:col-span-2 border-t lg:border-t-0 lg:border-l border-[#e2e8f0] pt-4 lg:pt-0 lg:pl-6">
           <p class="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <i class="fa-regular fa-id-card text-blue-500"></i> Student Card Photos
+            <i class="fa-regular fa-id-card text-blue-500"></i> ${t("admin_student_verify.card_photos", "Student Card Photos")}
           </p>
           <div class="space-y-4">
             ${cardImg}
@@ -649,10 +661,10 @@ async function openDetail(id) {
       ${v.status === 'pending' ? `
         <div class="flex gap-3 mt-6 pt-5 border-t border-[#e2e8f0] bg-gradient-to-r from-transparent via-blue-50/30 to-transparent -mx-6 -mb-6 px-6 pb-6">
           <button class="btn btn-success flex-1 py-3 text-sm font-bold shadow-sm" id="detail-approve-btn" data-id="${v._id}" data-name="${user.fullname || ''}" data-sid="${v.studentId}">
-            <i class="fa-solid fa-check mr-1.5"></i> Approve Verification
+            <i class="fa-solid fa-check mr-1.5"></i> ${t("admin_student_verify.btn_approve", "Approve")}
           </button>
           <button class="btn btn-danger flex-1 py-3 text-sm font-bold shadow-sm" id="detail-reject-btn" data-id="${v._id}" data-name="${user.fullname || ''}">
-            <i class="fa-solid fa-xmark mr-1.5"></i> Reject
+            <i class="fa-solid fa-xmark mr-1.5"></i> ${t("admin_student_verify.btn_reject", "Reject")}
           </button>
         </div>
       ` : ''}

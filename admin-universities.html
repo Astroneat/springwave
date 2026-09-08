@@ -42,9 +42,9 @@
             <div class="flex items-center gap-3">
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8] text-sm"></i>
-                    <input type="text" id="search-input" placeholder="Search university or domain..." class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[240px] outline-none focus:border-primary transition-colors" />
+                    <input type="text" id="search-input" placeholder="Search university or domain..." data-i18n-placeholder="admin_universities.search_placeholder" class="pl-10 pr-4 py-2.5 rounded-full border border-[#e2e2eb] bg-white text-sm w-[240px] outline-none focus:border-primary transition-colors" />
                 </div>
-                <button id="refresh-btn" class="w-10 h-10 rounded-full border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f1f5f9] transition-all spring-ease" title="Refresh">
+                <button id="refresh-btn" class="w-10 h-10 rounded-full border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f1f5f9] transition-all spring-ease" title="Refresh" data-i18n-title="common.refresh">
                     <i class="fa-solid fa-rotate"></i>
                 </button>
                 <button id="add-university-btn" class="py-2.5 px-5 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95">
@@ -57,22 +57,22 @@
         <!-- ADMIN NAVIGATION TABS -->
         <div class="admin-tabs-scroll">
             <a href="/admin.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-calendar-days mr-1.5"></i> Events
+                <i class="fa-solid fa-calendar-days mr-1.5"></i> <span data-i18n="admin.nav_events">Events</span>
             </a>
             <a href="/admin-host.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-users-gear mr-1.5"></i> Host Registrations
+                <i class="fa-solid fa-users-gear mr-1.5"></i> <span data-i18n="admin.nav_hosts">Host Registrations</span>
             </a>
             <a href="/admin-student-verification.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-graduation-cap mr-1.5"></i> Student Verification
+                <i class="fa-solid fa-graduation-cap mr-1.5"></i> <span data-i18n="admin.nav_student_verify">Student Verification</span>
             </a>
             <a href="/admin-categories.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-tags mr-1.5"></i> Categories
+                <i class="fa-solid fa-tags mr-1.5"></i> <span data-i18n="admin.nav_categories">Categories</span>
             </a>
             <a href="/admin-universities.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-building-columns mr-1.5"></i> Universities
+                <i class="fa-solid fa-building-columns mr-1.5"></i> <span data-i18n="admin.nav_universities">Universities</span>
             </a>
             <a href="/admin-analytics.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-chart-pie mr-1.5"></i> Analytics & Reports
+                <i class="fa-solid fa-chart-pie mr-1.5"></i> <span data-i18n="admin.nav_analytics">Analytics & Reports</span>
             </a>
         </div>
 
@@ -85,14 +85,14 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Logo</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Full Name (VN)</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">English Name</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Short Name</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell">Auto-Verify Domains</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell">Color</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Status</th>
-                            <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Actions</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_universities.col_logo">Logo</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_universities.col_fullname">Full Name (VN)</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_universities.col_enname">English Name</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_universities.col_shortname">Short Name</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell" data-i18n="admin_universities.col_domains">Auto-Verify Domains</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell" data-i18n="admin_universities.col_color">Color</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_universities.col_status">Status</th>
+                            <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_universities.col_actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="table-body"></tbody>
@@ -167,12 +167,12 @@
                 </div>
                 <div class="flex items-center gap-2 pt-1">
                     <input id="field-active" type="checkbox" class="w-4 h-4 rounded border-[#c3c6d5] text-primary cursor-pointer accent-primary" checked />
-                    <label for="field-active" class="text-sm font-medium text-[#191b22]">Active (Available for user selection)</label>
+                    <label for="field-active" class="text-sm font-medium text-[#191b22]" data-i18n="admin_universities.active_label">Active (Available for user selection)</label>
                 </div>
             </div>
             <div class="flex gap-3 mt-8">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="form-cancel" data-i18n="common.cancel">Cancel</button>
-                <button class="flex-1 py-3 rounded-xl border-none bg-primary text-white font-semibold text-sm spring-ease hover:bg-primary/90 active:scale-95" id="form-save" data-i18n="common.save">Save</button>
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="form-cancel" data-i18n="admin_universities.cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border-none bg-primary text-white font-semibold text-sm spring-ease hover:bg-primary/90 active:scale-95" id="form-save" data-i18n="admin_universities.save">Save</button>
             </div>
         </div>
     </div>
@@ -187,8 +187,8 @@
             <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin_universities.delete_title">Delete University</h3>
             <p class="text-sm text-[#64748b] mb-6" data-i18n="admin_universities.delete_desc">Are you sure you want to delete <strong id="delete-uni-name" class="text-[#191b22]">this university</strong>? This action cannot be undone.</p>
             <div class="flex gap-3">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="delete-cancel" data-i18n="common.cancel">Cancel</button>
-                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="delete-confirm" data-i18n="common.delete">Delete</button>
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="delete-cancel" data-i18n="admin_universities.cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="delete-confirm" data-i18n="admin_universities.delete">Delete</button>
             </div>
         </div>
     </div>

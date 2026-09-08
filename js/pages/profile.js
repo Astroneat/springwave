@@ -308,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Expose for onclick handlers
     window.openReviewModal = openReviewModal;
 
-    // Re-render badges and AI profile on language change
+    // Re-render badges, AI profile, roadmap, and participated events on language change
     window.addEventListener("language-changed", () => {
         if (badgeRenderData) {
             renderBadgesPanel(
@@ -320,6 +320,8 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         }
         renderAIProfile();
+        renderRoadmapSection().catch(() => {});
+        renderParticipatedEventsPanel().catch(() => {});
     });
 
     // Check hash for badges redirection scroll

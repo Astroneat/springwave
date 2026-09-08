@@ -97,31 +97,31 @@
         <!-- ADMIN NAV -->
         <div class="admin-tabs-scroll">
             <a href="/admin.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-calendar-days mr-1.5"></i> Events
+                <i class="fa-solid fa-calendar-days mr-1.5"></i> <span data-i18n="admin.nav_events">Events</span>
             </a>
             <a href="/admin-host.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-users-gear mr-1.5"></i> Host Registrations
+                <i class="fa-solid fa-users-gear mr-1.5"></i> <span data-i18n="admin.nav_hosts">Host Registrations</span>
             </a>
             <a href="/admin-student-verification.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-graduation-cap mr-1.5"></i> Student Verification
+                <i class="fa-solid fa-graduation-cap mr-1.5"></i> <span data-i18n="admin.nav_student_verify">Student Verification</span>
             </a>
             <a href="/admin-categories.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-tags mr-1.5"></i> Categories
+                <i class="fa-solid fa-tags mr-1.5"></i> <span data-i18n="admin.nav_categories">Categories</span>
             </a>
             <a href="/admin-universities.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-building-columns mr-1.5"></i> Universities
+                <i class="fa-solid fa-building-columns mr-1.5"></i> <span data-i18n="admin.nav_universities">Universities</span>
             </a>
             <a href="/admin-analytics.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-chart-pie mr-1.5"></i> Analytics & Reports
+                <i class="fa-solid fa-chart-pie mr-1.5"></i> <span data-i18n="admin.nav_analytics">Analytics & Reports</span>
             </a>
         </div>
 
         <!-- TABS -->
         <div class="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
-            <button class="tab-btn active" data-tab="all">All</button>
-            <button class="tab-btn" data-tab="pending">Pending</button>
-            <button class="tab-btn" data-tab="approved">Approved</button>
-            <button class="tab-btn" data-tab="rejected">Rejected</button>
+            <button class="tab-btn active" data-tab="all" data-i18n="admin_host.tab_all">All</button>
+            <button class="tab-btn" data-tab="pending" data-i18n="admin_host.tab_pending">Pending</button>
+            <button class="tab-btn" data-tab="approved" data-i18n="admin_host.tab_approved">Approved</button>
+            <button class="tab-btn" data-tab="rejected" data-i18n="admin_host.tab_rejected">Rejected</button>
         </div>
 
         <!-- TABLE -->
@@ -134,12 +134,12 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Organization</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell">Representative</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell">Contact</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden sm:table-cell">Submitted</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Status</th>
-                            <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide">Actions</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_host.col_org">Organization</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell" data-i18n="admin_host.col_rep">Representative</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell" data-i18n="admin_host.col_contact">Contact</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden sm:table-cell" data-i18n="admin_host.col_submitted">Submitted</th>
+                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_host.col_status">Status</th>
+                            <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin_host.col_actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="table-body"></tbody>
@@ -155,8 +155,8 @@
         <div class="flex items-center justify-between mt-6 text-sm text-[#64748b]" id="pagination" hidden>
             <span id="pagination-info"></span>
             <div class="flex gap-2">
-                <button id="prev-page" class="px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] spring-ease disabled:opacity-40" disabled>Previous</button>
-                <button id="next-page" class="px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] spring-ease disabled:opacity-40">Next</button>
+                <button id="prev-page" class="px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] spring-ease disabled:opacity-40" disabled data-i18n="admin_host.prev">Previous</button>
+                <button id="next-page" class="px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] spring-ease disabled:opacity-40" data-i18n="admin_host.next">Next</button>
             </div>
         </div>
     </main>
@@ -166,7 +166,7 @@
         <div class="popup-backdrop" id="detail-backdrop"></div>
         <div class="popup-container !max-w-[720px] !p-0 max-h-[90vh] overflow-y-auto">
             <div class="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[#ecedfa] bg-white">
-                <h2 class="text-xl font-bold text-[#191b22]" id="detail-title">Registration Details</h2>
+                <h2 class="text-xl font-bold text-[#191b22]" id="detail-title" data-i18n="admin_host.org_info">Registration Details</h2>
                 <button class="w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#f8f9fc] spring-ease" id="detail-close">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -189,9 +189,9 @@
             <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin_host.approve_title">Approve Registration</h3>
             <p class="text-sm text-[#64748b] mb-6">Approve <strong id="approve-org-name">this organization</strong> to become a host?</p>
             <div class="flex gap-3">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="approve-cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="approve-cancel" data-i18n="admin_host.btn_cancel">Cancel</button>
                 <button class="flex-1 py-3 rounded-xl border-none bg-[#059669] text-white font-semibold text-sm spring-ease hover:bg-[#047857] active:scale-95" id="approve-confirm">
-                    <i class="fa-solid fa-check mr-1.5"></i> Approve
+                    <i class="fa-solid fa-check mr-1.5"></i> <span data-i18n="admin_host.btn_approve">Approve</span>
                 </button>
             </div>
         </div>
@@ -206,11 +206,11 @@
             </div>
             <h3 class="text-xl font-bold text-[#191b22] mb-2" data-i18n="admin_host.reject_title">Reject Registration</h3>
             <p class="text-sm text-[#64748b] mb-4">Reject <strong id="reject-org-name">this organization</strong>?</p>
-            <textarea id="reject-note" class="w-full px-4 py-3 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm resize-none mb-4" rows="3" placeholder="Reason for rejection (optional)"></textarea>
+            <textarea id="reject-note" class="w-full px-4 py-3 rounded-xl border border-[#e2e2eb] bg-[#f8f9fc] text-sm resize-none mb-4" rows="3" placeholder="Reason for rejection (optional)" data-i18n-placeholder="admin_host.reject_placeholder"></textarea>
             <div class="flex gap-3">
-                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="reject-cancel">Cancel</button>
+                <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="reject-cancel" data-i18n="admin_host.btn_cancel">Cancel</button>
                 <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="reject-confirm">
-                    <i class="fa-solid fa-ban mr-1.5"></i> Reject
+                    <i class="fa-solid fa-ban mr-1.5"></i> <span data-i18n="admin_host.btn_reject">Reject</span>
                 </button>
             </div>
         </div>

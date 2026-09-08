@@ -51,13 +51,13 @@ import { CDN_DOMAIN } from "../config.js";
 import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
 
 const CATEGORIES = {
-  all:     { label: () => t("community.all_discussions"),        sectionTitle: "Trending Discussions",     sectionSubtitle: "Active conversations across the community" },
-  general: { label: () => t("community.general_chat") || "General Chat", sectionTitle: "General Chat",   sectionSubtitle: "Open discussions, questions, and casual conversations" },
-  event:   { label: () => t("community.event_discussions"),      sectionTitle: "Event Discussions",        sectionSubtitle: "Discussions about events and activities" },
-  uni:     { label: () => t("community.uni_communities"),        sectionTitle: "University Discussions",   sectionSubtitle: "Discussions from your university community" },
-  org:     { label: () => t("community.org_communities"),        sectionTitle: "Organizations",            sectionSubtitle: "Discover clubs, teams, and organizations. Follow to stay updated on their events." },
-  mine:    { label: () => t("community.my_discussions"),         sectionTitle: "My Discussions",           sectionSubtitle: "Your discussions and topics" },
-  saved:   { label: () => t("community.saved_posts"),            sectionTitle: "Saved Posts",              sectionSubtitle: "Your bookmarked content" },
+  all:     { label: () => t("community.all_discussions"),        sectionTitle: () => t("community.trending_title", "Trending Discussions"),     sectionSubtitle: () => t("community.trending_subtitle", "Active conversations across the community") },
+  general: { label: () => t("community.general_chat") || "General Chat", sectionTitle: () => t("community.general_chat", "General Chat"),   sectionSubtitle: () => t("community.general_subtitle", "Open discussions, questions, and casual conversations") },
+  event:   { label: () => t("community.event_discussions"),      sectionTitle: () => t("community.event_discussions", "Event Discussions"),        sectionSubtitle: () => t("community.event_subtitle", "Discussions about events and activities") },
+  uni:     { label: () => t("community.uni_communities"),        sectionTitle: () => t("community.uni_communities", "University Discussions"),   sectionSubtitle: () => t("community.uni_subtitle", "Discussions from your university community") },
+  org:     { label: () => t("community.org_communities"),        sectionTitle: () => t("community.org_communities", "Organizations"),            sectionSubtitle: () => t("community.org_subtitle", "Discover clubs, teams, and organizations. Follow to stay updated on their events.") },
+  mine:    { label: () => t("community.my_discussions"),         sectionTitle: () => t("community.my_discussions", "My Discussions"),           sectionSubtitle: () => t("community.my_subtitle", "Your discussions and topics") },
+  saved:   { label: () => t("community.saved_posts"),            sectionTitle: () => t("community.saved_posts", "Saved Posts"),              sectionSubtitle: () => t("community.saved_subtitle", "Your bookmarked content") },
 };
 
 function getCategoryFromURL() {
@@ -578,8 +578,9 @@ function showSections(category) {
       if (trending) {
         trending.style.display = "";
         const title = trending.querySelector(".forum-section-title");
-        const sub = trending.querySelector(".forum-section-subtitle");
-        if (title) title.textContent = uniName ? `${uniName} Discussions` : config.sectionTitle;
+        const titleText = typeof config.sectionTitle === "function" ? config.sectionTitle() : config.sectionTitle;
+        const subText = typeof config.sectionSubtitle === "function" ? config.sectionSubtitle() : config.sectionSubtitle;
+        if (title) title.textContent = uniName ? `${uniName} Discussions` : titleText;
         if (sub) sub.textContent = `Discussions from ${uniName || 'university'} community`;
       }
       if (universities) universities.style.display = "none";
@@ -624,8 +625,10 @@ function showSections(category) {
       trending.style.display = "";
       const title = trending.querySelector(".forum-section-title");
       const sub = trending.querySelector(".forum-section-subtitle");
-      if (title) title.textContent = config.sectionTitle;
-      if (sub) sub.textContent = config.sectionSubtitle;
+      const titleText = typeof config.sectionTitle === "function" ? config.sectionTitle() : config.sectionTitle;
+      const subText = typeof config.sectionSubtitle === "function" ? config.sectionSubtitle() : config.sectionSubtitle;
+      if (title) title.textContent = titleText;
+      if (sub) sub.textContent = subText;
     }
     if (statusBar) statusBar.style.display = "";
     if (feedTabs) feedTabs.style.display = "";
@@ -3217,6 +3220,20 @@ async function renderOrgGrid() {
         btn.disabled = false;
       }
     });
+  });
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("language-changed", () => {
+    const category = getCategoryFromURL();
+    setActiveCategory(category);
+    updatePageTitle(category);
+    showSections(category);
+    if (window._currentDiscussions) {
+      renderDiscussions(window._currentDiscussions, category);
+      renderPopularDiscussions(window._currentDiscussions, category);
+    }
+    loadSidebar(category).catch(() => {});
   });
 }
 

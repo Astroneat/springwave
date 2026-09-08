@@ -98,43 +98,43 @@
         <!-- ADMIN NAV -->
         <div class="admin-tabs-scroll">
             <a href="/admin.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-calendar-days mr-1.5"></i> Events
+                <i class="fa-solid fa-calendar-days mr-1.5"></i> <span data-i18n="admin.nav_events">Events</span>
             </a>
             <a href="/admin-host.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-users-gear mr-1.5"></i> Host Registrations
+                <i class="fa-solid fa-users-gear mr-1.5"></i> <span data-i18n="admin.nav_hosts">Host Registrations</span>
             </a>
             <a href="/admin-student-verification.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-graduation-cap mr-1.5"></i> Student Verification
+                <i class="fa-solid fa-graduation-cap mr-1.5"></i> <span data-i18n="admin.nav_student_verify">Student Verification</span>
             </a>
             <a href="/admin-categories.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-tags mr-1.5"></i> Categories
+                <i class="fa-solid fa-tags mr-1.5"></i> <span data-i18n="admin.nav_categories">Categories</span>
             </a>
             <a href="/admin-universities.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-building-columns mr-1.5"></i> Universities
+                <i class="fa-solid fa-building-columns mr-1.5"></i> <span data-i18n="admin.nav_universities">Universities</span>
             </a>
             <a href="/admin-analytics.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-chart-pie mr-1.5"></i> Analytics & Reports
+                <i class="fa-solid fa-chart-pie mr-1.5"></i> <span data-i18n="admin.nav_analytics">Analytics & Reports</span>
             </a>
         </div>
 
         <!-- TABS -->
         <div class="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
-            <button class="tab-btn active" data-tab="pending" data-i18n="admin.pending_review">
-                <i class="fa-solid fa-clock mr-1.5"></i> Pending Review
+            <button class="tab-btn active" data-tab="pending">
+                <i class="fa-solid fa-clock mr-1.5"></i> <span data-i18n="admin.pending_review">Pending Review</span>
             </button>
-            <button class="tab-btn" data-tab="published" data-i18n="admin.published">
-                <i class="fa-solid fa-check-circle mr-1.5"></i> Published
+            <button class="tab-btn" data-tab="published">
+                <i class="fa-solid fa-check-circle mr-1.5"></i> <span data-i18n="admin.published">Published</span>
             </button>
         </div>
 
         <!-- BULK ACTION BAR -->
         <div class="hidden items-center gap-3 mb-4 px-2" id="bulk-bar">
             <span class="text-sm font-semibold text-[#191b22]" id="bulk-count">0 selected</span>
-            <button class="py-2 px-4 rounded-xl border-none bg-[#059669] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#047857] active:scale-95 hidden" id="bulk-approve" data-i18n="admin.approve_selected">
-                <i class="fa-solid fa-check"></i> Approve Selected
+            <button class="py-2 px-4 rounded-xl border-none bg-[#059669] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#047857] active:scale-95 hidden" id="bulk-approve">
+                <i class="fa-solid fa-check"></i> <span data-i18n="admin.approve_selected">Approve Selected</span>
             </button>
-            <button class="py-2 px-4 rounded-xl border-none bg-red-500 text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-red-600 active:scale-95 hidden" id="bulk-delete" data-i18n="admin.delete_selected">
-                <i class="fa-solid fa-trash-can"></i> Delete Selected
+            <button class="py-2 px-4 rounded-xl border-none bg-red-500 text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-red-600 active:scale-95 hidden" id="bulk-delete">
+                <i class="fa-solid fa-trash-can"></i> <span data-i18n="admin.delete_selected">Delete Selected</span>
             </button>
             <button class="py-2 px-4 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold cursor-pointer spring-ease hover:bg-[#f8f9fc] active:scale-95" id="bulk-clear" data-i18n="common.clear">Clear</button>
         </div>
@@ -189,8 +189,8 @@
             <p class="text-sm text-[#64748b] mb-6">Publish <strong id="approve-title">this event</strong> to make it visible to all users?</p>
             <div class="flex gap-3">
                 <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="approve-cancel" data-i18n="common.cancel">Cancel</button>
-                <button class="flex-1 py-3 rounded-xl border-none bg-[#059669] text-white font-semibold text-sm spring-ease hover:bg-[#047857] active:scale-95" id="approve-confirm" data-i18n="admin.approve">
-                    <i class="fa-solid fa-check mr-1.5"></i> Approve
+                <button class="flex-1 py-3 rounded-xl border-none bg-[#059669] text-white font-semibold text-sm spring-ease hover:bg-[#047857] active:scale-95" id="approve-confirm">
+                    <i class="fa-solid fa-check mr-1.5"></i> <span data-i18n="admin.approve">Approve</span>
                 </button>
             </div>
         </div>
@@ -207,8 +207,8 @@
             <p class="text-sm text-[#64748b] mb-6">Reject and delete <strong id="reject-title">this event</strong>? This action cannot be undone.</p>
             <div class="flex gap-3">
                 <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="reject-cancel" data-i18n="common.cancel">Cancel</button>
-                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="reject-confirm" data-i18n="admin.reject">
-                    <i class="fa-solid fa-ban mr-1.5"></i> Reject
+                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="reject-confirm">
+                    <i class="fa-solid fa-ban mr-1.5"></i> <span data-i18n="admin.reject">Reject</span>
                 </button>
             </div>
         </div>
@@ -225,8 +225,8 @@
             <p class="text-sm text-[#64748b] mb-6">Delete <strong id="delete-title">this event</strong> permanently? This cannot be undone.</p>
             <div class="flex gap-3">
                 <button class="flex-1 py-3 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] font-semibold text-sm spring-ease hover:bg-[#f8f9fc] active:scale-95" id="delete-cancel" data-i18n="common.cancel">Cancel</button>
-                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="delete-confirm" data-i18n="admin.delete">
-                    <i class="fa-solid fa-trash-can mr-1.5"></i> Delete
+                <button class="flex-1 py-3 rounded-xl border-none bg-red-500 text-white font-semibold text-sm spring-ease hover:bg-red-600 active:scale-95" id="delete-confirm">
+                    <i class="fa-solid fa-trash-can mr-1.5"></i> <span data-i18n="admin.delete">Delete</span>
                 </button>
             </div>
         </div>
@@ -237,15 +237,15 @@
         <div class="popup-backdrop" id="popup-backdrop"></div>
         <div class="popup-container" id="popup-container">
             <div class="flex items-center justify-between mb-6">
-                <button class="back-btn !py-2.5 !px-4 !text-sm" id="popup-back" data-i18n="admin.back">
-                    <i class="fa-solid fa-arrow-left"></i> Back
+                <button class="back-btn !py-2.5 !px-4 !text-sm" id="popup-back">
+                    <i class="fa-solid fa-arrow-left"></i> <span data-i18n="admin.back">Back</span>
                 </button>
                 <div class="flex items-center gap-2" id="popup-actions">
-                    <button class="back-btn !py-2.5 !px-4 !text-sm !text-primary !border-primary/30 hover:!bg-primary/5" hidden id="edit-btn" data-i18n="admin.edit">
-                        <i class="fa-regular fa-pen-to-square"></i> Edit
+                    <button class="back-btn !py-2.5 !px-4 !text-sm !text-primary !border-primary/30 hover:!bg-primary/5" hidden id="edit-btn">
+                        <i class="fa-regular fa-pen-to-square"></i> <span data-i18n="admin.edit">Edit</span>
                     </button>
-                    <button class="back-btn !py-2.5 !px-4 !text-sm" hidden id="save-btn" data-i18n="admin.save">
-                        <i class="fa-regular fa-floppy-disk"></i> Save
+                    <button class="back-btn !py-2.5 !px-4 !text-sm" hidden id="save-btn">
+                        <i class="fa-regular fa-floppy-disk"></i> <span data-i18n="admin.save">Save</span>
                     </button>
                     <button class="back-btn !py-2.5 !px-4 !text-sm !text-red-500 !border-red-200 hover:!bg-red-50" hidden id="cancel-btn" data-i18n="common.cancel">
                         Cancel

@@ -4,7 +4,7 @@ import { getEvents, getPendingEvents, approveEvent, rejectEvent, deleteEvent, sc
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate } from "../lib/utils.js";
-import { t } from "../lib/i18n.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 import { 
     initThumbnailPreview, 
     initFileUpload, 
@@ -47,6 +47,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("footer-container").innerHTML = html;
     });
     await initChatbot();
+
+    window.addEventListener("language-changed", () => {
+        applyTranslation();
+        renderStats();
+        renderTable();
+    });
 
     initTabs();
     initSearch();
@@ -142,8 +148,8 @@ function renderTable() {
         const sourceSchool = e.source?.school || e.createdByName || "—";
         const checked = selectedIds.has(e._id) ? "checked" : "";
         const statusBadge = e.status === "draft"
-            ? `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#fef3c7] text-[#d97706]">Draft</span>`
-            : `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#d1fae5] text-[#059669]">Published</span>`;
+            ? `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#fef3c7] text-[#d97706]">${t("common.draft", "Draft")}</span>`
+            : `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#d1fae5] text-[#059669]">${t("common.published", "Published")}</span>`;
 
         let actionsHTML;
         if (currentTab === "pending") {
@@ -159,9 +165,9 @@ function renderTable() {
             const canEdit = !e.heldDate || (new Date(e.heldDate).getTime() - Date.now() >= 30 * 60 * 1000);
             const isExpired = e.heldDate && new Date(e.heldDate) < new Date();
             const editDisabled = !canEdit && !isExpired;
-            const editTitle = editDisabled ? 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút' : 'Edit';
+            const editTitle = editDisabled ? t('admin.cannot_edit_30min', 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút') : t('common.edit', 'Edit');
             actionsHTML = `
-                <button class="view-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary hover:border-primary/30 transition-all spring-ease" title="View">
+                <button class="view-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary hover:border-primary/30 transition-all spring-ease" title="${t("common.view", "View")}">
                     <i class="fa-regular fa-eye text-sm"></i>
                 </button>
                 <button class="edit-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center transition-all spring-ease ${editDisabled ? 'opacity-40 cursor-not-allowed' : 'text-[#1755ba] hover:bg-[#dae1ff] hover:text-primary'}" title="${editTitle}" ${editDisabled ? 'disabled' : ''}>
@@ -318,12 +324,12 @@ function buildViewHTML(e) {
             </div>
             ${e.classificationReason ? `
             <div class="mt-4 p-4 rounded-xl bg-[#fef3c7] border border-[#fde68a]">
-                <p class="text-[13px] font-semibold text-[#d97706] mb-1">Phân loại</p>
+                <p class="text-[13px] font-semibold text-[#d97706] mb-1">${t("admin.classification", "Phân loại")}</p>
                 <p class="text-sm text-[#92400e]">${e.classificationReason}</p>
             </div>` : ""}
             ${e.source?.url ? `
             <div class="mt-4">
-                <a href="${e.source.url}" target="_blank" class="text-sm text-primary underline">Xem bài gốc</a>
+                <a href="${e.source.url}" target="_blank" class="text-sm text-primary underline">${t("admin.view_original", "Xem bài gốc")}</a>
             </div>` : ""}
         </div>
     </div>`;
@@ -339,7 +345,7 @@ document.getElementById("popup-actions")?.addEventListener("click", async e => {
         if (ev?.heldDate) {
             const diffMs = new Date(ev.heldDate).getTime() - Date.now();
             if (diffMs > 0 && diffMs < 30 * 60 * 1000) {
-                alert('Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút');
+                alert(t('admin.cannot_edit_30min', 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút'));
                 return;
             }
         }
@@ -377,7 +383,7 @@ function initRowActions() {
             if (ev?.heldDate) {
                 const diffMs = new Date(ev.heldDate).getTime() - Date.now();
                 if (diffMs > 0 && diffMs < 30 * 60 * 1000) {
-                    alert('Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút');
+                    alert(t('admin.cannot_edit_30min', 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút'));
                     return;
                 }
             }
@@ -683,6 +689,7 @@ export async function openEventModal(eventId = null) {
 
     const html = await fetchContent("./components/hostActivityDetails.html");
     body.innerHTML = html;
+    applyTranslation(body);
 
     const internalTitle = body.querySelector(".page-title");
     if (internalTitle) internalTitle.style.display = "none";
@@ -755,7 +762,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const icon = toggleBtn.querySelector(".material-symbols-outlined");
             const text = toggleBtn.querySelector("span:last-child");
             if (icon) icon.textContent = showExpiredPublished ? "visibility_off" : "visibility";
-            if (text) text.textContent = showExpiredPublished ? "Hide Expired" : "Show Expired";
+            if (text) text.textContent = showExpiredPublished ? t("admin.hide_expired", "Hide Expired") : t("admin.show_expired", "Show Expired");
             renderTable();
         });
     }

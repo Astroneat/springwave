@@ -3,7 +3,7 @@ import { isAuthenticated, getUser } from "../lib/session.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
-import { t } from "../lib/i18n.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 import { listCategories, createCategory, updateCategory, deleteCategory } from "../api/categories.js";
 
 let categories = [];
@@ -33,6 +33,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     initForm();
     initDelete();
     await loadData();
+
+    window.addEventListener("language-changed", () => {
+        applyTranslation();
+        renderTable();
+    });
 });
 
 async function loadData() {
@@ -54,12 +59,12 @@ function renderTable() {
     if (categories.length === 0) {
         tbody.innerHTML = "";
         empty.classList.remove("hidden");
-        count.textContent = "0 categories";
+        count.textContent = t("admin_categories.categories_count", { n: 0 });
         return;
     }
 
     empty.classList.add("hidden");
-    count.textContent = `${categories.length} categor${categories.length !== 1 ? "ies" : "y"}`;
+    count.textContent = t("admin_categories.categories_count", { n: categories.length });
 
     const q = document.getElementById("search-input").value.trim().toLowerCase();
 
@@ -67,8 +72,8 @@ function renderTable() {
         .filter(c => !q || c.name.toLowerCase().includes(q) || (c.slug || "").toLowerCase().includes(q))
         .map(c => {
             const statusBadge = c.isActive !== false
-                ? `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#d1fae5] text-[#059669]">Active</span>`
-                : `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#fee2e2] text-[#dc2626]">Inactive</span>`;
+                ? `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#d1fae5] text-[#059669]">${t("admin_categories.active", "Active")}</span>`
+                : `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#fee2e2] text-[#dc2626]">${t("admin_categories.inactive", "Inactive")}</span>`;
 
             return `
             <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc] transition-colors" data-id="${c._id}">
@@ -93,10 +98,10 @@ function renderTable() {
                 <td class="py-3.5 px-4">${statusBadge}</td>
                 <td class="py-3.5 px-4 text-right">
                     <div class="flex items-center justify-end gap-1.5">
-                        <button class="edit-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary hover:border-primary/30 transition-all spring-ease" title="Edit">
+                        <button class="edit-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary hover:border-primary/30 transition-all spring-ease" title="${t("admin_categories.edit", "Edit")}">
                             <i class="fa-regular fa-pen-to-square text-sm"></i>
                         </button>
-                        <button class="delete-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Delete">
+                        <button class="delete-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="${t("admin_categories.delete", "Delete")}">
                             <i class="fa-solid fa-trash-can text-sm"></i>
                         </button>
                     </div>
@@ -130,7 +135,7 @@ function initRowActions() {
 function showEmpty() {
     document.getElementById("table-body").innerHTML = "";
     document.getElementById("table-empty").classList.remove("hidden");
-    document.getElementById("table-count").textContent = "0 categories";
+    document.getElementById("table-count").textContent = t("admin_categories.categories_count", { n: 0 });
 }
 
 function initSearch() {
@@ -163,7 +168,7 @@ function openForm(cat) {
     const activeField = document.getElementById("field-active");
 
     if (cat) {
-        title.textContent = "Edit Category";
+        title.textContent = t("admin_categories.edit", "Edit Category");
         actionTarget = cat._id;
         nameField.value = cat.name || "";
         iconField.value = cat.icon || "";
@@ -173,7 +178,7 @@ function openForm(cat) {
         sortField.value = cat.sortOrder ?? 0;
         activeField.checked = cat.isActive !== false;
     } else {
-        title.textContent = "Add Category";
+        title.textContent = t("admin_categories.add_category", "Add Category");
         actionTarget = null;
         nameField.value = "";
         iconField.value = "";

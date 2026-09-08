@@ -7,6 +7,7 @@ import { uploadFormData } from "../api/client.js";
 import { getMyHostStatus } from "../api/host.js";
 import { populateOrgUniversitySelect } from "../api/universities.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 
 let turnstileWidgetId = null;
 
@@ -20,7 +21,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Check if user has verified email (Student verification is optional for Hosts)
     if (user && !user.emailVerified && user.role !== 'admin') {
-        alert("Please verify your email address before registering as an event host.");
+        alert(t("register_host.alert_email_required", "Please verify your email address before registering as an event host."));
         window.location.href = "/index.html";
         return;
     }
@@ -32,12 +33,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!createMode && !isHost) {
             const statusData = await getMyHostStatus();
             if (statusData.status === 'pending') {
-                alert("Your host registration is pending review. Please wait for approval.");
+                alert(t("register_host.alert_pending", "Your host registration is pending review. Please wait for approval."));
                 window.location.href = "/";
                 return;
             }
             if (statusData.status === 'rejected') {
-                const canCreate = confirm("Your previous host registration was rejected. Would you like to create a new one?");
+                const canCreate = confirm(t("register_host.prompt_rejected", "Your previous host registration was rejected. Would you like to create a new one?"));
                 if (!canCreate) {
                     window.location.href = "/";
                     return;
@@ -259,7 +260,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             btn.classList.add('bg-green-600');
 
             setTimeout(() => {
-                alert("Registration successful! Our team will review your application.");
+                alert(t("register_host.alert_success", "Registration successful! Our team will review your application."));
                 window.location.href = "/";
             }, 1500);
         } catch (error) {
@@ -269,11 +270,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             const msg = error?.message || "An unexpected error occurred. Please try again.";
             let userMsg = msg;
             if (msg.includes("AccessDenied") || msg.includes("upload")) {
-                userMsg = "File upload failed. Please try smaller files or different format.";
+                userMsg = t("register_host.err_upload", "File upload failed. Please try smaller files or different format.");
             }
-            alert("Error: " + userMsg);
+            alert(t("common.error", "Error") + ": " + userMsg);
             btn.innerHTML = originalText;
             btn.classList.remove('opacity-80', 'pointer-events-none');
         }
+    });
+
+    window.addEventListener("language-changed", () => {
+        applyTranslation();
     });
 });

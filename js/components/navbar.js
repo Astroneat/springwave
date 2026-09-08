@@ -766,6 +766,7 @@ function initLangSwitcher() {
         setActiveLink();
         if (isAuthenticated()) {
             populateUserChip(getUser());
+            renderNotifDropdown();
         }
     };
     updateLabel();

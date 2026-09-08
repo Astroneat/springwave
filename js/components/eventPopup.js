@@ -14,6 +14,8 @@ let userFavouriteIds = null;
 let prefetchPromise = null;
 let activeOnCloseCallback = null;
 let underlyingModalToRestore = null;
+let currentOpenActivity = null;
+let currentBackText = "";
 const activityCache = new Map();
 
 if (typeof window !== "undefined") {
@@ -155,7 +157,7 @@ export async function openEventPopup(activityID, options = {}) {
     container.innerHTML = `
         <div class="popup-loading-container">
             <div class="editorial-spinner"></div>
-            <p class="text-xs font-semibold text-slate-400 mt-3 animate-pulse">Loading event details...</p>
+            <p class="text-xs font-semibold text-slate-400 mt-3 animate-pulse">${t("event_popup.loading", "Loading event details...")}</p>
         </div>
     `;
     overlay.style.zIndex = "12500";
@@ -192,6 +194,9 @@ export async function openEventPopup(activityID, options = {}) {
         return;
     }
 
+    currentOpenActivity = activity;
+    currentBackText = backText;
+
     container.innerHTML = buildPopupHTML(activity, backText);
 
     initParticipateButton(activityID);
@@ -203,11 +208,16 @@ export async function openEventPopup(activityID, options = {}) {
             const freshActivity = resp.activity;
             if (freshActivity) {
                 activityCache.set(activityID, freshActivity);
+                currentOpenActivity = freshActivity;
                 updatePopupWithFreshData(freshActivity);
             }
         }).catch(err => console.warn("Failed to revalidate activity details:", err));
     }
 
+    bindPopupInteractiveElements(container, activity, activityID, options);
+}
+
+function bindPopupInteractiveElements(container, activity, activityID, options = {}) {
     container.querySelectorAll("#back-btn, .event-modal-close-btn").forEach(btn => {
         btn.addEventListener("click", closeEventPopup);
     });
@@ -223,7 +233,7 @@ export async function openEventPopup(activityID, options = {}) {
             } else {
                 navigator.clipboard.writeText(url).then(() => {
                     const orig = currentBtn.innerHTML;
-                    currentBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-600"></i> <span>Copied!</span>`;
+                    currentBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-600"></i> <span>${t("event_popup.copied", "Copied!")}</span>`;
                     setTimeout(() => { currentBtn.innerHTML = orig; }, 2000);
                 }).catch(() => { });
             }
@@ -315,7 +325,7 @@ export function openImageLightbox(src, alt = "Event banner") {
             <div class="lightbox-actions-top">
                 <a href="${src}" target="_blank" rel="noopener noreferrer" class="lightbox-action-btn" title="Open original in new tab">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    <span>Open full</span>
+                    <span>${t("event_popup.open_full", "Open full")}</span>
                 </a>
             </div>
             <button type="button" class="lightbox-close-btn" aria-label="Close image preview" title="Close">
@@ -349,6 +359,8 @@ export function openImageLightbox(src, alt = "Event banner") {
 }
 
 export function closeEventPopup() {
+    currentOpenActivity = null;
+    currentBackText = "";
     const overlay = document.getElementById("popup-overlay");
     const container = document.getElementById("popup-container");
     if (!overlay || !container) return;
@@ -402,7 +414,7 @@ function buildAttachmentsHTML(attachments) {
             </div>
             <div class="event-file-meta">
                 <span class="event-file-name" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</span>
-                <span class="event-file-subtext">Click to download resource</span>
+                <span class="event-file-subtext">${t("event_popup.download_hint", "Click to download resource")}</span>
             </div>
             <div class="event-file-download-icon">
                 <i class="fa-solid fa-arrow-down"></i>
@@ -694,7 +706,7 @@ function buildPopupHTML(a, backText) {
                     </div>
                     ${!isNonPartner && orgId ? `
                     <a href="/org-profile.html?orgId=${orgId}" class="event-host-profile-link" title="View organization profile">
-                        <span>Organizer Profile</span>
+                        <span>${t("event_popup.organizer_profile", "Organizer Profile")}</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </a>` : ''}
                 </div>
@@ -713,7 +725,7 @@ function buildPopupHTML(a, backText) {
                     <div class="event-sidebar-details-card">
                         <div class="event-sidebar-details-header">
                             <i class="fa-solid fa-circle-info text-blue-600"></i>
-                            <span>Event Details</span>
+                            <span>${t("event_popup.event_details", "Event Details")}</span>
                         </div>
 
                         <div class="event-sidebar-details-list">
@@ -759,10 +771,10 @@ function buildPopupHTML(a, backText) {
                         <div class="event-ai-card-header">
                             <div class="flex items-center gap-2">
                                 <span class="ai-sparkle-badge"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
-                                <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">AI Match</span>
+                                <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">${t("event_popup.ai_match", "AI Match")}</span>
                             </div>
                             <button type="button" class="ai-match-trigger-btn ai-match-btn" title="Calculate Match">
-                                <span>Check Match</span>
+                                <span>${t("event_popup.check_match", "Check Match")}</span>
                             </button>
                         </div>
 
@@ -850,7 +862,7 @@ function buildPopupHTML(a, backText) {
                     <div class="event-sidebar-details-card">
                         <div class="event-sidebar-details-header">
                             <i class="fa-solid fa-circle-info text-blue-600"></i>
-                            <span>Event Details</span>
+                            <span>${t("event_popup.event_details", "Event Details")}</span>
                         </div>
 
                         <div class="event-sidebar-details-list">
@@ -896,10 +908,10 @@ function buildPopupHTML(a, backText) {
                         <div class="event-ai-card-header">
                             <div class="flex items-center gap-2">
                                 <span class="ai-sparkle-badge"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
-                                <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">AI Match</span>
+                                <span class="font-bold text-xs text-slate-800 uppercase tracking-wide">${t("event_popup.ai_match", "AI Match")}</span>
                             </div>
                             <button type="button" class="ai-match-trigger-btn ai-match-btn" title="Calculate Match">
-                                <span>Check Match</span>
+                                <span>${t("event_popup.check_match", "Check Match")}</span>
                             </button>
                         </div>
 
@@ -1215,7 +1227,7 @@ function initAIMatchButton(container, activityID) {
 
     function setBtnLoading() {
         btns.forEach(b => {
-            b.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Analyzing...</span>`;
+            b.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${t("ai_recommend.analyzing", "Analyzing...")}</span>`;
         });
     }
 
@@ -1228,14 +1240,14 @@ function initAIMatchButton(container, activityID) {
     function resetBtn() {
         btns.forEach(b => {
             b.disabled = false;
-            b.innerHTML = `<span>Check Match</span>`;
+            b.innerHTML = `<span>${t("event_popup.check_match", "Check Match")}</span>`;
         });
     }
 
     btns.forEach(btn => {
         btn.addEventListener("click", async () => {
             if (!isAuthenticated()) {
-                alert("Please login first to use AI Match!");
+                alert(t("explore.please_login", "Please login first to use AI Match!"));
                 return;
             }
 
@@ -1538,5 +1550,20 @@ async function initEventComments(eventId, container) {
         listEl.innerHTML = '<div class="no-comments-box"><p class="text-xs text-slate-400">Failed to load comments</p></div>';
         if (seeMoreBtn) seeMoreBtn.style.display = 'none';
     }
+}
+
+if (typeof window !== "undefined") {
+    window.addEventListener("language-changed", () => {
+        const overlay = document.getElementById("popup-overlay");
+        const container = document.getElementById("popup-container");
+        if (overlay && overlay.classList.contains("active") && container && currentOpenActivity) {
+            const actId = currentOpenActivity.activityID || currentOpenActivity._id;
+            const backText = currentBackText || t("explore.back") || "Back";
+            container.innerHTML = buildPopupHTML(currentOpenActivity, backText);
+            initParticipateButton(actId);
+            disableParticipationButtons(currentOpenActivity);
+            bindPopupInteractiveElements(container, currentOpenActivity, actId);
+        }
+    });
 }
 

@@ -3,7 +3,7 @@ import { isAuthenticated, getUser } from "../lib/session.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
-import { t } from "../lib/i18n.js";
+import { t, applyTranslation } from "../lib/i18n.js";
 import {
   getAllUniversitiesAdmin,
   createUniversity,
@@ -35,6 +35,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (c) c.innerHTML = html;
     });
     await initChatbot();
+
+    window.addEventListener("language-changed", () => {
+        applyTranslation();
+        renderTable();
+    });
 
     initSearch();
     initRefresh();
@@ -68,12 +73,12 @@ function renderTable() {
     if (universities.length === 0) {
         tbody.innerHTML = "";
         empty.classList.remove("hidden");
-        count.textContent = "0 universities";
+        count.textContent = t("admin_universities.universities_count", { n: 0 }) || "0 universities";
         return;
     }
 
     empty.classList.add("hidden");
-    count.textContent = `${universities.length} universit${universities.length !== 1 ? "ies" : "y"}`;
+    count.textContent = t("admin_universities.universities_count", { n: universities.length }) || `${universities.length} universities`;
 
     const q = document.getElementById("search-input").value.trim().toLowerCase();
 
@@ -88,12 +93,12 @@ function renderTable() {
         })
         .map(u => {
             const statusBadge = u.isActive !== false
-                ? `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#d1fae5] text-[#059669]">Active</span>`
-                : `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#fee2e2] text-[#dc2626]">Inactive</span>`;
+                ? `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#d1fae5] text-[#059669]">${t("admin_universities.active", "Active")}</span>`
+                : `<span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#fee2e2] text-[#dc2626]">${t("admin_universities.inactive", "Inactive")}</span>`;
 
             const domainTags = (u.domains || []).length > 0
                 ? (u.domains || []).map(d => `<span class="domain-tag">${d}</span>`).join(' ')
-                : `<span class="text-xs text-[#94a3b8] italic">None</span>`;
+                : `<span class="text-xs text-[#94a3b8] italic">${t("common.none", "None")}</span>`;
 
             const logoHtml = u.logo
                 ? `<img src="${u.logo}" class="w-8 h-8 rounded-lg object-contain border border-[#e2e2eb]" alt="${u.shortName || u.name}" onerror="this.src='/vite.svg'" />`
@@ -128,13 +133,13 @@ function renderTable() {
                 <td class="py-3.5 px-4">${statusBadge}</td>
                 <td class="py-3.5 px-4 text-right">
                     <div class="flex items-center justify-end gap-1.5">
-                        <button class="students-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-primary hover:bg-[#dae1ff] hover:border-primary/30 transition-all spring-ease" title="View Students">
+                        <button class="students-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-primary hover:bg-[#dae1ff] hover:border-primary/30 transition-all spring-ease" title="${t("admin_universities.view_students", "View Students")}">
                             <i class="fa-solid fa-graduation-cap text-sm"></i>
                         </button>
-                        <button class="edit-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary hover:border-primary/30 transition-all spring-ease" title="Edit">
+                        <button class="edit-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary hover:border-primary/30 transition-all spring-ease" title="${t("admin_universities.edit", "Edit")}">
                             <i class="fa-regular fa-pen-to-square text-sm"></i>
                         </button>
-                        <button class="delete-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Delete">
+                        <button class="delete-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="${t("admin_universities.delete", "Delete")}">
                             <i class="fa-solid fa-trash-can text-sm"></i>
                         </button>
                     </div>
@@ -177,7 +182,7 @@ function initRowActions() {
 function showEmpty() {
     document.getElementById("table-body").innerHTML = "";
     document.getElementById("table-empty").classList.remove("hidden");
-    document.getElementById("table-count").textContent = "0 universities";
+    document.getElementById("table-count").textContent = t("admin_universities.universities_count", { n: 0 }) || "0 universities";
 }
 
 function initSearch() {
@@ -247,7 +252,7 @@ function initLogoUpload() {
                 }
                 if (fallbackIcon) fallbackIcon.classList.add("hidden");
             } catch (err) {
-                alert("Failed to upload logo: " + err.message);
+                alert((t("admin_universities.failed_upload") || "Failed to upload logo: ") + err.message);
             }
         });
     }
@@ -349,11 +354,11 @@ function initForm() {
             const isActive = document.getElementById("field-active").checked;
 
             if (!name) {
-                alert("Please enter the full university name.");
+                alert(t("admin_universities.enter_name_alert", "Please enter the full university name."));
                 return;
             }
             if (!shortName) {
-                alert("Please enter the short name / abbreviation.");
+                alert(t("admin_universities.enter_short_alert", "Please enter the short name / abbreviation."));
                 return;
             }
 
@@ -370,7 +375,7 @@ function initForm() {
             };
 
             saveBtn.disabled = true;
-            saveBtn.textContent = "Saving...";
+            saveBtn.textContent = t("admin_universities.saving", "Saving...");
 
             try {
                 if (actionTarget) {
@@ -381,10 +386,10 @@ function initForm() {
                 closeForm();
                 await loadData();
             } catch (err) {
-                alert(err.message || "Failed to save university");
+                alert(err.message || t("admin_universities.failed_save", "Failed to save university"));
             } finally {
                 saveBtn.disabled = false;
-                saveBtn.textContent = "Save";
+                saveBtn.textContent = t("admin_universities.save", "Save");
             }
         });
     }
@@ -432,18 +437,18 @@ function initDelete() {
             if (!actionTarget) return;
 
             confirmBtn.disabled = true;
-            confirmBtn.textContent = "Deleting...";
+            confirmBtn.textContent = t("admin_universities.deleting", "Deleting...");
 
             try {
                 await deleteUniversity(actionTarget._id);
                 closeDelete();
                 await loadData();
             } catch (err) {
-                alert(err.message || "Failed to delete university");
+                alert(err.message || t("admin_universities.failed_delete", "Failed to delete university"));
                 closeDelete();
             } finally {
                 confirmBtn.disabled = false;
-                confirmBtn.textContent = "Delete";
+                confirmBtn.textContent = t("admin_universities.delete", "Delete");
             }
         });
     }
@@ -483,8 +488,8 @@ async function openStudentsModal(uni) {
     const subtitle = document.getElementById("students-subtitle");
     const body = document.getElementById("students-body");
 
-    title.textContent = `Students in ${uni.shortName || uni.name}`;
-    subtitle.textContent = `Danh sách sinh viên thuộc ${uni.name}`;
+    title.textContent = t("admin_universities.students_in", { name: uni.shortName || uni.name });
+    subtitle.textContent = t("admin_universities.students_desc", { name: uni.name });
     body.innerHTML = `<div class="flex items-center justify-center py-12 text-[#94a3b8]"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></div>`;
 
     overlay.style.display = "flex";
@@ -496,7 +501,7 @@ async function openStudentsModal(uni) {
         const { students } = await getUniversityStudentsAdmin(uni._id);
         renderStudentsList(uni, students);
     } catch (err) {
-        body.innerHTML = `<p class="text-center text-[#ef4444] py-8">Failed to load students: ${err.message}</p>`;
+        body.innerHTML = `<p class="text-center text-[#ef4444] py-8">${t("admin_universities.failed_load_students", "Failed to load students: ")}${err.message}</p>`;
     }
 }
 
@@ -506,7 +511,7 @@ function renderStudentsList(uni, students) {
         body.innerHTML = `
             <div class="text-center py-12">
                 <i class="fa-solid fa-user-slash text-4xl text-[#94a3b8] mb-3"></i>
-                <p class="text-[#64748b] font-medium">Chưa có sinh viên nào thuộc trường này.</p>
+                <p class="text-[#64748b] font-medium">${t("admin_universities.no_students", "No students found in this university.")}</p>
             </div>`;
         return;
     }
@@ -516,19 +521,19 @@ function renderStudentsList(uni, students) {
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="border-b border-[#e2e2eb] text-xs font-semibold text-[#64748b] uppercase">
-                        <th class="py-3 px-3">Sinh viên</th>
-                        <th class="py-3 px-3">Mã SV</th>
-                        <th class="py-3 px-3">Trạng thái</th>
-                        <th class="py-3 px-3 text-right">Thao tác</th>
+                        <th class="py-3 px-3">${t("admin_universities.col_student", "Student")}</th>
+                        <th class="py-3 px-3">${t("admin_universities.col_student_id", "Student ID")}</th>
+                        <th class="py-3 px-3">${t("admin_universities.col_status", "Status")}</th>
+                        <th class="py-3 px-3 text-right">${t("admin_universities.col_actions", "Actions")}</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${students.map(s => {
                         const verifiedBadge = s.isStudentVerified
-                            ? `<span class="inline-block text-xs font-semibold py-0.5 px-2 rounded-full bg-[#d1fae5] text-[#059669]">Đã xác thực</span>`
+                            ? `<span class="inline-block text-xs font-semibold py-0.5 px-2 rounded-full bg-[#d1fae5] text-[#059669]">${t("admin_universities.verified", "Verified")}</span>`
                             : s.studentVerificationStatus === 'pending'
-                            ? `<span class="inline-block text-xs font-semibold py-0.5 px-2 rounded-full bg-[#fef3c7] text-[#d97706]">Chờ duyệt</span>`
-                            : `<span class="inline-block text-xs font-semibold py-0.5 px-2 rounded-full bg-[#f1f5f9] text-[#64748b]">Chưa xác thực</span>`;
+                            ? `<span class="inline-block text-xs font-semibold py-0.5 px-2 rounded-full bg-[#fef3c7] text-[#d97706]">${t("admin_universities.pending", "Pending")}</span>`
+                            : `<span class="inline-block text-xs font-semibold py-0.5 px-2 rounded-full bg-[#f1f5f9] text-[#64748b]">${t("admin_universities.unverified", "Unverified")}</span>`;
 
                         return `
                             <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc] text-sm" data-user-id="${s._id}">
@@ -547,7 +552,7 @@ function renderStudentsList(uni, students) {
                                 <td class="py-3 px-3">${verifiedBadge}</td>
                                 <td class="py-3 px-3 text-right">
                                     <button class="remove-student-btn px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 spring-ease" data-user-id="${s._id}" data-name="${s.fullname || s.username}">
-                                        <i class="fa-solid fa-user-minus mr-1"></i> Xóa khỏi trường
+                                        <i class="fa-solid fa-user-minus mr-1"></i> ${t("admin_universities.remove_student", "Remove from university")}
                                     </button>
                                 </td>
                             </tr>
@@ -562,15 +567,15 @@ function renderStudentsList(uni, students) {
         btn.addEventListener('click', async () => {
             const userId = btn.dataset.userId;
             const name = btn.dataset.name;
-            if (confirm(`Bạn có chắc chắn muốn xóa sinh viên "${name}" ra khỏi trường? Tài khoản sẽ trở thành người dùng bình thường và thông tin sinh viên sẽ bị xóa.`)) {
+            if (confirm(t("admin_universities.remove_student_confirm", { name }) || `Are you sure you want to remove "${name}" from this university?`)) {
                 btn.disabled = true;
-                btn.textContent = "Đang xóa...";
+                btn.textContent = t("admin_universities.removing", "Removing...");
                 try {
                     await deleteUniversityStudentAdmin(uni._id, userId);
                     const { students: updated } = await getUniversityStudentsAdmin(uni._id);
                     renderStudentsList(uni, updated);
                 } catch (err) {
-                    alert("Xóa thất bại: " + err.message);
+                    alert((t("admin_universities.failed_remove") || "Failed to remove student: ") + err.message);
                 }
             }
         });

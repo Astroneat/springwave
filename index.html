@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Bebas+Neue&family=Dancing+Script:wght@400..700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/google-sans-flex@5.2.5/index.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
@@ -38,6 +38,9 @@
 
   <!-- 1. HERO SECTION -->
   <section class="hero-redesign" id="hero">
+    <!-- Dynamic Background Image Slideshow -->
+    <div class="hero-slider-wrap" id="hero-slider-wrap" aria-hidden="true"></div>
+    <div class="hero-slider-overlay" aria-hidden="true"></div>
     <div class="hero-redesign-pattern" aria-hidden="true"></div>
     <div class="hero-redesign-glow" aria-hidden="true"></div>
     
@@ -48,7 +51,7 @@
       </div>
 
       <h1 class="hero-redesign-title reveal">
-        <span data-i18n="index.hero_main_heading">Khám phá sự kiện, kết nối CLB & tích lũy chứng chỉ số</span>
+        <span data-i18n="index.hero_main_heading">Khám phá sự kiện, kết nối sinh viên cùng câu lạc bộ & tích lũy chứng&nbsp;chỉ&nbsp;số</span>
       </h1>
 
       <p class="hero-redesign-desc reveal" data-i18n="index.hero_main_desc">
@@ -67,9 +70,9 @@
       </div>
 
       <!-- Live Event Ticker Strip -->
-      <div class="live-ticker-strip reveal" id="live-ticker-bar">
+      <div class="live-ticker-strip reveal" id="live-ticker-bar" role="region" aria-label="Tin tức sự kiện trực tiếp">
         <div class="ticker-badge-wrap">
-          <span class="ticker-pulse-dot"></span>
+          <span class="ticker-pulse-dot" aria-hidden="true"></span>
           <span data-i18n="index.live_ticker_label">ĐANG DIỄN RA & SẮP TỚI</span>
         </div>
         <div class="ticker-track-container">
@@ -79,16 +82,19 @@
         </div>
       </div>
     </div>
+
+    <!-- Subtle Slideshow Progress Dots -->
+    <div class="hero-slider-dots" id="hero-slider-dots" role="tablist" aria-label="Danh sách ảnh nền"></div>
   </section>
 
   <!-- 2. PLATFORM TRUST & REAL STATS BAR -->
-  <section class="stats-bar-section content-visibility-auto" id="stats-bar">
+  <section class="stats-bar-section content-visibility-auto" id="stats-bar" aria-label="Chỉ số hoạt động nền tảng">
     <div class="landing-container">
       <div class="stats-bar-grid reveal">
         <!-- Stat 1: Total Events -->
         <div class="stat-card">
-          <div class="stat-icon-wrap" style="background: #e0f2fe; color: #0284c7;">
-            <span class="material-symbols-outlined">event_available</span>
+          <div class="stat-icon-wrap stat-icon-blue">
+            <span class="material-symbols-outlined" aria-hidden="true">event_available</span>
           </div>
           <div>
             <div class="stat-number" id="stat-events-val">--</div>
@@ -97,8 +103,8 @@
         </div>
         <!-- Stat 2: Clubs & Organizers -->
         <div class="stat-card">
-          <div class="stat-icon-wrap" style="background: #f5f3ff; color: #7c3aed;">
-            <span class="material-symbols-outlined">groups</span>
+          <div class="stat-icon-wrap stat-icon-purple">
+            <span class="material-symbols-outlined" aria-hidden="true">groups</span>
           </div>
           <div>
             <div class="stat-number" id="stat-clubs-val">--</div>
@@ -107,8 +113,8 @@
         </div>
         <!-- Stat 3: Student Participations -->
         <div class="stat-card">
-          <div class="stat-icon-wrap" style="background: #ecfdf5; color: #059669;">
-            <span class="material-symbols-outlined">school</span>
+          <div class="stat-icon-wrap stat-icon-green">
+            <span class="material-symbols-outlined" aria-hidden="true">school</span>
           </div>
           <div>
             <div class="stat-number" id="stat-students-val">--</div>
@@ -117,8 +123,8 @@
         </div>
         <!-- Stat 4: Partner Universities -->
         <div class="stat-card">
-          <div class="stat-icon-wrap" style="background: #fff7ed; color: #ea580c;">
-            <span class="material-symbols-outlined">account_balance</span>
+          <div class="stat-icon-wrap stat-icon-coral">
+            <span class="material-symbols-outlined" aria-hidden="true">account_balance</span>
           </div>
           <div>
             <div class="stat-number" id="stat-universities-val">--</div>
@@ -143,42 +149,42 @@
       </div>
 
       <!-- Event Tabs Navigation -->
-      <div class="event-tabs-bar reveal">
-        <button class="event-tab-btn active" data-tab="upcoming">
-          <span class="material-symbols-outlined text-base">upcoming</span>
+      <div class="event-tabs-bar reveal" role="tablist" aria-label="Bộ lọc trạng thái sự kiện">
+        <button class="event-tab-btn active" role="tab" id="tab-upcoming" aria-selected="true" aria-controls="event-hub-container" data-tab="upcoming">
+          <span class="material-symbols-outlined text-base" aria-hidden="true">upcoming</span>
           <span data-i18n="index.tab_upcoming">Đang mở đăng ký</span>
         </button>
-        <button class="event-tab-btn" data-tab="ongoing">
-          <span class="material-symbols-outlined text-base">play_circle</span>
+        <button class="event-tab-btn" role="tab" id="tab-ongoing" aria-selected="false" aria-controls="event-hub-container" data-tab="ongoing">
+          <span class="material-symbols-outlined text-base" aria-hidden="true">play_circle</span>
           <span data-i18n="index.tab_ongoing">Đang diễn ra</span>
         </button>
-        <button class="event-tab-btn" data-tab="past">
-          <span class="material-symbols-outlined text-base">task_alt</span>
+        <button class="event-tab-btn" role="tab" id="tab-past" aria-selected="false" aria-controls="event-hub-container" data-tab="past">
+          <span class="material-symbols-outlined text-base" aria-hidden="true">task_alt</span>
           <span data-i18n="index.tab_past">Đã kết thúc & Vinh danh</span>
         </button>
       </div>
 
       <!-- Event Cards Grid Container -->
-      <div class="event-hub-grid reveal" id="event-hub-container">
+      <div class="event-hub-grid reveal" id="event-hub-container" role="tabpanel" aria-labelledby="tab-upcoming">
         <!-- Dynamically rendered via js/pages/index.js -->
         <div class="event-empty-box">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent mb-3"></div>
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent mb-3" role="status" aria-label="Đang tải"></div>
           <p class="text-slate-500 text-sm">Đang tải danh sách sự kiện...</p>
         </div>
       </div>
 
       <!-- View All Events Footer Action -->
       <div class="text-center reveal">
-        <a href="/explore.html" class="inline-flex items-center gap-2 px-7 py-3 rounded-full font-bold text-sm text-white bg-[#1755ba] hover:bg-[#124193] transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5">
+        <a href="/explore.html" class="sw-btn-explore-all">
           <span data-i18n="index.view_all_events">Xem tất cả sự kiện</span>
-          <span class="material-symbols-outlined text-base">arrow_forward</span>
+          <span class="material-symbols-outlined text-base" aria-hidden="true">arrow_forward</span>
         </a>
       </div>
     </div>
   </section>
 
   <!-- 4. BỘ 3 GIÁ TRỊ THỰC CHẤT (THREE PILLARS) -->
-  <section class="three-pillars-section content-visibility-auto" id="three-pillars">
+  <section class="three-pillars-section content-visibility-auto" id="three-pillars" aria-label="Bộ 3 Giá trị Thực chất">
     <div class="landing-container">
       <div class="text-center max-w-3xl mx-auto mb-12 reveal">
         <div class="sw-eyebrow" data-i18n="index.pillars_badge">BỘ 3 GIÁ TRỊ THỰC CHẤT</div>
@@ -193,27 +199,27 @@
       <div class="pillars-grid reveal">
         <!-- Pillar 1: Dữ liệu sự kiện tập trung -->
         <div class="pillar-card">
-          <div class="pillar-icon-box" style="background: #e0f2fe; color: #0284c7;">
-            <span class="material-symbols-outlined">event_note</span>
+          <div class="pillar-icon-box pillar-icon-blue">
+            <span class="material-symbols-outlined" aria-hidden="true">event_note</span>
           </div>
           <h3 class="pillar-title" data-i18n="index.pillar1_name">Dữ liệu sự kiện tập trung</h3>
           <p class="pillar-desc" data-i18n="index.pillar1_text">
             Không còn cảnh theo dõi rời rạc hàng chục fanpage Facebook hay group chat. Toàn bộ workshop, hackathon, talkshow và hoạt động tình nguyện từ các trường ĐH được chọn lọc, cập nhật hạn đăng ký và phân loại minh bạch.
           </p>
           <div class="pillar-proof-wrap">
-            <div class="flex flex-wrap gap-1.5 text-xs">
-              <a href="/explore.html?type=Workshop" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 font-semibold text-slate-700 transition-colors">Workshop</a>
-              <a href="/explore.html?type=Hackathon" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 font-semibold text-slate-700 transition-colors">Hackathon</a>
-              <a href="/explore.html?type=Competition" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 font-semibold text-slate-700 transition-colors">Cuộc thi</a>
-              <a href="/explore.html?type=Volunteer" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 font-semibold text-slate-700 transition-colors">Tình nguyện</a>
+            <div class="flex flex-wrap gap-2 text-xs">
+              <a href="/explore.html?type=Workshop" class="pillar-category-link">Workshop</a>
+              <a href="/explore.html?type=Hackathon" class="pillar-category-link">Hackathon</a>
+              <a href="/explore.html?type=Competition" class="pillar-category-link" data-i18n="index.hero_tag_competition">Cuộc thi</a>
+              <a href="/explore.html?type=Volunteer" class="pillar-category-link" data-i18n="index.hero_tag_volunteer">Tình nguyện</a>
             </div>
           </div>
         </div>
 
         <!-- Pillar 2: Kết nối CLB & Đồng đội -->
         <div class="pillar-card">
-          <div class="pillar-icon-box" style="background: #f5f3ff; color: #7c3aed;">
-            <span class="material-symbols-outlined">groups</span>
+          <div class="pillar-icon-box pillar-icon-purple">
+            <span class="material-symbols-outlined" aria-hidden="true">groups</span>
           </div>
           <h3 class="pillar-title" data-i18n="index.pillar2_name">Kết nối CLB & Đồng đội</h3>
           <p class="pillar-desc" data-i18n="index.pillar2_text">
@@ -221,19 +227,19 @@
           </p>
           <div class="pillar-proof-wrap">
             <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">CLB & Ban tổ chức đồng hành:</div>
-            <div class="org-logo-strip" id="org-logo-strip">
+            <div class="org-logo-strip" id="org-logo-strip" aria-label="Danh sách CLB đồng hành">
               <!-- Rendered dynamically from /organizations -->
-              <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
-              <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
-              <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
+              <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse" aria-hidden="true"></div>
+              <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse" aria-hidden="true"></div>
+              <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse" aria-hidden="true"></div>
             </div>
           </div>
         </div>
 
         <!-- Pillar 3: Quản lý con người & Vận hành -->
         <div class="pillar-card">
-          <div class="pillar-icon-box" style="background: #ecfdf5; color: #059669;">
-            <span class="material-symbols-outlined">verified_user</span>
+          <div class="pillar-icon-box pillar-icon-green">
+            <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
           </div>
           <h3 class="pillar-title" data-i18n="index.pillar3_name">Quản lý con người & Vận hành</h3>
           <p class="pillar-desc" data-i18n="index.pillar3_text">
@@ -241,7 +247,7 @@
           </p>
           <div class="pillar-proof-wrap">
             <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 border border-slate-200/70">
-              <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0" aria-hidden="true">
                 <span class="material-symbols-outlined text-base">qr_code_scanner</span>
               </div>
               <div class="text-xs">
@@ -321,7 +327,7 @@
           </p>
         </div>
         <div class="shrink-0">
-          <a href="/register-host.html" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm bg-white text-slate-900 hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+          <a href="/register-host.html" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm bg-white text-blue-950 hover:bg-blue-50 hover:text-blue-900 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
             <span data-i18n="index.host_callout_btn">Đăng ký làm Người tổ chức (Host)</span>
             <span class="material-symbols-outlined text-base">arrow_forward</span>
           </a>
@@ -354,7 +360,7 @@
             </p>
           </div>
           <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
-            <img src="/assets/images/Truong.jpg" alt="Tien Truong" class="w-10 h-10 rounded-full object-cover shadow-2xs" />
+            <img src="/assets/images/Truong.jpg" alt="Tien Truong" class="w-10 h-10 rounded-full object-cover shadow-2xs" loading="lazy" width="40" height="40" decoding="async" />
             <div>
               <div class="text-xs font-bold text-slate-900" data-i18n="index.testimonial_truong_name">Tiến Trường</div>
               <div class="text-[10px] text-slate-500 font-medium" data-i18n="index.testimonial_truong_role">UI/UX Designer • Product Lead</div>
@@ -377,7 +383,7 @@
             </p>
           </div>
           <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
-            <img src="/assets/images/Tai.jpg" alt="Duc Tai" class="w-10 h-10 rounded-full object-cover shadow-2xs" />
+            <img src="/assets/images/Tai.jpg" alt="Duc Tai" class="w-10 h-10 rounded-full object-cover shadow-2xs" loading="lazy" width="40" height="40" decoding="async" />
             <div>
               <div class="font-bold text-slate-900 text-sm" data-i18n="index.testimonial_tai_name">Đức Tài</div>
               <div class="text-xs text-slate-500" data-i18n="index.testimonial_tai_role">GDG On Campus Organizer • Leader CLB Công nghệ</div>
@@ -400,7 +406,7 @@
             </p>
           </div>
           <div class="flex items-center gap-3 pt-4 border-t border-slate-200/60">
-            <img src="/assets/images/Dat.jpg" alt="Thanh Dat" class="w-10 h-10 rounded-full object-cover shadow-2xs" />
+            <img src="/assets/images/Dat.jpg" alt="Thanh Dat" class="w-10 h-10 rounded-full object-cover shadow-2xs" loading="lazy" width="40" height="40" decoding="async" />
             <div>
               <div class="font-bold text-slate-900 text-sm" data-i18n="index.testimonial_dat_name">Thành Đạt</div>
               <div class="text-xs text-slate-500" data-i18n="index.testimonial_dat_role">Sinh viên Khoa CNTT • Giải Nhì Hackathon Toàn quốc</div>
@@ -423,11 +429,11 @@
       <div class="faq-accordion reveal">
         <!-- Question 1 -->
         <div class="faq-item">
-          <button class="faq-header">
+          <button class="faq-header" id="faq-btn-1" aria-expanded="false" aria-controls="faq-ans-1">
             <span data-i18n="index.faq_q1_title">Tham gia sự kiện trên SpringWave có được tính Điểm Rèn Luyện (ĐRL) không?</span>
             <span class="material-symbols-outlined faq-icon">expand_more</span>
           </button>
-          <div class="faq-content">
+          <div class="faq-content" id="faq-ans-1" role="region" aria-labelledby="faq-btn-1">
             <div class="faq-body">
               <p data-i18n="index.faq_q1_ans">Có. Các sự kiện chính thức do các CLB hoặc Khoa/Trường đối tác tổ chức trên SpringWave đều hỗ trợ xuất danh sách tham gia và cấp chứng chỉ số có mã xác thực QR, giúp sinh viên minh chứng hoạt động để cộng điểm rèn luyện theo quy định của trường.</p>
             </div>
@@ -436,11 +442,11 @@
 
         <!-- Question 2 -->
         <div class="faq-item">
-          <button class="faq-header">
+          <button class="faq-header" id="faq-btn-2" aria-expanded="false" aria-controls="faq-ans-2">
             <span data-i18n="index.faq_q2_title">Làm sao để nhận và tra cứu chứng chỉ sau khi tham gia?</span>
             <span class="material-symbols-outlined faq-icon">expand_more</span>
           </button>
-          <div class="faq-content">
+          <div class="faq-content" id="faq-ans-2" role="region" aria-labelledby="faq-btn-2">
             <div class="faq-body">
               <p data-i18n="index.faq_q2_ans">Sau khi bạn được Ban tổ chức quét mã QR điểm danh thành công tại sự kiện, chứng chỉ điện tử sẽ tự động xuất hiện trong mục 'Hồ sơ cá nhân'. Bạn có thể xem, tải file PDF chất lượng cao hoặc chia sẻ liên kết xác thực công khai lên CV và LinkedIn.</p>
             </div>
@@ -449,11 +455,11 @@
 
         <!-- Question 3 -->
         <div class="faq-item">
-          <button class="faq-header">
+          <button class="faq-header" id="faq-btn-3" aria-expanded="false" aria-controls="faq-ans-3">
             <span data-i18n="index.faq_q3_title">Câu lạc bộ / Đội nhóm sinh viên có phải trả phí để đăng sự kiện không?</span>
             <span class="material-symbols-outlined faq-icon">expand_more</span>
           </button>
-          <div class="faq-content">
+          <div class="faq-content" id="faq-ans-3" role="region" aria-labelledby="faq-btn-3">
             <div class="faq-body">
               <p data-i18n="index.faq_q3_ans">Hoàn toàn miễn phí. SpringWave hỗ trợ tối đa các câu lạc bộ và tổ chức sinh viên đăng tải sự kiện, quản lý vé QR, điểm danh người tham dự và cấp chứng chỉ mà không thu bất kỳ chi phí nền tảng nào.</p>
             </div>
@@ -462,11 +468,11 @@
 
         <!-- Question 4 -->
         <div class="faq-item">
-          <button class="faq-header">
+          <button class="faq-header" id="faq-btn-4" aria-expanded="false" aria-controls="faq-ans-4">
             <span data-i18n="index.faq_q4_title">Tôi có thể tìm kiếm bạn bè cùng tham gia sự kiện hoặc thi đấu ở đâu?</span>
             <span class="material-symbols-outlined faq-icon">expand_more</span>
           </button>
-          <div class="faq-content">
+          <div class="faq-content" id="faq-ans-4" role="region" aria-labelledby="faq-btn-4">
             <div class="faq-body">
               <p data-i18n="index.faq_q4_ans">Bạn có thể vào tab 'Cộng đồng' trên thanh điều hướng để đăng bài tìm đồng đội thi Hackathon, thảo luận theo từng trường đại học, hoặc tham khảo đánh giá từ các bạn sinh viên đã tham gia các kỳ trước.</p>
             </div>

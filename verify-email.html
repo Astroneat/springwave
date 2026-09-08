@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>SpringWave - Verify Email</title>
+    <title data-i18n="email_verify.title">SpringWave - Verify Email</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -39,12 +39,13 @@
         <div
           class="inline-flex items-center gap-2 px-3 py-1 bg-[#23499b] text-white font-semibold rounded-xl shadow-md transition-all duration-200 hover:bg-[#183a82] hover:-translate-y-1"
         >
-          <i class="bi bi-house-door text-[24px]"></i> Home
+          <i class="bi bi-house-door text-[24px]"></i> <span data-i18n="email_verify.home_btn">Home</span>
         </div>
       </a>
 
       <h1
         class="text-[42px] max-sm:text-[30px] font-bold text-[#23499b] text-center mb-10 max-sm:mb-6"
+        data-i18n="email_verify.title"
       >
         VERIFY EMAIL
       </h1>
@@ -55,7 +56,7 @@
             class="material-symbols-outlined animate-spin text-7xl text-[#23499b]"
             >progress_activity</span
           >
-          <p class="text-gray-600 text-lg">Verifying your email...</p>
+          <p class="text-gray-600 text-lg" data-i18n="email_verify.verifying">Verifying your email...</p>
         </div>
 
         <div
@@ -70,10 +71,10 @@
               >check_circle</span
             >
           </div>
-          <h2 class="text-3xl font-bold text-[#23499b] mt-2">
+          <h2 class="text-3xl font-bold text-[#23499b] mt-2" data-i18n="email_verify.success_title">
             Email Verified!
           </h2>
-          <p class="text-gray-600 text-lg max-w-md">
+          <p class="text-gray-600 text-lg max-w-md" data-i18n="email_verify.success_desc">
             Your email has been successfully verified. You can now post
             discussions and explore the community.
           </p>
@@ -91,10 +92,10 @@
               >error</span
             >
           </div>
-          <h2 class="text-3xl font-bold text-red-500 mt-2">
+          <h2 class="text-3xl font-bold text-red-500 mt-2" data-i18n="email_verify.failed_title">
             Verification Failed
           </h2>
-          <p id="error-text" class="text-gray-600 text-lg">
+          <p id="error-text" class="text-gray-600 text-lg" data-i18n="email_verify.invalid_token">
             This link is invalid or expired.
           </p>
         </div>
@@ -106,7 +107,7 @@
         style="display: none"
         class="block w-full p-4 bg-[#ffde42] border-2 border-[#23499b] rounded-2xl text-xl font-bold cursor-pointer mt-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(255,222,66,0.4)] max-sm:p-3.5 max-sm:text-lg"
       >
-        <i class="bi bi-box-arrow-in-right mr-2"></i> Go to Login
+        <i class="bi bi-box-arrow-in-right mr-2"></i> <span data-i18n="email_verify.login_btn">Go to Login</span>
       </a>
 
       <a
@@ -115,15 +116,22 @@
         style="display: none"
         class="inline-block mt-5 text-[#23499b] font-semibold text-lg transition duration-200 hover:text-[#183a82]"
       >
-        <i class="bi bi-arrow-left mr-1"></i> Back to Home
+        <i class="bi bi-arrow-left mr-1"></i> <span data-i18n="email_verify.home_btn">Back to Home</span>
       </a>
     </div>
 
     <script type="module">
       import "./src/style.css";
       import { API_BASE_URL } from "./js/config.js";
+      import { initI18n, applyTranslation, t } from "./js/lib/i18n.js";
+
+      window.addEventListener("language-changed", () => {
+        applyTranslation();
+      });
 
       async function verifyEmail() {
+        await initI18n();
+
         const params = new URLSearchParams(window.location.search);
         const token = params.get("token");
 
@@ -137,7 +145,7 @@
         if (!token) {
           spinner.style.display = "none";
           errorMsg.style.display = "flex";
-          errorText.textContent = "No verification token found.";
+          errorText.textContent = t("email_verify.invalid_token", "This link is invalid or expired.");
           homeBtn.style.display = "inline-block";
           return;
         }
@@ -156,13 +164,13 @@
             homeBtn.style.display = "inline-block";
           } else {
             errorMsg.style.display = "flex";
-            errorText.textContent = data.error || "Verification failed.";
+            errorText.textContent = data.error || t("email_verify.invalid_token", "This link is invalid or expired.");
             homeBtn.style.display = "inline-block";
           }
         } catch {
           spinner.style.display = "none";
           errorMsg.style.display = "flex";
-          errorText.textContent = "Network error. Please try again.";
+          errorText.textContent = t("email_verify.network_error", "Network error. Please try again.");
           homeBtn.style.display = "inline-block";
         }
       }

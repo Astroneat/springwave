@@ -4,6 +4,7 @@ import { getFavourites } from "../api/user.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
+import { applyTranslation } from "../lib/i18n.js";
 import { 
     initThumbnailPreview, 
     initFileUpload, 
@@ -13,11 +14,11 @@ import {
     initAttachmentLinks, 
     initOrgSelector, 
     initTurnstile, 
-    initCheckinRulesToggle,
-    initCertificateOptionsToggle,
-    initTimePicker,
-    initEventModeSelector,
-    initEditMode
+    initCheckinRulesToggle, 
+    initCertificateOptionsToggle, 
+    initTimePicker, 
+    initEventModeSelector, 
+    initEditMode 
 } from "../lib/hostForm.js";
 
 /* =========================
@@ -45,6 +46,11 @@ document.addEventListener(
             "host-activity-details-container",
             "./components/hostActivityDetails.html"
         );
+        applyTranslation();
+
+        window.addEventListener("language-changed", () => {
+            applyTranslation();
+        });
 
         await loadFooter();
         await initChatbot();

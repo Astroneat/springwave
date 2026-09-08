@@ -1,5 +1,6 @@
 import { fetchContent } from "../lib/utils.js";
 import { addEventReview } from "../api/activities.js";
+import { applyTranslation, t } from "../lib/i18n.js";
 
 let popupOverlay, popupContainer;
 
@@ -18,6 +19,7 @@ export async function openReviewModal(eventId, eventTitle, eventThumbnail, orgNa
     try {
         const html = await fetchContent("/components/reviewModal.html");
         popupContainer.innerHTML = html;
+        applyTranslation(popupContainer);
 
         document.getElementById("review-event-title").textContent = eventTitle || "Event";
         document.getElementById("review-event-id").value = eventId;
@@ -68,7 +70,7 @@ export async function openReviewModal(eventId, eventTitle, eventThumbnail, orgNa
             statusEl.classList.remove("hidden", "text-green-600", "text-red-600");
 
             if (!rating || rating < 1 || rating > 5) {
-                statusEl.textContent = "Please select a rating.";
+                statusEl.textContent = t("review.select_rating", "Please select a rating.");
                 statusEl.classList.add("text-red-600");
                 return;
             }
@@ -76,21 +78,21 @@ export async function openReviewModal(eventId, eventTitle, eventThumbnail, orgNa
             try {
                 const btn = document.getElementById("submit-review-btn");
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${t("review.submitting", "Submitting...")}`;
                 btn.disabled = true;
 
                 await addEventReview(eventId, rating, content);
 
-                statusEl.textContent = "Review submitted successfully!";
+                statusEl.textContent = t("review.success", "Review submitted successfully!");
                 statusEl.classList.add("text-green-600");
                 
                 setTimeout(() => {
                     closeReviewModal();
                 }, 1500);
             } catch (err) {
-                statusEl.textContent = err.message || "Failed to submit review.";
+                statusEl.textContent = err.message || t("review.failed", "Failed to submit review.");
                 statusEl.classList.add("text-red-600");
-                document.getElementById("submit-review-btn").innerHTML = 'Submit Review';
+                document.getElementById("submit-review-btn").innerHTML = t("review.submit_btn", "Submit Review");
                 document.getElementById("submit-review-btn").disabled = false;
             }
         });
@@ -134,4 +136,12 @@ function closeReviewModal() {
         popupOverlay.setAttribute("hidden", "true");
         if (popupContainer) popupContainer.innerHTML = "";
     }, 300);
+}
+
+if (typeof window !== "undefined") {
+    window.addEventListener("language-changed", () => {
+        if (popupOverlay && popupOverlay.classList.contains("active") && popupContainer) {
+            applyTranslation(popupContainer);
+        }
+    });
 }

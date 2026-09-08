@@ -3,35 +3,35 @@
   <div class="forum-post-backdrop" id="explorePostBackdrop"></div>
   <div class="forum-post-modal" id="explorePostModal">
     <div class="forum-post-modal-header">
-      <h2>Start a Discussion</h2>
+      <h2 data-i18n="post_modal.title">Start a Discussion</h2>
       <button class="forum-post-modal-close" id="explorePostClose">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
     <div class="forum-post-modal-body">
       <div class="forum-post-field">
-        <label for="explorePostTitle">Title</label>
-        <input type="text" id="explorePostTitle" placeholder="What's on your mind?" />
+        <label for="explorePostTitle" data-i18n="post_modal.field_title">Title</label>
+        <input type="text" id="explorePostTitle" data-i18n-placeholder="post_modal.title_placeholder" placeholder="What's on your mind?" />
       </div>
       <div class="forum-post-field">
-        <label for="explorePostContent">Content</label>
-        <textarea id="explorePostContent" rows="6" placeholder="Share your thoughts, questions, or experiences..."></textarea>
+        <label for="explorePostContent" data-i18n="post_modal.field_content">Content</label>
+        <textarea id="explorePostContent" rows="6" data-i18n-placeholder="post_modal.content_placeholder" placeholder="Share your thoughts, questions, or experiences..."></textarea>
       </div>
       <div class="forum-post-field">
-        <label for="explorePostTags">Tags</label>
-        <input type="text" id="explorePostTags" placeholder="e.g. AI, Hackathon, Team Building (comma separated)" />
+        <label for="explorePostTags" data-i18n="post_modal.field_tags">Tags</label>
+        <input type="text" id="explorePostTags" data-i18n-placeholder="post_modal.tags_placeholder" placeholder="e.g. AI, Hackathon, Team Building (comma separated)" />
       </div>
       <div class="forum-post-field">
-        <label>Related Event</label>
+        <label data-i18n="post_modal.related_event">Related Event</label>
         <div id="explorePostEventInfo" class="explore-post-event-info"></div>
       </div>
       <div id="turnstile-container-modal" class="mb-4 flex justify-center" style="margin-top: 1rem;"></div>
     </div>
     <div class="forum-post-modal-footer">
-      <button class="forum-post-btn-cancel" id="explorePostCancel">Cancel</button>
+      <button class="forum-post-btn-cancel" id="explorePostCancel" data-i18n="post_modal.cancel_btn">Cancel</button>
       <button class="forum-post-btn-publish" id="explorePostPublish">
         <span class="material-symbols-outlined text-lg">publish</span>
-        Publish
+        <span data-i18n="post_modal.publish_btn">Publish</span>
       </button>
     </div>
   </div>

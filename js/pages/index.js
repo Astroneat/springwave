@@ -5,6 +5,8 @@ import { showNoticeBox } from "../components/noticeBox.js";
 import { getUser, isAuthenticated } from "../lib/session.js";
 import { get } from "../api/client.js";
 import { searchActivities } from "../api/activities.js";
+import { t, getLang } from "../lib/i18n.js";
+import { HERO_SLIDES } from "../config/heroSlides.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar({ activeSection: "home" });
@@ -17,10 +19,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   initFinalCta();
 
   // Redesign 2.0 Dynamic Integrations
+  initHeroSlider();
   initLiveStats();
   initLiveTicker();
   initEventHub();
   initThreePillars();
+
+  window.addEventListener("language-changed", () => {
+    loadEventHubTab(currentEventTab);
+  });
 });
 
 function checkAutoVerificationNotice() {
@@ -132,6 +139,135 @@ function initSmoothScroll() {
       }
     });
   });
+}
+
+// ----------------------------------------------------
+// HERO BACKGROUND SLIDESHOW (Auto-playing CDN Images)
+// ----------------------------------------------------
+function initHeroSlider() {
+  const sliderWrap = document.getElementById("hero-slider-wrap");
+  const dotsContainer = document.getElementById("hero-slider-dots");
+  const heroSection = document.getElementById("hero");
+
+  if (!sliderWrap) return;
+
+  if (!Array.isArray(HERO_SLIDES) || HERO_SLIDES.length === 0) {
+    if (dotsContainer) dotsContainer.style.display = "none";
+    return;
+  }
+
+  sliderWrap.innerHTML = "";
+  if (dotsContainer) dotsContainer.innerHTML = "";
+
+  let currentIndex = 0;
+  let timer = null;
+  let isPaused = false;
+  const INTERVAL_MS = 6000;
+
+  // Build slides dynamically from image URLs
+  HERO_SLIDES.forEach((item, idx) => {
+    const imgUrl = typeof item === "string" ? item : (item?.url || "");
+    if (!imgUrl) return;
+
+    const slideEl = document.createElement("div");
+    slideEl.className = `hero-slide${idx === 0 ? " active" : ""}`;
+    slideEl.setAttribute("data-slide-index", idx);
+
+    const img = document.createElement("img");
+    img.className = "hero-slide-img";
+    img.src = imgUrl;
+    img.alt = `SpringWave Background ${idx + 1}`;
+    if (idx === 0) {
+      img.loading = "eager";
+      img.fetchPriority = "high";
+    } else {
+      img.loading = "lazy";
+    }
+    img.onerror = () => {
+      img.style.display = "none";
+    };
+
+    slideEl.appendChild(img);
+    sliderWrap.appendChild(slideEl);
+
+    // Create dot indicator if multiple slides exist
+    if (dotsContainer && HERO_SLIDES.length > 1) {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = `hero-dot${idx === 0 ? " active" : ""}`;
+      dot.setAttribute("role", "tab");
+      dot.setAttribute("aria-label", `Chuyển tới ảnh nền ${idx + 1}`);
+      dot.setAttribute("aria-selected", idx === 0 ? "true" : "false");
+      dot.addEventListener("click", (e) => {
+        e.preventDefault();
+        goToSlide(idx);
+        restartTimer();
+      });
+      dotsContainer.appendChild(dot);
+    }
+  });
+
+  // If only 1 slide, hide dots
+  if (HERO_SLIDES.length <= 1) {
+    if (dotsContainer) dotsContainer.style.display = "none";
+    return;
+  }
+
+  const goToSlide = (newIndex) => {
+    const slides = sliderWrap.querySelectorAll(".hero-slide");
+    const dots = dotsContainer ? dotsContainer.querySelectorAll(".hero-dot") : [];
+
+    if (slides[currentIndex]) slides[currentIndex].classList.remove("active");
+    if (dots[currentIndex]) {
+      dots[currentIndex].classList.remove("active");
+      dots[currentIndex].setAttribute("aria-selected", "false");
+    }
+
+    currentIndex = (newIndex + HERO_SLIDES.length) % HERO_SLIDES.length;
+
+    if (slides[currentIndex]) slides[currentIndex].classList.add("active");
+    if (dots[currentIndex]) {
+      dots[currentIndex].classList.add("active");
+      dots[currentIndex].setAttribute("aria-selected", "true");
+    }
+  };
+
+  const nextSlide = () => goToSlide(currentIndex + 1);
+
+  const startTimer = () => {
+    stopTimer();
+    timer = setInterval(() => {
+      if (!isPaused) {
+        nextSlide();
+      }
+    }, INTERVAL_MS);
+  };
+
+  const stopTimer = () => {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  };
+
+  const restartTimer = () => {
+    stopTimer();
+    startTimer();
+  };
+
+  // Pause on hover or focus for accessibility
+  if (heroSection) {
+    heroSection.addEventListener("mouseenter", () => { isPaused = true; });
+    heroSection.addEventListener("mouseleave", () => { isPaused = false; });
+    heroSection.addEventListener("focusin", () => { isPaused = true; });
+    heroSection.addEventListener("focusout", () => { isPaused = false; });
+  }
+
+  // Respect user preference for reduced motion
+  const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  if (!mediaQuery.matches) {
+    startTimer();
+  }
 }
 
 // ----------------------------------------------------
@@ -272,9 +408,50 @@ function renderTickerItems(track, items) {
 }
 
 // ----------------------------------------------------
+// ----------------------------------------------------
 // 3. EVENT HUB SECTION
 // ----------------------------------------------------
 let currentEventTab = "upcoming";
+const eventCache = {};
+
+function getCategoryName(category) {
+  if (!category) return "";
+  const name = category.name || "";
+  const lang = getLang();
+
+  const normalized = (category.slug || name).toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+
+  const categoryMap = {
+    technology: { vi: "Công nghệ", en: "Technology" },
+    tech: { vi: "Công nghệ", en: "Technology" },
+    congnghe: { vi: "Công nghệ", en: "Technology" },
+    sport: { vi: "Thể thao", en: "Sports" },
+    sports: { vi: "Thể thao", en: "Sports" },
+    thethao: { vi: "Thể thao", en: "Sports" },
+    music: { vi: "Âm nhạc", en: "Music" },
+    amnhac: { vi: "Âm nhạc", en: "Music" },
+    education: { vi: "Giáo dục", en: "Education" },
+    giaoduc: { vi: "Giáo dục", en: "Education" },
+    volunteering: { vi: "Tình nguyện", en: "Volunteering" },
+    volunteer: { vi: "Tình nguyện", en: "Volunteering" },
+    tinhnguyen: { vi: "Tình nguyện", en: "Volunteering" },
+    social: { vi: "Xã hội", en: "Social" },
+    socialactivity: { vi: "Xã hội", en: "Social" },
+    xahoi: { vi: "Xã hội", en: "Social" },
+    art: { vi: "Nghệ thuật", en: "Arts" },
+    arts: { vi: "Nghệ thuật", en: "Arts" },
+    nghethuat: { vi: "Nghệ thuật", en: "Arts" },
+    workshop: { vi: "Workshop", en: "Workshop" },
+    seminar: { vi: "Hội thảo", en: "Seminar" },
+    hoithao: { vi: "Hội thảo", en: "Seminar" }
+  };
+
+  const match = categoryMap[normalized];
+  if (match) {
+    return lang === "vi" ? match.vi : match.en;
+  }
+  return name;
+}
 
 function initEventHub() {
   const tabButtons = document.querySelectorAll(".event-tab-btn");
@@ -282,8 +459,12 @@ function initEventHub() {
     btn.addEventListener("click", () => {
       const tab = btn.dataset.tab;
       if (tab === currentEventTab) return;
-      tabButtons.forEach((b) => b.classList.remove("active"));
+      tabButtons.forEach((b) => {
+        b.classList.remove("active");
+        b.setAttribute("aria-selected", "false");
+      });
       btn.classList.add("active");
+      btn.setAttribute("aria-selected", "true");
       currentEventTab = tab;
       loadEventHubTab(tab);
     });
@@ -292,14 +473,23 @@ function initEventHub() {
   loadEventHubTab(currentEventTab);
 }
 
-async function loadEventHubTab(tab) {
+async function loadEventHubTab(tab, forceReload = false) {
   const container = document.getElementById("event-hub-container");
   if (!container) return;
+
+  if (!forceReload && eventCache[tab]) {
+    if (!eventCache[tab].length) {
+      renderEventHubEmptyState(container, tab);
+    } else {
+      renderEventHubCards(container, eventCache[tab], tab);
+    }
+    return;
+  }
 
   container.innerHTML = `
     <div class="event-empty-box">
       <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent mb-3"></div>
-      <p class="text-slate-500 text-sm">Đang tải danh sách sự kiện...</p>
+      <p class="text-slate-500 text-sm">${t("index.events_loading", {}, "Đang tải danh sách sự kiện...")}</p>
     </div>
   `;
 
@@ -339,6 +529,8 @@ async function loadEventHubTab(tab) {
       }).slice(0, 6);
     }
 
+    eventCache[tab] = activities;
+
     if (!activities.length) {
       renderEventHubEmptyState(container, tab);
       return;
@@ -350,9 +542,9 @@ async function loadEventHubTab(tab) {
     container.innerHTML = `
       <div class="event-empty-box">
         <span class="material-symbols-outlined event-empty-icon text-red-400">error</span>
-        <p class="text-slate-700 font-bold mb-1">Không thể tải danh sách sự kiện</p>
-        <p class="text-slate-500 text-xs mb-4">Vui lòng kiểm tra kết nối mạng và thử lại.</p>
-        <button class="px-4 py-2 text-xs font-bold rounded-full bg-blue-600 text-white" onclick="window.location.reload()">Thử lại</button>
+        <p class="text-slate-700 font-bold mb-1">${t("index.events_error_title", {}, "Không thể tải danh sách sự kiện")}</p>
+        <p class="text-slate-500 text-xs mb-4">${t("index.events_error_desc", {}, "Vui lòng kiểm tra kết nối mạng và thử lại.")}</p>
+        <button class="px-4 py-2 text-xs font-bold rounded-full bg-blue-600 text-white" onclick="window.location.reload()">${t("index.events_retry", {}, "Thử lại")}</button>
       </div>
     `;
   }
@@ -388,26 +580,44 @@ function renderEventHubCards(container, activities, tab) {
     const statusPill = document.createElement("span");
     if (tab === "upcoming") {
       statusPill.className = "event-status-pill open";
-      statusPill.textContent = "Đang mở đơn";
+      statusPill.textContent = t("index.event_status_open", {}, "Đang mở đơn");
     } else if (tab === "ongoing") {
       statusPill.className = "event-status-pill ongoing";
-      statusPill.textContent = "Đang diễn ra";
+      statusPill.textContent = t("index.event_status_ongoing", {}, "Đang diễn ra");
     } else {
       statusPill.className = "event-status-pill ended";
-      statusPill.textContent = "Đã kết thúc";
+      statusPill.textContent = t("index.event_status_ended", {}, "Đã kết thúc");
     }
     badgesTop.appendChild(statusPill);
 
     if (ev.category && ev.category.name) {
       const catPill = document.createElement("span");
       catPill.className = "event-category-pill";
-      if (ev.category.icon) {
-        const catIcon = document.createElement("span");
-        catIcon.className = "material-symbols-outlined text-xs";
-        catIcon.textContent = ev.category.icon;
-        catPill.appendChild(catIcon);
+
+      const iconStr = (ev.category.icon || "").trim();
+      let iconEl;
+      if (iconStr.includes("fa-") || iconStr.startsWith("fa")) {
+        iconEl = document.createElement("i");
+        iconEl.className = iconStr;
+      } else if (iconStr) {
+        iconEl = document.createElement("span");
+        iconEl.className = "material-symbols-outlined text-xs";
+        iconEl.textContent = iconStr;
+      } else {
+        iconEl = document.createElement("i");
+        iconEl.className = "fa-solid fa-tag";
       }
-      catPill.appendChild(document.createTextNode(ev.category.name));
+
+      if (ev.category.color) {
+        iconEl.style.color = ev.category.color;
+      }
+
+      catPill.appendChild(iconEl);
+
+      const catName = document.createElement("span");
+      catName.textContent = getCategoryName(ev.category);
+      catPill.appendChild(catName);
+
       badgesTop.appendChild(catPill);
     }
     coverWrap.appendChild(badgesTop);
@@ -426,17 +636,32 @@ function renderEventHubCards(container, activities, tab) {
     const hostRow = document.createElement("div");
     hostRow.className = "event-card-host";
 
-    const hostAvatar = document.createElement("img");
-    hostAvatar.className = "event-host-avatar";
-    hostAvatar.src = ev.organization?.avatar || "/assets/images/Tai.jpg";
-    hostAvatar.alt = ev.organization?.name || ev.hostName || "Host";
-    hostAvatar.onerror = () => {
-      hostAvatar.src = "/assets/images/Tai.jpg";
-    };
+    const hostNameText = ev.organization?.name || ev.hostName || t("index.event_host_default", {}, "Ban Tổ Chức");
+
+    let hostAvatar;
+    if (ev.organization?.avatar) {
+      hostAvatar = document.createElement("img");
+      hostAvatar.className = "event-host-avatar";
+      hostAvatar.src = ev.organization.avatar;
+      hostAvatar.alt = hostNameText;
+      hostAvatar.loading = "lazy";
+      hostAvatar.onerror = () => {
+        const iconWrap = document.createElement("div");
+        iconWrap.className = "event-host-avatar event-host-avatar-icon";
+        iconWrap.innerHTML = `<span class="material-symbols-outlined">corporate_fare</span>`;
+        if (hostAvatar.parentNode) {
+          hostAvatar.parentNode.replaceChild(iconWrap, hostAvatar);
+        }
+      };
+    } else {
+      hostAvatar = document.createElement("div");
+      hostAvatar.className = "event-host-avatar event-host-avatar-icon";
+      hostAvatar.innerHTML = `<span class="material-symbols-outlined">corporate_fare</span>`;
+    }
 
     const hostName = document.createElement("span");
     hostName.className = "event-host-name";
-    hostName.textContent = ev.organization?.name || ev.hostName || "Ban Tổ Chức";
+    hostName.textContent = hostNameText;
 
     hostRow.appendChild(hostAvatar);
     hostRow.appendChild(hostName);
@@ -455,7 +680,7 @@ function renderEventHubCards(container, activities, tab) {
     // Location
     const locRow = document.createElement("div");
     locRow.className = "event-meta-row";
-    const locText = ev.location || (ev.isNonPartner ? "Trực tuyến" : "Cơ sở ĐH");
+    const locText = ev.location || (ev.isNonPartner ? t("index.event_location_online", {}, "Trực tuyến") : t("index.event_location_campus", {}, "Cơ sở ĐH"));
     locRow.innerHTML = `<span class="material-symbols-outlined">location_on</span> <span title="${escapeHtml(locText)}">${escapeHtml(locText)}</span>`;
     metaList.appendChild(locRow);
 
@@ -464,7 +689,7 @@ function renderEventHubCards(container, activities, tab) {
     // Card Action
     const action = document.createElement("div");
     action.className = "event-card-action";
-    action.innerHTML = `<span>Xem chi tiết</span><span class="material-symbols-outlined text-sm">arrow_forward</span>`;
+    action.innerHTML = `<span>${t("index.event_view_details", {}, "Xem chi tiết")}</span><span class="material-symbols-outlined text-sm">arrow_forward</span>`;
     body.appendChild(action);
 
     card.appendChild(body);
@@ -475,22 +700,20 @@ function renderEventHubCards(container, activities, tab) {
 }
 
 function renderEventHubEmptyState(container, tab) {
-  let msg = "Hiện chưa có sự kiện nào trong danh mục này.";
-  if (tab === "upcoming") {
-    msg = "Hiện chưa có sự kiện nào sắp mở đơn mới. Bạn hãy quay lại sau nhé!";
-  } else if (tab === "ongoing") {
-    msg = "Hôm nay không có sự kiện nào đang diễn ra trực tiếp. Khám phá các sự kiện sắp tới nhé!";
+  let msg = t("index.event_no_upcoming", {}, "Hiện chưa có sự kiện nào sắp mở đơn mới. Bạn hãy quay lại sau nhé!");
+  if (tab === "ongoing") {
+    msg = t("index.event_no_ongoing", {}, "Hôm nay không có sự kiện nào đang diễn ra trực tiếp. Khám phá các sự kiện sắp tới nhé!");
   } else if (tab === "past") {
-    msg = "Chưa có sự kiện nào trong danh sách đã kết thúc.";
+    msg = t("index.event_no_past", {}, "Chưa có sự kiện nào trong danh sách đã kết thúc.");
   }
 
   container.innerHTML = `
     <div class="event-empty-box">
       <span class="material-symbols-outlined event-empty-icon">event_busy</span>
       <p class="text-slate-700 font-bold mb-1">${msg}</p>
-      <p class="text-slate-500 text-xs mb-4">Các sự kiện và hoạt động mới được ban tổ chức cập nhật liên tục mỗi ngày.</p>
+      <p class="text-slate-500 text-xs mb-4">${t("index.event_empty_desc", {}, "Các sự kiện và hoạt động mới được ban tổ chức cập nhật liên tục mỗi ngày.")}</p>
       <a href="/explore.html" class="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-        <span>Xem tất cả sự kiện</span>
+        <span>${t("index.view_all_events", {}, "Xem tất cả sự kiện")}</span>
         <span class="material-symbols-outlined text-sm">arrow_forward</span>
       </a>
     </div>
@@ -515,16 +738,33 @@ async function initThreePillars() {
 
     const fragment = document.createDocumentFragment();
     orgs.slice(0, 8).forEach((org) => {
-      const img = document.createElement("img");
-      img.className = "org-logo-item";
-      img.src = org.avatar || "/assets/images/Tai.jpg";
-      img.alt = org.name;
-      img.title = `${org.name} (${org.followersCount || 0} thành viên/theo dõi)`;
-      img.loading = "lazy";
-      img.onerror = () => {
-        img.src = "/assets/images/Tai.jpg";
-      };
-      fragment.appendChild(img);
+      const followersLabel = t("index.members_followers", {}, "thành viên/theo dõi");
+      const titleText = `${org.name} (${org.followersCount || 0} ${followersLabel})`;
+
+      if (org.avatar) {
+        const img = document.createElement("img");
+        img.className = "org-logo-item";
+        img.src = org.avatar;
+        img.alt = org.name;
+        img.title = titleText;
+        img.loading = "lazy";
+        img.onerror = () => {
+          const iconWrap = document.createElement("div");
+          iconWrap.className = "org-logo-item flex items-center justify-center bg-blue-50 text-blue-600";
+          iconWrap.title = titleText;
+          iconWrap.innerHTML = `<span class="material-symbols-outlined text-lg">corporate_fare</span>`;
+          if (img.parentNode) {
+            img.parentNode.replaceChild(iconWrap, img);
+          }
+        };
+        fragment.appendChild(img);
+      } else {
+        const iconWrap = document.createElement("div");
+        iconWrap.className = "org-logo-item flex items-center justify-center bg-blue-50 text-blue-600";
+        iconWrap.title = titleText;
+        iconWrap.innerHTML = `<span class="material-symbols-outlined text-lg">corporate_fare</span>`;
+        fragment.appendChild(iconWrap);
+      }
     });
 
     strip.innerHTML = "";
@@ -558,6 +798,10 @@ function initFAQAccordion() {
       document.querySelectorAll(".faq-item").forEach(otherItem => {
         if (otherItem !== item) {
           otherItem.classList.remove("active");
+          const otherHeader = otherItem.querySelector(".faq-header");
+          if (otherHeader) {
+            otherHeader.setAttribute("aria-expanded", "false");
+          }
           const otherContent = otherItem.querySelector(".faq-content");
           if (otherContent) {
             otherContent.style.maxHeight = null;
@@ -567,9 +811,11 @@ function initFAQAccordion() {
 
       if (isActive) {
         item.classList.remove("active");
+        header.setAttribute("aria-expanded", "false");
         content.style.maxHeight = null;
       } else {
         item.classList.add("active");
+        header.setAttribute("aria-expanded", "true");
         content.style.maxHeight = content.scrollHeight + "px";
       }
     });
