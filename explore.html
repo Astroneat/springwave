@@ -24,20 +24,36 @@
   <div id="navbar-container"></div>
 
   <!-- ===== EXPLORE SECTION ===== -->
-  <section class="explore min-h-screen pt-24" id="explore">
+  <section class="explore explore-shell" id="explore">
 
     <!-- INTRO -->
     <div class="max-w-container-max mx-auto px-gutter">
-      <div class="text-center mb-8 space-y-2 pt-8">
-        <h1 class="explore-figma-title" data-i18n="explore.find_adventure">Find your next journey</h1>
-        <p class="explore-figma-desc" data-i18n="explore.explore_desc">Search through hundreds of activities and events happening around you.</p>
+      <div class="explore-hero">
+        <div class="explore-hero-copy">
+          <h1 class="explore-figma-title" data-i18n="explore.find_adventure">Find the right activity faster</h1>
+          <p class="explore-figma-desc" data-i18n="explore.explore_desc">Filter by school, date, certificate, and interest without losing the full event list.</p>
+        </div>
+        <div class="explore-hero-notes" aria-label="Explore benefits">
+          <div class="explore-hero-note">
+            <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+            <span data-i18n="explore.hero_filter">Start with the filters that matter</span>
+          </div>
+          <div class="explore-hero-note">
+            <span class="material-symbols-outlined" aria-hidden="true">school</span>
+            <span data-i18n="explore.hero_university">See opportunities from your campus</span>
+          </div>
+          <div class="explore-hero-note">
+            <span class="material-symbols-outlined" aria-hidden="true">workspace_premium</span>
+            <span data-i18n="explore.hero_certificate">Spot events with certificates</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- RECOMMENDATIONS (DYNAMIC) -->
     <div id="recommendations-section" class="max-w-container-max mx-auto px-gutter mb-6" style="display:none;">
       <div class="recommendations-header">
-        <span class="material-symbols-outlined" style="color:#8B5CF6;font-size:22px;">auto_awesome</span>
+        <span class="material-symbols-outlined recommendations-icon" aria-hidden="true">travel_explore</span>
         <h2 class="recommendations-title" data-i18n="explore.recommended">Recommended For You</h2>
       </div>
       <div id="recommendations-container" class="recommendations-container"></div>
@@ -216,11 +232,14 @@
           <!-- MAIN CONTENT -->
           <main class="explore-main">
             <div class="results-header">
-              <span class="results-count" id="resultsCount">0 activities</span>
-              <div class="sidebar-toggle" id="sidebarToggle">
+              <div>
+                <h2 class="results-title" data-i18n="explore.all_activities">All activities</h2>
+                <span class="results-count" id="resultsCount">0 activities</span>
+              </div>
+              <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Open filters">
                 <span class="material-symbols-outlined">filter_list</span>
                 <span data-i18n="explore.filters">Filters</span>
-              </div>
+              </button>
             </div>
             <div id="cards-container" class="cards-container"></div>
             <div id="pagination-container" class="pagination-container"></div>

@@ -263,12 +263,12 @@ async function loadRecommendations() {
             const pct = Number.isFinite(a.percentage) ? a.percentage : (a.score ? Math.round(a.score * 100) : null);
             const matchBadgeHTML = pct !== null ? `
                 <div class="recommendation-match-pill">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> ${pct}% ${t("explore.match_pill", "Match")}
+                    <i class="fa-solid fa-bullseye"></i> ${pct}% ${t("explore.match_pill", "Match")}
                 </div>
             ` : '';
 
             return `
-                <div class="recommendation-card" data-id="${escapeAttr(a._id || a.activityID)}" style="cursor:pointer;">
+                <div class="recommendation-card" data-id="${escapeAttr(a._id || a.activityID)}" role="button" tabindex="0">
                     <div class="recommendation-thumb relative">
                         ${matchBadgeHTML}
                         ${a.thumbnail ? `<img src="${safeThumb}" alt="${safeTitle}">` : '<div class="recommendation-thumb-placeholder"><span class="material-symbols-outlined">event</span></div>'}
@@ -283,10 +283,17 @@ async function loadRecommendations() {
         }).join('');
 
         container.querySelectorAll('.recommendation-card').forEach(card => {
-            card.addEventListener('click', () => {
+            const openRecommendation = () => {
                 const id = card.dataset.id;
                 const actData = recommended.find(a => String(a._id || a.activityID) === id);
                 openEventPopup(id, { activityData: actData });
+            };
+            card.addEventListener('click', openRecommendation);
+            card.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openRecommendation();
+                }
             });
         });
     } catch {
@@ -303,13 +310,13 @@ window.addEventListener('springwave:ai-match-updated', (e) => {
     if (card) {
         let pill = card.querySelector('.recommendation-match-pill');
         if (pill) {
-            pill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% ${t("explore.match_pill", "Match")}`;
+            pill.innerHTML = `<i class="fa-solid fa-bullseye"></i> ${percentage}% ${t("explore.match_pill", "Match")}`;
         } else {
             const thumb = card.querySelector('.recommendation-thumb');
             if (thumb) {
                 const newPill = document.createElement('div');
                 newPill.className = 'recommendation-match-pill';
-                newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${percentage}% ${t("explore.match_pill", "Match")}`;
+                newPill.innerHTML = `<i class="fa-solid fa-bullseye"></i> ${percentage}% ${t("explore.match_pill", "Match")}`;
                 thumb.prepend(newPill);
             }
         }
@@ -1706,8 +1713,6 @@ if (typeof window !== "undefined") {
         loadRecommendations().catch(() => {});
     });
 }
-
-
 
 
 
