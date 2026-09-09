@@ -368,7 +368,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       })
   );
 
-  const isAuthorized = isOwner || isManager || loggedInUser.role === "admin";
+  const isAuthorized = isOwner || loggedInUser.role === "admin";
 
   if (isAuthorized) {
     const editAvatarBtn = document.getElementById("edit-avatar-btn");

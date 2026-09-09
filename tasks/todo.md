@@ -1,25 +1,19 @@
-# Tasks: Restructure Org Dashboard & Events Tab Timeline Display
+# Tasks: Tighten Organization Manager Permissions
 
-- [x] Task 1: Update navigation and remove redundant Dashboard section <!-- id: 1 -->
-  - [x] Remove Dashboard link from desktop sidebar (`sidenav`) and mobile tabs in `org-dashboard.html`
-  - [x] Set "Events" as the first and active navigation item
-  - [x] Remove `#section-dashboard` from `org-dashboard.html` and unhide `#section-events` by default
-  - [x] Update `currentSection = "events"` and add fallback in `switchSection` in `js/pages/org-dashboard.js`
-- [x] Task 2: Implement Metric Cards in Events Tab <!-- id: 2 -->
-  - [x] Add 4-card metric section at the top of `#section-events` (Total Events, Participants, Upcoming, Ongoing)
-  - [x] Update JS stats computation logic to calculate and populate `stat-events`, `stat-participants`, `stat-upcoming`, `stat-ongoing`
-  - [x] Maintain graceful fallback for `stat-views` if needed
-- [x] Task 3: Implement Timeline Categorization & Filter Tabs <!-- id: 3 -->
-  - [x] Implement `getEventTimelineStatus(event)` in `js/pages/org-dashboard.js` (`upcoming`, `ongoing`, `ended`)
-  - [x] Redesign filter toolbar in `org-dashboard.html` with timeline tabs (`All`, `Upcoming`, `Ongoing`, `Past`), search input, and publication status filter
-  - [x] Remove obsolete `#toggle-expired-events` button
-  - [x] Wire up tab click listeners and badge count updates in `initEventsTabs()`
-- [x] Task 4: Enhance Events Table Rendering & Status Badges <!-- id: 4 -->
-  - [x] Update `renderEventsTable()` to filter by active timeline tab, publication status, and query
-  - [x] Render timeline status badge in Status column (pulsing emerald for ongoing, blue for upcoming, slate for ended)
-  - [x] Render draft indicator badge if `status === "draft"`
-  - [x] Add contextual empty states for each tab filter
-- [x] Task 5: Localization & Build Verification <!-- id: 5 -->
-  - [x] Add i18n keys for timeline tabs and badges in `public/locales/vi.json` and `public/locales/en.json`
-  - [x] Run `npm run build` in `springwave-frontend` to verify clean compilation with Vite
-  - [x] Verify UI responsiveness and behavior across viewports
+- [x] Task 1: Tighten Backend Permissions <!-- id: 1 -->
+  - [x] Restrict `deleteEvent` in `src/controllers/event.controller.js` to Owner or Admin
+  - [x] Restrict `uploadOrgAvatar` and `uploadOrgCover` in `src/controllers/organization.controller.js` to Owner or Admin
+  - [x] Restrict `revokeCertificate` and `restoreCertificate` in `src/controllers/certificate.controller.js` to Owner or Admin
+  - [x] Restrict `postAsOrg` in `src/controllers/community.controller.js` to Owner or Admin
+- [x] Task 2: Implement Frontend Role Guards in Dashboard <!-- id: 2 -->
+  - [x] Add `isOrgOwner()` helper in `js/pages/org-dashboard.js`
+  - [x] Hide event delete button in `renderEventsTable` for managers
+  - [x] Hide Add Manager button and Remove/Transfer actions in Managers tab for managers
+  - [x] Hide Delete Org and Change Avatar buttons, and make settings fields read-only with banner for managers
+  - [x] Hide Revoke button in Certificates section for managers
+  - [x] Hide Avatar and Cover edit buttons in `org-profile.js` for managers
+  - [x] Hide organization posting option in `community.js` for managers
+- [x] Task 3: Localization & Verification <!-- id: 3 -->
+  - [x] Add i18n strings for manager read-only notice in `vi.json` and `en.json`
+  - [x] Run `npm run build` in `springwave-frontend`
+  - [x] Verify functionality

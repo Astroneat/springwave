@@ -1756,7 +1756,11 @@
     "pdf_export_error": "Could not generate PDF. Please try again.",
     "pdf_no_participants": "No participants to export for this event.",
     "pdf_loading": "Generating PDF...",
-    "pdf_download_btn": "Download PDF"
+    "pdf_download_btn": "Download PDF",
+    "manager_notice_title": "Read-only Mode (Manager)",
+    "manager_readonly_notice": "You are accessing as a Manager. Only the organization Owner has permission to edit profile information or delete the organization.",
+    "no_permission": "No permission",
+    "only_owner_can_edit": "Only the organization owner can perform this action."
   },
   "admin_universities": {
     "title": "University Management",

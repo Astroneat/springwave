@@ -1756,7 +1756,11 @@
     "pdf_export_error": "Không thể tạo PDF. Vui lòng thử lại.",
     "pdf_no_participants": "Không có người tham gia để xuất cho sự kiện này.",
     "pdf_loading": "Đang tạo PDF...",
-    "pdf_download_btn": "Tải xuống PDF"
+    "pdf_download_btn": "Tải xuống PDF",
+    "manager_notice_title": "Chế độ chỉ xem (Manager)",
+    "manager_readonly_notice": "Bạn đang truy cập với vai trò Quản lý (Manager). Chỉ Chủ nhiệm (Owner) mới có quyền chỉnh sửa thông tin hoặc xóa tổ chức.",
+    "no_permission": "Không có quyền",
+    "only_owner_can_edit": "Chỉ Chủ nhiệm tổ chức mới có quyền thực hiện thao tác này."
   },
   "admin_universities": {
     "title": "Quản lý Trường Đại học",

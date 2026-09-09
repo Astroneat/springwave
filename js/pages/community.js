@@ -2877,10 +2877,13 @@ function initPostModal() {
     try {
       const data = await getMyOrganizations();
       const orgs = data?.organizations || [];
-      if (orgs.length > 0) {
+      const user = getUser();
+      const isAdmin = user?.role === "admin";
+      const ownerOrgs = orgs.filter(org => isAdmin || org.membershipRole === "owner" || String(org.owner?._id || org.owner) === String(user?._id || user?.id));
+      if (ownerOrgs.length > 0) {
         postIdentityField.classList.remove("hidden");
         postIdentitySelect.innerHTML = '<option value="personal">Personal (Me)</option>';
-        orgs.forEach(org => {
+        ownerOrgs.forEach(org => {
           const opt = document.createElement("option");
           opt.value = `org-${org._id}`;
           opt.textContent = `Organization: ${org.name}`;

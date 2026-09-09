@@ -82,6 +82,17 @@ function isAdminUser() {
   return u?.role === "admin";
 }
 
+function isOrgOwner() {
+  if (isAdminUser()) return true;
+  const org = currentOrgs.find(o => o._id === currentOrgId);
+  if (!org) return false;
+  if (org.membershipRole === "owner") return true;
+  if (org.membershipRole === "manager") return false;
+  const currentUserId = getUser()?._id || getUser()?.id;
+  const ownerId = typeof org.owner === "object" ? (org.owner?._id || org.owner?.id) : org.owner;
+  return !!(currentUserId && ownerId && String(currentUserId) === String(ownerId));
+}
+
 async function loadOrgs() {
   try {
     const data = isAdminUser() ? await getAllOrganizations() : await getMyOrganizations();
@@ -614,9 +625,11 @@ function renderEventsTable() {
           <button class="edit-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center transition-all spring-ease ${editDisabled ? 'opacity-40 cursor-not-allowed' : 'text-[#1755ba] hover:bg-[#dae1ff] hover:text-primary'}" title="${editTitle}" ${editDisabled ? 'disabled' : ''}>
             <i class="fa-solid fa-pen text-sm"></i>
           </button>
+          ${isOrgOwner() ? `
           <button class="delete-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Delete">
             <i class="fa-solid fa-trash-can text-sm"></i>
           </button>
+          ` : ''}
         </div>
       </td>
     </tr>
@@ -646,6 +659,10 @@ function renderEventsTable() {
   tbody.querySelectorAll(".delete-event-btn").forEach(btn => {
     btn.addEventListener("click", async e => {
       e.stopPropagation();
+      if (!isOrgOwner()) {
+        alert("Only the organization owner can delete events");
+        return;
+      }
       const id = btn.closest("tr").dataset.id;
       if (!confirm("Delete this event? This cannot be undone.")) return;
       try {
@@ -6162,6 +6179,8 @@ async function loadCertificates(eventId) {
     }
     empty.classList.add("hidden");
 
+    const isOwner = isOrgOwner();
+
     tbody.innerHTML = certificates.map(c => {
       const user = c.user || {};
       const userName = user.fullname || c.metadata?.userName || "Unknown";
@@ -6171,16 +6190,19 @@ async function loadCertificates(eventId) {
         : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-circle-check text-[10px]"></i> Active</span>`;
 
       const actionButtons = isRevoked
-        ? `<button class="restore-cert-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${userName}">
-             <i class="fa-solid fa-rotate-left"></i> Restore
-           </button>`
+        ? (isOwner
+            ? `<button class="restore-cert-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${userName}">
+                 <i class="fa-solid fa-rotate-left"></i> Restore
+               </button>`
+            : `<span class="text-xs text-slate-400 italic">—</span>`)
         : `<div class="flex items-center justify-end gap-2">
              <a href="/certificate.html?code=${c.certificateCode}" target="_blank" class="p-1.5 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-50 transition-colors text-xs font-semibold" title="View Certificate">
                <i class="fa-solid fa-arrow-up-right-from-square"></i>
              </a>
+             ${isOwner ? `
              <button class="revoke-cert-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${userName}" data-cert-code="${c.certificateCode}">
                <i class="fa-solid fa-ban text-[11px]"></i> Revoke
-             </button>
+             </button>` : ''}
            </div>`;
 
       return `
@@ -6200,6 +6222,7 @@ async function loadCertificates(eventId) {
     // Attach Revoke modal openers
     tbody.querySelectorAll(".revoke-cert-btn").forEach(btn => {
       btn.addEventListener("click", () => {
+        if (!isOrgOwner()) return alert("Only the organization owner can revoke certificates");
         const certId = btn.dataset.certId;
         const userName = btn.dataset.userName;
         const certCode = btn.dataset.certCode;
@@ -6210,6 +6233,7 @@ async function loadCertificates(eventId) {
     // Attach Restore actions
     tbody.querySelectorAll(".restore-cert-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
+        if (!isOrgOwner()) return alert("Only the organization owner can restore certificates");
         const certId = btn.dataset.certId;
         const userName = btn.dataset.userName;
         if (!confirm(`Are you sure you want to restore the certificate for ${userName}?`)) return;
@@ -6275,6 +6299,7 @@ function initIssueCerts() {
   document.getElementById("revoke-cert-backdrop")?.addEventListener("click", closeRevokeModal);
 
   document.getElementById("revoke-cert-confirm-btn")?.addEventListener("click", async () => {
+    if (!isOrgOwner()) return alert("Only the organization owner can revoke certificates");
     const idInput = document.getElementById("revoke-cert-id");
     const reasonInput = document.getElementById("revoke-cert-reason");
     const certId = idInput?.value;
@@ -6306,6 +6331,11 @@ async function loadManagers() {
     const { managers = [] } = await getManagers(currentOrgId);
     const tbody = document.getElementById("managers-table-body");
     const empty = document.getElementById("managers-empty");
+    const addManagerBtn = document.getElementById("add-manager-btn");
+
+    if (addManagerBtn) {
+      addManagerBtn.classList.toggle("hidden", !isOrgOwner());
+    }
 
     if (!managers.length) {
       tbody.innerHTML = "";
@@ -6314,22 +6344,22 @@ async function loadManagers() {
     }
     empty.classList.add("hidden");
 
-    const u = getUser();
-    const currentOrg = currentOrgs.find(o => o._id === currentOrgId);
-    const isOwner = currentOrg && u && (currentOrg.owner?._id === u._id || currentOrg.owner === u._id);
+    const isOwner = isOrgOwner();
 
     tbody.innerHTML = managers.map(m => {
-      const transferBtn = isOwner
-        ? `<button class="transfer-owner-btn text-sm text-[#1755ba] font-semibold hover:underline bg-transparent border-none cursor-pointer mr-4" data-user-id="${m._id}" data-fullname="${m.fullname || m.username || 'this user'}" data-email="${m.email}">Transfer Ownership</button>`
-        : "";
+      const actions = isOwner
+        ? `
+            <button class="transfer-owner-btn text-sm text-[#1755ba] font-semibold hover:underline bg-transparent border-none cursor-pointer mr-4" data-user-id="${m._id}" data-fullname="${m.fullname || m.username || 'this user'}" data-email="${m.email}">Transfer Ownership</button>
+            <button class="remove-manager-btn text-sm text-red-500 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${m._id}">Remove</button>
+          `
+        : `<span class="text-xs text-slate-400 italic" data-i18n="org_dashboard.no_permission">No permission</span>`;
       return `
         <tr class="border-b border-[#ecedfa]">
           <td class="py-3.5 px-4"><span class="font-semibold">${m.fullname || "Unknown"}</span></td>
           <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${m.email || "—"}</td>
           <td class="py-3.5 px-4"><span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#dae1ff;color:#1755ba">Manager</span></td>
           <td class="py-3.5 px-4 text-right">
-            ${transferBtn}
-            <button class="remove-manager-btn text-sm text-red-500 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${m._id}">Remove</button>
+            ${actions}
           </td>
         </tr>
       `;
@@ -6337,6 +6367,7 @@ async function loadManagers() {
 
     tbody.querySelectorAll(".remove-manager-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
+        if (!isOrgOwner()) return alert("Only the organization owner can remove managers");
         if (!confirm("Remove this manager?")) return;
         try {
           await removeManager(currentOrgId, btn.dataset.userId);
@@ -6349,6 +6380,7 @@ async function loadManagers() {
 
     tbody.querySelectorAll(".transfer-owner-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
+        if (!isOrgOwner()) return alert("Only the organization owner can transfer ownership");
         const fullname = btn.dataset.fullname;
         const email = btn.dataset.email;
         if (!email) return alert("This manager does not have an email address set.");
@@ -6372,6 +6404,7 @@ function initAddManager() {
 
   document.getElementById("add-manager-btn").addEventListener("click", () => {
     if (!currentOrgId) return alert("Select an organization first");
+    if (!isOrgOwner()) return alert("Only the organization owner can add managers");
     document.getElementById("manager-email-input").value = "";
     overlay.removeAttribute("hidden");
     overlay.classList.add("active");
@@ -6388,6 +6421,7 @@ function initAddManager() {
   document.getElementById("manager-cancel").addEventListener("click", close);
 
   document.getElementById("manager-confirm").addEventListener("click", async () => {
+    if (!isOrgOwner()) return alert("Only the organization owner can add managers");
     const email = document.getElementById("manager-email-input").value.trim();
     if (!email) return alert("Enter an email address");
     try {
@@ -6424,6 +6458,57 @@ function loadSettings(org) {
   if (avatarPreview) {
     avatarPreview.src = org.avatar || "/assets/images/default-org-avatar.png";
   }
+
+  // Permission checks: Only owner or platform admin can edit settings or delete org
+  const isOwner = isOrgOwner();
+  const notice = document.getElementById("settings-manager-notice");
+  if (notice) {
+    notice.classList.toggle("hidden", isOwner);
+  }
+
+  const inputs = [
+    "settings-name",
+    "settings-university",
+    "settings-desc",
+    "settings-phone",
+    "settings-email",
+    "settings-website",
+    "settings-facebook",
+    "settings-linkedin",
+    "settings-instagram",
+    "settings-twitter"
+  ];
+  inputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.disabled = !isOwner;
+      if (!isOwner) {
+        el.classList.add("opacity-60", "cursor-not-allowed", "bg-slate-50");
+      } else {
+        el.classList.remove("opacity-60", "cursor-not-allowed", "bg-slate-50");
+      }
+    }
+  });
+
+  const submitBtn = document.querySelector("#org-settings-form button[type='submit']");
+  if (submitBtn) {
+    submitBtn.classList.toggle("hidden", !isOwner);
+  }
+
+  const deleteOrgBtn = document.getElementById("delete-org-btn");
+  if (deleteOrgBtn) {
+    deleteOrgBtn.classList.toggle("hidden", !isOwner);
+  }
+
+  const changeAvatarBtn = document.getElementById("change-org-avatar-btn");
+  if (changeAvatarBtn) {
+    changeAvatarBtn.classList.toggle("hidden", !isOwner);
+  }
+
+  const avatarInputLabel = document.querySelector("label[for='settings-avatar-input']");
+  if (avatarInputLabel) {
+    avatarInputLabel.classList.toggle("hidden", !isOwner);
+  }
 }
 
 function initSettingsForm() {
@@ -6433,13 +6518,17 @@ function initSettingsForm() {
   const avatarPreview = document.getElementById("settings-avatar-preview");
 
   if (changeAvatarBtn && avatarInput) {
-    changeAvatarBtn.addEventListener("click", () => avatarInput.click());
+    changeAvatarBtn.addEventListener("click", () => {
+      if (!isOrgOwner()) return alert("Only the organization owner can change the organization logo");
+      avatarInput.click();
+    });
   }
 
   if (avatarInput) {
     avatarInput.addEventListener("change", async (e) => {
       const file = e.target.files?.[0];
       if (!file || !currentOrgId) return;
+      if (!isOrgOwner()) return alert("Only the organization owner can change the organization logo");
 
       if (file.size > 5 * 1024 * 1024) {
         alert("Image must be smaller than 5MB");
@@ -6475,6 +6564,7 @@ function initSettingsForm() {
   document.getElementById("org-settings-form").addEventListener("submit", async e => {
     e.preventDefault();
     if (!currentOrgId) return;
+    if (!isOrgOwner()) return alert("Only the organization owner can update organization settings");
     const uniInput = document.getElementById("settings-university");
     const data = {
       name: document.getElementById("settings-name").value.trim(),
@@ -6503,6 +6593,7 @@ function initSettingsForm() {
 
   document.getElementById("delete-org-btn").addEventListener("click", async () => {
     if (!currentOrgId) return;
+    if (!isOrgOwner()) return alert("Only the organization owner can delete the organization");
     if (!confirm("Delete this organization permanently? This cannot be undone.")) return;
     if (!confirm("Are you sure? All events will be unlinked from this organization.")) return;
     try {
