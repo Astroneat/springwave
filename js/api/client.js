@@ -312,7 +312,10 @@ async function request(endpoint, options = {}) {
                 err.retryAfter = retryAfter ? parseInt(retryAfter) : null;
                 throw err;
             }
-            throw new ApiError(response.status, data?.message || data?.error || "Request failed");
+            const err = new ApiError(response.status, data?.message || data?.error || "Request failed");
+            err.code = data?.code || data?.error;
+            err.data = data;
+            throw err;
         }
 
         return data;

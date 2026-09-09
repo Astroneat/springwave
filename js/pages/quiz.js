@@ -1097,6 +1097,12 @@ function renderResults(rawPersonaKey, resultData = {}) {
   `;
 
   document.getElementById("quizExploreBtn")?.addEventListener("click", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get("redirect");
+    if (redirectUrl && (redirectUrl.startsWith("/") || redirectUrl.startsWith(window.location.origin))) {
+      window.location.href = redirectUrl;
+      return;
+    }
     window.location.href = isAuthenticated() ? "/explore.html" : "/register.html";
   });
 

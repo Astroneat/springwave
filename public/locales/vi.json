@@ -2521,5 +2521,14 @@
     "register_prompt": "Chưa có tài khoản?",
     "register_btn": "Đăng ký ngay",
     "close_btn": "Để sau"
+  },
+  "quiz_modal": {
+    "badge": "AI Match & Phân Tích Cá Nhân",
+    "title": "Khám phá bản thân với AI Quiz",
+    "desc": "Bạn chưa hoàn thành bài trắc nghiệm AI Quiz. Hãy dành 2 phút để AI hiểu định hướng, sở thích và tính toán độ phù hợp chính xác từng sự kiện cho bạn!",
+    "perk_match": "Đo độ hợp % từng sự kiện",
+    "perk_profile": "Hồ sơ tính cách & thế mạnh",
+    "start_btn": "Làm AI Quiz ngay (2 phút)",
+    "close_btn": "Để sau"
   }
 }

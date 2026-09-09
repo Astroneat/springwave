@@ -2521,5 +2521,14 @@
     "register_prompt": "Don't have an account?",
     "register_btn": "Sign Up",
     "close_btn": "Maybe Later"
+  },
+  "quiz_modal": {
+    "badge": "AI Match & Personality Profile",
+    "title": "Discover Yourself with AI Quiz",
+    "desc": "You haven't completed the AI Quiz yet. Take 2 minutes to let AI understand your passions, goals, and calculate your personalized match score for every event!",
+    "perk_match": "Event-by-event match score %",
+    "perk_profile": "Personality profile & strengths",
+    "start_btn": "Take AI Quiz Now (2 mins)",
+    "close_btn": "Maybe Later"
   }
 }

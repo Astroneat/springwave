@@ -3,12 +3,13 @@ import { getActivityById, checkParticipation, unparticipateActivity, participate
 import { addFavourite, removeFavourite, checkFavourite, getParticipatedActivities, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
 import { t, getLang, applyTranslation } from "../lib/i18n.js";
-import { isAuthenticated, getUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
+import { isAuthenticated, getUser, isProfileComplete, isStudentVerified, hasUserCompletedQuiz } from "../lib/session.js";
 import { formatDate, capitalize, timeAgo, isToday, isPastDate, getEventStatus } from "../lib/utils.js";
 import { openPostModal } from "./postModal.js";
 import { explainRecommendation } from "../api/recommendations.js";
 import { getMyProfile } from "../api/profile.js";
 import { showLoginPrompt } from "./authModal.js";
+import { showQuizPrompt } from "./quizModal.js";
 
 let userParticipatedIds = null;
 let userFavouriteIds = null;
@@ -1363,6 +1364,13 @@ function initAIMatchButton(container, activityID) {
 
     btns.forEach(btn => {
         btn.addEventListener("click", async () => {
+            if (!hasUserCompletedQuiz()) {
+                showQuizPrompt({
+                    redirectUrl: window.location.href
+                });
+                return;
+            }
+
             if (!isAuthenticated()) {
                 showLoginPrompt({
                     message: t("auth_modal.desc_ai_match", "Vui lòng đăng nhập để sử dụng tính năng AI Match cá nhân hoá."),
@@ -1492,6 +1500,17 @@ function initAIMatchButton(container, activityID) {
                 });
             } catch (err) {
                 console.error("AI Match error:", err);
+                if (
+                    err?.code === "AI_QUIZ_REQUIRED" ||
+                    err?.error === "AI_QUIZ_REQUIRED" ||
+                    (err?.status === 403 && (err?.message?.includes("AI Quiz") || err?.data?.error === "AI_QUIZ_REQUIRED" || err?.data?.code === "AI_QUIZ_REQUIRED"))
+                ) {
+                    showQuizPrompt({
+                        redirectUrl: window.location.href
+                    });
+                    resetBtn();
+                    return;
+                }
                 const currentLang = (typeof getLang === 'function' ? getLang() : localStorage.getItem('springwave_lang')) || 'vi';
                 const isVi = currentLang.startsWith('vi');
                 const defaultErr = isVi ? "Không thể phân tích độ phù hợp lúc này." : "Unable to analyze compatibility at this time.";

@@ -85,3 +85,25 @@ export function isStudentVerified(user) {
     if (!user) return false;
     return !!(user.isStudentVerified || user.role === "admin" || user.role === "host");
 }
+
+export function hasUserCompletedQuiz(user = getUser()) {
+    if (typeof window !== "undefined" && window._hasActiveAIProfile === true) return true;
+    try {
+        if (typeof localStorage !== "undefined") {
+            if (localStorage.getItem("springwave_quiz_completed") === "true") return true;
+            if (localStorage.getItem("springwave_persona_key")) return true;
+        }
+    } catch {}
+    if (!user) return false;
+    if (user.hasCompletedQuiz === true) return true;
+    if (user.profile && (
+        user.profile.archetypeTitle ||
+        user.profile.personaKey ||
+        user.profile.profileText ||
+        user.profile.tagline ||
+        (Array.isArray(user.profile.skills) && user.profile.skills.length > 0)
+    )) return true;
+    if (user.surveyScores && Object.values(user.surveyScores).some(s => typeof s === "number" && s > 0)) return true;
+    if (Array.isArray(user.surveyAnswers) && user.surveyAnswers.length > 0) return true;
+    return false;
+}
