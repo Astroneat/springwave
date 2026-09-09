@@ -2098,7 +2098,7 @@
     "del_step1_title": "Cách 1: Tự xóa tài khoản trực tiếp",
     "del_step1_desc": "Truy cập trang Hồ sơ SpringWave cá nhân, chọn mục \"Cài đặt tài khoản\" và bấm \"Xóa tài khoản\". Toàn bộ dữ liệu cá nhân và khóa xác thực liên kết sẽ được xóa vĩnh viễn khỏi hệ thống.",
     "del_step2_title": "Cách 2: Gửi yêu cầu qua Email bảo mật",
-    "del_step2_desc": "Gửi email tới springwave15062026@gmail.com với tiêu đề \"Yêu cầu xóa dữ liệu\" từ địa chỉ email đăng ký của bạn. Bộ phận bảo mật sẽ xác minh và hoàn tất xóa dữ liệu trong vòng 30 ngày.",
+    "del_step2_desc": "Gửi email tới springwave150626@gmail.com với tiêu đề \"Yêu cầu xóa dữ liệu\" từ địa chỉ email đăng ký của bạn. Bộ phận bảo mật sẽ xác minh và hoàn tất xóa dữ liệu trong vòng 30 ngày.",
     "del_step3_title": "Cách 3: Hủy quyền truy cập trên Google",
     "del_step3_desc": "Bạn có thể lập tức thu hồi quyền truy cập của ứng dụng SpringWave bất kỳ lúc nào tại Trang quản lý bảo mật tài khoản Google (myaccount.google.com/permissions).",
     "sec8_title": "8. Cookies & Bộ nhớ cục bộ (LocalStorage)",
@@ -2114,8 +2114,8 @@
     "tos_3_desc": "Chứng nhận cấp qua SpringWave được định danh số chống giả mạo. Mọi hành vi làm giả, sao chép trái phép chứng chỉ sẽ dẫn đến việc khóa vĩnh viễn tài khoản.",
     "sec11_title": "11. Thông tin liên hệ & Bộ phận bảo vệ dữ liệu (DPO)",
     "contact_desc": "Nếu bạn có bất kỳ câu hỏi nào về chính sách này, cách xử lý dữ liệu người dùng Google hoặc muốn thực hiện các quyền bảo mật của mình, vui lòng liên hệ:",
-    "contact_email_privacy": "Chuyên trách quyền riêng tư & DPO: springwave15062026@gmail.com",
-    "contact_email_support": "Hỗ trợ chung nền tảng: springwave15062026@gmail.com",
+    "contact_email_privacy": "Chuyên trách quyền riêng tư & DPO: springwave150626@gmail.com",
+    "contact_email_support": "Hỗ trợ chung nền tảng: springwave150626@gmail.com",
     "contact_response": "Cam kết phản hồi: Chúng tôi phản hồi mọi yêu cầu chính thức liên quan đến bảo mật trong vòng 48 giờ làm việc."
   },
   "post_modal": {

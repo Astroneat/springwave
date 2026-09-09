@@ -4972,7 +4972,9 @@ function initCertLayoutDesigner() {
     }
 
     if (contentEl) {
-      contentEl.style.fontFamily = `'${field.fontFamily || "Playfair Display"}', sans-serif`;
+      let family = field.fontFamily || "Playfair Display";
+      if (family === "Cinzel") family = "Lora";
+      contentEl.style.fontFamily = `'${family}', sans-serif`;
       contentEl.style.fontSize = `${field.fontSize || 16}px`;
       contentEl.style.fontWeight = field.fontWeight || "700";
       contentEl.style.color = field.color || "#0f172a";
@@ -5122,7 +5124,9 @@ function initCertLayoutDesigner() {
       if (sizeVal) sizeVal.textContent = `${fs}px`;
 
       const fontSelect = document.getElementById("field-ctrl-font");
-      if (fontSelect) fontSelect.value = field.fontFamily || "Playfair Display";
+      let selectedFamily = field.fontFamily || "Playfair Display";
+      if (selectedFamily === "Cinzel") selectedFamily = "Lora";
+      if (fontSelect) fontSelect.value = selectedFamily;
 
       const weightSelect = document.getElementById("field-ctrl-weight");
       if (weightSelect) weightSelect.value = field.fontWeight || "700";
