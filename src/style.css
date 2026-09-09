@@ -4116,14 +4116,14 @@ textarea {
 
 .explore-search-bar {
   @apply sticky top-[5px] w-full px-8 mb-8 z-40;
-  background: #a5c8e9;
-  border: 9px solid #ffffff;
+  background: #ffffff;
+  border: 1px solid rgba(28, 39, 76, 0.1);
   height: 69px;
   border-radius: 110px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 10px 30px rgba(165, 200, 233, 0.35);
+  box-shadow: 0 10px 30px rgba(28, 39, 76, 0.08);
   transform: none;
   pointer-events: auto;
   opacity: 1;
@@ -10764,7 +10764,6 @@ textarea {
     margin-bottom: 2rem;
   }
   .explore-search-bar {
-    border-width: 4px;
     height: auto;
     padding: 12px 16px;
   }
