@@ -74,6 +74,11 @@ async function processParticipateQueue() {
 let categoriesList = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
+    const cardsContainer = document.getElementById("cards-container");
+    if (cardsContainer && cardsContainer.children.length === 0) {
+        showExploreLoading(cardsContainer);
+    }
+
     const params = new URLSearchParams(window.location.search);
     const eventId = params.get("event") || params.get("id");
 
@@ -548,15 +553,13 @@ function initSearchButton() {
 
 async function loadCards() {
     const cardsContainer = document.getElementById("cards-container");
+    if (cardsContainer && !cardsContainer.querySelector(".explore-skeleton-card")) {
+        showExploreLoading(cardsContainer);
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const tag = urlParams.get("tag");
     const keyword = urlParams.get("keyword");
-    const messageKey = keyword ? "explore.searching" : "explore.loading_events";
-    showExploreLoading(cardsContainer, {
-        messageKey,
-        ...EXPLORE_SKELETON_OPTIONS.initial,
-    });
-    trackLoadingLanguage(cardsContainer, messageKey);
 
     try {
         if (!cachedTemplate) {
