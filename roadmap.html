@@ -173,7 +173,11 @@
           <div class="roadmap-search-bar">
             <span class="material-symbols-outlined search-icon">pin_drop</span>
             <input type="text" id="location-search" data-i18n-placeholder="roadmap.search_location" placeholder="Search address, district or campus..." aria-label="Location search">
+            <button type="button" id="roadmapUseLocation" class="roadmap-use-location" aria-label="Use my current location" title="Use my current location">
+              <span class="material-symbols-outlined" aria-hidden="true">my_location</span>
+            </button>
           </div>
+          <p id="roadmapLocationStatus" class="roadmap-location-status" role="status" aria-live="polite"></p>
 
           <div id="roadmap-map" class="roadmap-map-frame" aria-label="Interactive map"></div>
 
