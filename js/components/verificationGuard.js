@@ -90,7 +90,7 @@ export function showFloatingWarnings(needsVerification, needsProfileComplete) {
                 <h4 class="text-sm font-bold text-indigo-950 leading-tight">${profileTitle}</h4>
                 <p class="text-xs text-indigo-800/80 font-medium leading-relaxed mt-1">${profileDesc}</p>
                 <div class="mt-3 flex gap-2">
-                    <a href="/profile.html" class="py-1.5 px-3 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-bold text-[11px] shadow-sm transition-all whitespace-nowrap">
+                    <a href="/profile.html" class="py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-bold text-[11px] shadow-sm transition-all whitespace-nowrap">
                         ${profileBtn}
                     </a>
                 </div>
@@ -130,7 +130,7 @@ export function showFloatingWarnings(needsVerification, needsProfileComplete) {
                 <h4 class="text-sm font-bold text-slate-900 leading-tight">${verifyTitle}</h4>
                 <p class="text-xs text-slate-600 font-medium leading-relaxed mt-1">${verifyDesc}</p>
                 <div class="mt-3 flex gap-2">
-                    <a href="/student-verify.html" class="py-1.5 px-3.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-[11px] shadow-sm transition-all whitespace-nowrap">
+                    <a href="/student-verify.html" class="py-1.5 px-3.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] shadow-sm transition-all whitespace-nowrap">
                         ${verifyBtn}
                     </a>
                 </div>
@@ -213,12 +213,8 @@ export function showVerificationModal(actionName) {
         const cancelBtnText = t('verification.modal_cancel_btn', 'Explore More');
 
         overlay.innerHTML = `
-            <div class="bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-3xl shadow-2xl p-8 max-w-md w-full text-center relative overflow-hidden transform scale-95 transition-transform duration-300">
-                <!-- Background ambient glow -->
-                <div class="absolute -top-20 -left-20 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -bottom-20 -right-20 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-                <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-5 shadow-inner">
+            <div class="bg-white border border-slate-200/80 rounded-3xl shadow-2xl p-8 max-w-md w-full text-center relative overflow-hidden transform scale-95 transition-transform duration-300">
+                <div class="w-16 h-16 rounded-2xl bg-blue-50 text-[#1755ba] flex items-center justify-center mx-auto mb-5 shadow-inner">
                     <span class="material-symbols-outlined text-[36px]">shield_person</span>
                 </div>
 
@@ -226,7 +222,7 @@ export function showVerificationModal(actionName) {
                 <p class="text-sm text-slate-600 mb-6 leading-relaxed">${descText}</p>
 
                 <div class="flex flex-col gap-3">
-                    <a href="/student-verify.html" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+                    <a href="/student-verify.html" class="w-full py-3.5 px-6 rounded-2xl bg-[#1755ba] hover:bg-[#124394] text-white font-semibold text-sm shadow-sm transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
                         <span class="material-symbols-outlined text-[20px]">verified</span>
                         <span>${verifyBtnText}</span>
                     </a>

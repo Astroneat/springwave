@@ -3568,8 +3568,8 @@ function initQRScan() {
       }
 
       if (avatarContainer) {
-        const ringGradient = isLate ? 'from-amber-400 to-amber-500' : 'from-emerald-400 to-teal-500';
-        avatarContainer.className = `w-24 h-24 rounded-full p-1 bg-gradient-to-tr ${ringGradient} shadow-lg mx-auto flex items-center justify-center overflow-hidden`;
+        const ringBg = isLate ? 'bg-amber-500' : 'bg-emerald-600';
+        avatarContainer.className = `w-24 h-24 rounded-full p-1 ${ringBg} shadow-sm mx-auto flex items-center justify-center overflow-hidden`;
       }
 
       if (avatarEl && placeholderEl) {
@@ -3990,12 +3990,12 @@ function initQRScan() {
     const viewfinder = document.getElementById("scanner-viewfinder");
     if (!container || !viewfinder) return;
 
-    container.classList.add("!border-emerald-500", "shadow-[0_0_20px_rgba(16,185,129,0.45)]", "scale-[1.02]");
+    container.classList.add("!border-emerald-500", "ring-2", "ring-emerald-500/30", "scale-[1.02]");
     viewfinder.classList.add("!border-emerald-500", "!border-solid", "scale-105");
     viewfinder.classList.remove("animate-pulse", "border-primary/40");
 
     setTimeout(() => {
-      container.classList.remove("!border-emerald-500", "shadow-[0_0_20px_rgba(16,185,129,0.45)]", "scale-[1.02]");
+      container.classList.remove("!border-emerald-500", "ring-2", "ring-emerald-500/30", "scale-[1.02]");
       viewfinder.classList.remove("!border-emerald-500", "!border-solid", "scale-105");
       viewfinder.classList.add("animate-pulse", "border-primary/40");
     }, 600);

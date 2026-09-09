@@ -1413,24 +1413,24 @@ function initAIMatchButton(container, activityID) {
                 } catch (_) {}
 
                 let badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-                let progressGradient = "linear-gradient(90deg, #10b981, #059669)";
+                let progressBg = "#059669";
                 let levelText = isVi ? "Rất phù hợp" : "Strong Match";
 
                 if (pct >= 80) {
                     badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-                    progressGradient = "linear-gradient(90deg, #10b981, #059669)";
+                    progressBg = "#059669";
                     levelText = isVi ? "Rất phù hợp" : "Strong Match";
                 } else if (pct >= 60) {
                     badgeClass = "bg-blue-100 text-blue-800 border-blue-300";
-                    progressGradient = "linear-gradient(90deg, #3b82f6, #1d4ed8)";
+                    progressBg = "#1755ba";
                     levelText = isVi ? "Phù hợp tốt" : "Good Match";
                 } else if (pct >= 45) {
                     badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
-                    progressGradient = "linear-gradient(90deg, #f59e0b, #d97706)";
+                    progressBg = "#d97706";
                     levelText = isVi ? "Phù hợp vừa" : "Moderate Match";
                 } else {
-                    badgeClass = "bg-purple-100 text-purple-800 border-purple-300";
-                    progressGradient = "linear-gradient(90deg, #8b5cf6, #6d28d9)";
+                    badgeClass = "bg-slate-100 text-slate-700 border-slate-300";
+                    progressBg = "#475569";
                     levelText = isVi ? "Khám phá mới" : "Explore";
                 }
 
@@ -1459,7 +1459,7 @@ function initAIMatchButton(container, activityID) {
                     <div class="ai-match-card-content">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-chart-pie text-fuchsia-600"></i> ${isVi ? 'Điểm Tương Thích' : 'Match Score'}
+                                <i class="fa-solid fa-chart-pie text-primary"></i> ${isVi ? 'Điểm Tương Thích' : 'Match Score'}
                             </span>
                             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${badgeClass}">
                                 ${pct}% • ${levelText}
@@ -1468,19 +1468,19 @@ function initAIMatchButton(container, activityID) {
                         
                         <!-- Progress Bar -->
                         <div class="w-full bg-slate-200/80 rounded-full h-2.5 mb-3 overflow-hidden p-0.5">
-                            <div class="h-full rounded-full transition-all duration-700 ease-out" style="width: ${pct}%; background: ${progressGradient};"></div>
+                            <div class="h-full rounded-full transition-all duration-700 ease-out" style="width: ${pct}%; background-color: ${progressBg};"></div>
                         </div>
 
                         ${breakdownHTML}
 
-                        <p class="text-xs text-slate-700 leading-relaxed text-left mb-3 bg-white/70 p-2.5 rounded-xl border border-fuchsia-100">
+                        <p class="text-xs text-slate-700 leading-relaxed text-left mb-3 bg-white/70 p-2.5 rounded-xl border border-slate-200">
                             ${escapeHtml(explanation)}
                         </p>
                         
                         ${tagsHTML ? `<div class="flex flex-wrap gap-1.5 justify-start mb-2">${tagsHTML}</div>` : ""}
 
                         <div class="mt-2 text-right">
-                            <a href="/quiz.html" class="text-[10.5px] text-fuchsia-700 hover:text-fuchsia-900 font-semibold hover:underline inline-flex items-center gap-1">
+                            <a href="/quiz.html" class="text-[10.5px] text-primary hover:text-blue-800 font-semibold hover:underline inline-flex items-center gap-1">
                                 <i class="fa-solid fa-sliders"></i> ${isVi ? 'Cập nhật hồ sơ AI Quiz →' : 'Update AI Quiz Profile →'}
                             </a>
                         </div>

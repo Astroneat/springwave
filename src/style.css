@@ -394,11 +394,11 @@ textarea {
 @keyframes pulseGlow {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(23, 85, 186, 0.15);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
   }
 
   50% {
-    box-shadow: 0 0 40px rgba(23, 85, 186, 0.3);
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
   }
 }
 
@@ -436,7 +436,7 @@ textarea {
     ),
     radial-gradient(
       circle at 80% 20%,
-      rgba(190, 242, 100, 0.08) 0%,
+      rgba(59, 111, 212, 0.04) 0%,
       transparent 50%
     ),
     radial-gradient(
@@ -784,8 +784,7 @@ textarea {
 }
 
 .status-pulse-dot {
-  @apply w-2 h-2 rounded-full bg-emerald-400 inline-block;
-  box-shadow: 0 0 8px #34d399;
+  @apply w-2 h-2 rounded-full bg-emerald-500 inline-block;
 }
 
 .chatbot-header-actions {
@@ -6032,11 +6031,11 @@ textarea {
 }
 
 .btn-danger {
-  @apply border-none bg-red-400 text-white hover:bg-red-500 shadow-sm shadow-red-200;
+  @apply border-none bg-red-400 text-white hover:bg-red-500 shadow-sm;
 }
 
 .btn-success {
-  @apply border-none bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm shadow-emerald-200;
+  @apply border-none bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm;
 }
 
 .btn-icon {
@@ -6601,7 +6600,7 @@ textarea {
     ),
     radial-gradient(
       circle at 50% 80%,
-      rgba(190, 242, 100, 0.05) 0%,
+      rgba(59, 111, 212, 0.03) 0%,
       transparent 50%
     );
 }
@@ -15942,7 +15941,6 @@ a.popup-host-row:hover .popup-host-avatar {
 
 .auth-brand-logo:hover {
   transform: translateY(-1.5px) scale(1.04);
-  filter: drop-shadow(0 6px 16px rgba(207, 250, 254, 0.35));
 }
 
 .auth-brand-logo .brand-spring {
@@ -19828,7 +19826,6 @@ body {
   margin-bottom: 18px !important;
   max-width: 1020px !important;
   text-wrap: balance !important;
-  text-shadow: 0 0 24px #ffffff, 0 0 40px #ffffff, 0 1px 3px rgba(255, 255, 255, 0.95) !important;
 }
 
 .hero-redesign-title span.text-highlight {
@@ -19844,7 +19841,6 @@ body {
   max-width: 760px !important;
   margin-bottom: 32px !important;
   font-weight: 500 !important;
-  text-shadow: 0 0 20px #ffffff, 0 0 35px #ffffff, 0 1px 2px #ffffff !important;
 }
 
 .hero-actions-row {
@@ -20070,7 +20066,6 @@ body {
 .hero-dot.active {
   width: 20px !important;
   background: #1755ba !important;
-  box-shadow: 0 0 10px rgba(23, 85, 186, 0.5) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

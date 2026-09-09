@@ -40,11 +40,7 @@ function ensureAuthModal() {
     "fixed inset-0 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300 opacity-0 pointer-events-none";
 
   overlay.innerHTML = `
-    <div class="auth-modal-card bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-3xl shadow-2xl p-7 max-w-md w-full text-center relative overflow-hidden transform scale-95 transition-transform duration-300">
-      <!-- Ambient decorative glow -->
-      <div class="absolute -top-20 -left-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-20 -right-20 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
+    <div class="auth-modal-card bg-white border border-slate-200/80 rounded-3xl shadow-2xl p-7 max-w-md w-full text-center relative overflow-hidden transform scale-95 transition-transform duration-300">
       <!-- Close button -->
       <button type="button" class="auth-modal-close-icon absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-all cursor-pointer" aria-label="Close dialog">
         <span class="material-symbols-outlined text-lg">close</span>
@@ -65,7 +61,7 @@ function ensureAuthModal() {
 
       <!-- Actions -->
       <div class="flex flex-col gap-2.5">
-        <a id="auth-modal-login-btn" href="/login.html" class="w-full py-3 px-5 rounded-2xl bg-[#1755ba] hover:bg-[#134699] text-white font-semibold text-sm shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+        <a id="auth-modal-login-btn" href="/login.html" class="w-full py-3 px-5 rounded-2xl bg-[#1755ba] hover:bg-[#134699] text-white font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
           <span class="material-symbols-outlined text-[20px]">login</span>
           <span class="auth-modal-login-text" data-i18n="auth_modal.login_btn">${t("auth_modal.login_btn", "Log In Now")}</span>
         </a>
