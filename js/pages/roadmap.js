@@ -303,6 +303,71 @@ function initLocationStep() {
         map.setView([lat, lng]);
     };
 
+    const searchInput = document.getElementById('location-search');
+    const useLocationBtn = document.getElementById('roadmapUseLocation');
+    const locationStatus = document.getElementById('roadmapLocationStatus');
+
+    const setLocationStatus = (message, isError = false) => {
+        if (!locationStatus) return;
+        locationStatus.textContent = message;
+        locationStatus.classList.toggle('is-error', isError);
+    };
+
+    const reverseGeocodeLocation = async (lat, lng) => {
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const data = await res.json();
+            selectedLocation.address = data?.display_name || `Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        } catch (error) {
+            selectedLocation.address = `Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
+
+        if (searchInput) searchInput.value = selectedLocation.address;
+    };
+
+    const useCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            setLocationStatus('Your browser does not support location services. Search for an address instead.', true);
+            return;
+        }
+
+        const originalButtonContent = useLocationBtn?.innerHTML;
+        if (useLocationBtn) {
+            useLocationBtn.disabled = true;
+            useLocationBtn.innerHTML = '<span class="material-symbols-outlined roadmap-locating-icon" aria-hidden="true">progress_activity</span>';
+        }
+        setLocationStatus('Getting your current location...');
+
+        const restoreButton = () => {
+            if (useLocationBtn) {
+                useLocationBtn.disabled = false;
+                useLocationBtn.innerHTML = originalButtonContent;
+            }
+        };
+
+        navigator.geolocation.getCurrentPosition(
+            async ({ coords }) => {
+                try {
+                    updateLocation(coords.latitude, coords.longitude);
+                    await reverseGeocodeLocation(coords.latitude, coords.longitude);
+                    setLocationStatus('Current location selected.');
+                } finally {
+                    restoreButton();
+                }
+            },
+            (error) => {
+                setLocationStatus(
+                    error.code === error.PERMISSION_DENIED
+                        ? 'Location permission was not granted. Search for an address instead.'
+                        : 'We could not get your location. Check your connection and try again.',
+                    true
+                );
+                restoreButton();
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+    };
+
     marker.on('dragend', () => updateLocation(marker.getLatLng().lat, marker.getLatLng().lng));
     map.on('click', (e) => updateLocation(e.latlng.lat, e.latlng.lng));
 
@@ -314,7 +379,6 @@ function initLocationStep() {
         circle.setRadius(km * 1000);
     });
 
-    const searchInput = document.getElementById('location-search');
     let timeout;
     searchInput?.addEventListener('input', (e) => {
         clearTimeout(timeout);
@@ -330,6 +394,8 @@ function initLocationStep() {
             } catch (err) {}
         }, 500);
     });
+
+    useLocationBtn?.addEventListener('click', useCurrentLocation);
 }
 
 function getCategoryLabel(cat) {
