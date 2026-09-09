@@ -878,7 +878,27 @@ async function applyFiltersAndSort() {
     }
 
     currentFilteredActivities = filtered;
+    updateFilterBadge();
     await renderCardsDirect(filtered);
+}
+
+function updateFilterBadge() {
+    const badge = document.getElementById("sidebarToggleBadge");
+    if (!badge) return;
+    let count = 0;
+    if (currentCategory && currentCategory !== "all") count++;
+    if (currentStatus && currentStatus !== "upcoming") count++;
+    if (currentSort && currentSort !== "newest") count++;
+    if (currentCertificateOnly) count++;
+    if (currentMyUniOnly) count++;
+    if (window.__searchDates?.startDate || window.__searchDates?.endDate) count++;
+
+    if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = "inline-flex";
+    } else {
+        badge.style.display = "none";
+    }
 }
 
 async function renderCardsDirect(activities) {
@@ -1053,10 +1073,22 @@ function initSidebar() {
         document.getElementById("exploreSidebar")?.classList.remove("open");
     });
 
+    document.getElementById("applyFiltersBtn")?.addEventListener("click", () => {
+        document.getElementById("exploreSidebar")?.classList.remove("open");
+        const target = document.querySelector(".results-header");
+        if (target) {
+            const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
+            const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
+            window.scrollTo({ top: y, behavior: "smooth" });
+        }
+    });
+
     const sidebar = document.getElementById("exploreSidebar");
     sidebar?.addEventListener("click", (e) => {
         if (e.target === sidebar) sidebar.classList.remove("open");
     });
+
+    updateFilterBadge();
 }
 
 async function initMyUniToggle() {

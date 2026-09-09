@@ -28,7 +28,7 @@
 
     <!-- INTRO -->
     <div class="max-w-container-max mx-auto px-gutter">
-      <div class="text-center mb-8 space-y-2 pt-8">
+      <div class="text-center mb-6 sm:mb-8 space-y-1 sm:space-y-2 pt-4 sm:pt-8">
         <h1 class="explore-figma-title" data-i18n="explore.find_adventure">Find your next journey</h1>
         <p class="explore-figma-desc" data-i18n="explore.explore_desc">Search through hundreds of activities and events happening around you.</p>
       </div>
@@ -210,6 +210,14 @@
               <span class="material-symbols-outlined text-lg">close</span>
               <span data-i18n="explore.clear_filters">Clear Filters</span>
             </button>
+
+            <!-- MOBILE STICKY APPLY BUTTON -->
+            <div class="sidebar-mobile-actions">
+              <button type="button" class="sidebar-apply-btn" id="applyFiltersBtn">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+                <span data-i18n="explore.apply_filters">Apply Filters</span>
+              </button>
+            </div>
           </div>
         </aside>
 
@@ -220,6 +228,7 @@
               <div class="sidebar-toggle" id="sidebarToggle">
                 <span class="material-symbols-outlined">filter_list</span>
                 <span data-i18n="explore.filters">Filters</span>
+                <span class="sidebar-toggle-badge" id="sidebarToggleBadge" style="display:none;">0</span>
               </div>
             </div>
             <div id="cards-container" class="cards-container">
