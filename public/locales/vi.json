@@ -777,49 +777,64 @@
     "save_password": "Lưu mật khẩu"
   },
   "quiz": {
-    "title": "SpringWave - Trắc nghiệm AI",
+    "title": "SpringWave - Trắc nghiệm MBTI & Bản sắc Cá nhân",
     "exit_quiz": "Thoát",
-    "start_title": "Khám phá Hoạt động Hoàn hảo",
-    "start_desc": "Trả lời 10 câu hỏi nhanh để nhận gợi ý hoạt động phù hợp được cá nhân hóa bằng AI.",
-    "questions": "10 câu hỏi",
+    "start_title": "Khám phá 16 Nhóm Tính cách & Định hướng Ngoại khóa",
+    "start_desc": "Trả lời 12 câu hỏi tình huống sinh viên để xác định nhóm tính cách MBTI và nhận bản phân tích bản sắc độc bản cùng gợi ý hoạt động phù hợp từ AI.",
+    "questions": "12 câu hỏi",
     "duration": "2-3 phút",
-    "ai_results": "Kết quả bằng AI",
+    "ai_results": "Phân tích bằng AI",
     "start_btn": "Bắt đầu Trắc nghiệm",
     "previous": "Trước",
     "next": "Tiếp theo",
-    "explore_activities": "Khám phá Hoạt động Đề xuất",
+    "explore_activities": "Khám phá Hoạt động Phù hợp",
     "retake": "Làm lại Trắc nghiệm",
     "retake_btn": "Làm lại Trắc nghiệm",
     "question": "Câu hỏi",
-    "multi_select": "Chọn tất cả các đáp án phù hợp",
-    "finish": "Hoàn thành",
-    "analyzing": "Đang phân tích câu trả lời của bạn...",
-    "persona_badge": "Hình mẫu của bạn",
+    "multi_select": "Chọn 1 đáp án phản ánh đúng bản thân bạn nhất",
+    "finish": "Hoàn thành & Phân tích AI",
+    "analyzing": "AI đang phân tích nhóm tính cách và bản sắc cá nhân...",
+    "persona_badge": "Nhóm tính cách MBTI",
+    "mbti_breakdown_title": "Chi tiết 4 trục tính cách MBTI",
+    "axis_ei": "Năng lượng & Tương tác",
+    "axis_sn": "Tiếp nhận thông tin",
+    "axis_tf": "Ra quyết định",
+    "axis_jp": "Lối sống & Kế hoạch",
+    "extraversion": "Hướng ngoại (E)",
+    "introversion": "Hướng nội (I)",
+    "sensing": "Thực tế (S)",
+    "intuition": "Trực giác (N)",
+    "thinking": "Lý trí (T)",
+    "feeling": "Cảm xúc (F)",
+    "judging": "Nguyên tắc (J)",
+    "perceiving": "Linh hoạt (P)",
+    "temperaments": {
+      "analysts": "Nhà Phân Tích (Analysts)",
+      "diplomats": "Nhà Ngoại Giao (Diplomats)",
+      "sentinels": "Người Bảo Hộ (Sentinels)",
+      "explorers": "Nhà Thám Hiểm (Explorers)"
+    },
     "strengths_title": "Điểm mạnh nổi bật",
-    "advice_title": "Lời khuyên Phát triển",
+    "advice_title": "Lời khuyên Phát triển Ngoại khóa",
     "portrait_narrative_title": "Bản sắc Cá nhân & Lối tư duy",
-    "suggested_activities": "Hoạt động Đề xuất",
+    "suggested_activities": "Hoạt động Ngoại khóa Đề xuất",
     "register_explore": "Đăng ký để Khám phá Hoạt động",
-    "result_title": "Hồ sơ Tính cách của bạn",
-    "result_desc": "Dựa trên câu trả lời của bạn, đây là điểm số của bạn trên bốn lĩnh vực cốt lõi.",
+    "result_title": "Hồ sơ Bản sắc Sinh viên & MBTI",
+    "result_desc": "Dựa trên câu trả lời của bạn, AI đã phác họa bức tranh toàn diện về phong cách tư duy và lộ trình hoạt động tối ưu.",
     "verify_required_title": "Yêu cầu xác thực sinh viên",
     "verify_required_desc": "Bạn cần xác thực tài khoản sinh viên trước khi tham gia Trắc nghiệm tính cách AI và tạo Hồ sơ năng lực AI.",
     "verify_now_btn": "Xác thực sinh viên ngay",
     "back_to_profile": "Quay về Hồ sơ",
     "categories": {
-      "academic_stage": "Giai đoạn học tập",
-      "core_interests": "Sở thích cốt lõi",
-      "activity_pref": "Sở thích hoạt động",
-      "team_role": "Vai trò trong nhóm",
-      "learning_style": "Phong cách học tập",
-      "key_goals": "Mục tiêu chính",
-      "main_obstacle": "Rào cản chính",
-      "environment": "Môi trường",
-      "schedule": "Lịch trình",
-      "key_motivator": "Động lực chính",
+      "energy_source": "Nguồn năng lượng (E vs I)",
+      "info_gathering": "Tiếp nhận thông tin (S vs N)",
+      "decision_making": "Ra quyết định (T vs F)",
+      "lifestyle_pace": "Lối sống & Kế hoạch (J vs P)",
       "facing_challenges": "Đối mặt thử thách",
       "core_passion": "Đam mê cốt lõi",
       "inspiring_activity": "Hoạt động truyền cảm hứng",
+      "team_role": "Vai trò trong nhóm",
+      "learning_style": "Phong cách học tập",
       "core_growth_goal": "Mục tiêu phát triển",
       "inner_hesitation": "Rào cản tâm lý",
       "flow_state_space": "Không gian Flow State",
@@ -827,177 +842,226 @@
       "key_spark": "Động lực hành động"
     },
     "q1": {
-      "question": "Khi gặp một bài toán hoàn toàn mới hoặc bị bế tắc, phản ứng tự nhiên của bạn là gì?",
+      "question": "Khi bắt đầu một tuần học tập và hoạt động ngoại khóa mới, điều gì giúp bạn cảm thấy tràn đầy năng lượng nhất?",
       "answers": [
-        "Tự mày mò, đọc tài liệu thâu đêm & thử nghiệm liên tục để tự tìm ra lời giải",
-        "Nhắn tin ngay cho bạn bè, đồng đội hoặc mentor có kinh nghiệm để trao đổi",
-        "Tạm gác lại đi dạo, nghe nhạc, chờ cảm hứng và trực giác lóe lên",
-        "Chia nhỏ vấn đề thành từng checklist chi tiết và giải quyết một cách có kỷ luật"
+        "Hòa mình vào không khí sôi động của câu lạc bộ, tụ tập bạn bè trao đổi và thảo luận rôm rả",
+        "Dành một khoảng lặng yên tĩnh trong phòng riêng hoặc thư viện để đọc sách, suy ngẫm và sạc lại năng lượng"
       ]
     },
     "q2": {
-      "question": "Lĩnh vực nào khiến bạn tò mò và muốn dành thời gian tìm hiểu nhất?",
+      "question": "Khi tham gia một sự kiện lớn ở trường (như Ngày hội CLB, Hội thảo chuyên đề), phong cách quen thuộc của bạn là gì?",
       "answers": [
-        "Công nghệ thông tin, Lập trình phần mềm, AI & Hệ thống số",
-        "Chiến lược kinh doanh, Khởi nghiệp, Marketing & Quản trị",
-        "Mỹ thuật thị giác, Thiết kế UI/UX, Truyền thông & Sáng tạo nội dung",
-        "Khoa học xã hội, Tâm lý học, Ngôn ngữ, Nhân văn & Phát triển cộng đồng",
-        "Thể thao, Thể hình, Sức khỏe thể chất & Trải nghiệm thực địa",
-        "Khoa học tự nhiên, Nghiên cứu học thuật & Khám phá lý thuyết chuyên sâu"
+        "Tự tin bắt chuyện, chủ động làm quen với nhiều bạn mới và kết nối với các diễn giả",
+        "Đi cùng một vài người bạn thân thiết, thích quan sát từ xa và lắng nghe hơn là chủ động mở rộng vòng tròn quan hệ"
       ]
     },
     "q3": {
-      "question": "Hoạt động ngoại khóa nào mang lại cho bạn nhiều năng lượng và cảm hứng nhất?",
+      "question": "Sau một ngày dài làm đồ án hoặc ôn thi căng thẳng, bạn thường chọn cách giải tỏa nào?",
       "answers": [
-        "Các lớp Masterclass chuyên sâu & Workshop thực hành cùng chuyên gia",
-        "Cuộc thi học thuật, Hackathon công nghệ & Thử thách giải quyết tình huống (Case)",
-        "Lễ hội văn hóa, Triển lãm nghệ thuật & Các show diễn sáng tạo",
-        "Sinh hoạt câu lạc bộ, Buổi giao lưu kết nối & Tọa đàm kỹ năng lãnh đạo",
-        "Chiến dịch tình nguyện, Dự án vì môi trường & Hoạt động thiện nguyện xã hội"
+        "Đi chơi, ăn uống hoặc tham gia các hoạt động tập thể sôi nổi cùng nhóm bạn",
+        "Trở về không gian riêng tư, đeo tai nghe, xem phim hoặc chơi game một mình để tĩnh tâm"
       ]
     },
     "q4": {
-      "question": "Khi làm việc nhóm hoặc tham gia dự án, bạn tỏa sáng nhất ở vai trò nào?",
+      "question": "Khi tiếp cận một chủ đề hoặc bài tập nghiên cứu mới, bạn thường bị cuốn hút bởi điều gì trước tiên?",
       "answers": [
-        "Người điều phối / Trưởng nhóm định hướng tầm nhìn và quản lý tiến độ",
-        "Chuyên gia chuyên môn / Người giải quyết bài toán kỹ thuật & xây dựng sản phẩm cốt lõi",
-        "Người khởi xướng ý tưởng / Thổi hồn thẩm mỹ, sáng tạo và thiết kế độc đáo",
-        "Người gắn kết tinh thần / Lắng nghe, hỗ trợ, giữ lửa và duy trì hòa khí đồng đội"
+        "Những số liệu thực tế, sự kiện cụ thể và các bước hướng dẫn đã được kiểm chứng rõ ràng",
+        "Những ý tưởng mới mẻ, tầm nhìn dài hạn và tiềm năng sáng tạo vượt ra ngoài khuôn khổ có sẵn"
       ]
     },
     "q5": {
-      "question": "Bạn cảm thấy tiếp thu kiến thức và nạp năng lượng hiệu quả nhất khi nào?",
+      "question": "Khi nghe bạn bè thuyết trình hoặc đề xuất một ý tưởng dự án, bạn quan tâm nhất đến:",
       "answers": [
-        "Tham gia vào các buổi tranh luận, thảo luận nhóm sôi nổi và phản biện đa chiều",
-        "Tự nghiên cứu chuyên sâu trong một không gian yên tĩnh, tập trung tuyệt đối",
-        "Bắt tay vào làm ngay một dự án thực tế để vừa làm vừa rút kinh nghiệm",
-        "Lắng nghe chia sẻ có hệ thống từ các bậc thầy và ghi chép chi tiết"
+        "Tính khả thi thực tế: Dự án có nguồn lực cụ thể nào, quy trình triển khai từng bước ra sao?",
+        "Ý nghĩa và sự độc đáo: Dự án có giải quyết được bài toán lớn nào, có góc nhìn đột phá không?"
       ]
     },
     "q6": {
-      "question": "Mục tiêu lớn nhất bạn muốn đạt được thông qua các hoạt động thời đại học là gì?",
+      "question": "Trong các hoạt động học tập và ngoại khóa, bạn cảm thấy mình làm tốt nhất khi:",
       "answers": [
-        "Làm chủ chuyên môn sâu và kiến tạo ra những sản phẩm thực tế có giá trị",
-        "Rèn luyện kỹ năng thực chiến, làm đẹp CV và chuẩn bị bứt phá sự nghiệp",
-        "Mở rộng mạng lưới quan hệ và tìm kiếm những người bạn đồng hành cùng chí hướng",
-        "Rèn luyện trí tuệ cảm xúc, phong thái tự tin và khả năng thuyết trình truyền cảm hứng",
-        "Giải tỏa căng thẳng học tập, tận hưởng trọn vẹn những trải nghiệm tuổi trẻ phong phú"
+        "Áp dụng các kỹ năng và kinh nghiệm thực tế vào việc xử lý các công việc cụ thể, chuẩn xác",
+        "Động não (Brainstorming), kết nối các khái niệm trừu tượng và đề xuất giải pháp chưa từng có"
       ]
     },
     "q7": {
-      "question": "Điều gì thường khiến bạn đắn đo hoặc ngập ngừng nhất trước khi tham gia một sự kiện?",
+      "question": "Khi nhóm của bạn xảy ra bất đồng ý kiến về hướng đi của dự án, bạn ưu tiên điều gì nhất?",
       "answers": [
-        "Ngại đi một mình / Cảm thấy lạc lõng giữa những đám đông xa lạ",
-        "Lịch học dày đặc, nhiều bài tập và áp lực thời hạn gấp rút",
-        "Hội chứng kẻ giả mạo / Cảm thấy bản thân chưa đủ giỏi hoặc thiếu kinh nghiệm",
-        "Lo ngại sự kiện nặng tính hình thức, không mang lại giá trị thực tiễn",
-        "Khoảng cách di chuyển xa, lịch trình cứng nhắc hoặc chi phí đăng ký"
+        "Phân tích khách quan dựa trên logic, dữ liệu và hiệu quả công việc, thẳng thắn chỉ ra điểm chưa hợp lý",
+        "Lắng nghe cảm xúc của các thành viên, khéo léo tìm kiếm sự đồng thuận để giữ gìn hòa khí và tinh thần đồng đội"
       ]
     },
     "q8": {
-      "question": "Không gian làm việc nào giúp bạn dễ dàng đạt trạng thái tập trung cao độ (Flow State) nhất?",
+      "question": "Khi đánh giá sự thành công của một sự kiện ngoại khóa, thước đo quan trọng nhất đối với bạn là:",
       "answers": [
-        "Góc phòng riêng hoặc quán cà phê yên tĩnh, đeo tai nghe, chìm đắm trong thế giới riêng",
-        "Không gian mở, gần gũi thiên nhiên, tự do giờ giấc, không bị ai kiểm soát hay gò bó",
-        "Căn phòng sôi nổi, bảng trắng đầy ý tưởng, mọi người cùng tranh luận rôm rả",
-        "Môi trường chỉn chu, chuyên nghiệp, nơi mọi người đều nghiêm túc và có kỷ luật cao"
+        "Hiệu quả cụ thể: Mục tiêu đề ra có đạt không, chất lượng nội dung và tiến độ có đúng chuẩn không",
+        "Trải nghiệm con người: Mọi người tham gia có vui vẻ, gắn kết và cảm thấy được truyền cảm hứng hay không"
       ]
     },
     "q9": {
-      "question": "Sau một ngày dài, điều gì khiến bạn cảm thấy tự hào và mãn nguyện nhất?",
+      "question": "Khi một người bạn cùng lớp đến tâm sự về khó khăn trong học tập hoặc công việc, bạn sẽ:",
       "answers": [
-        "Tự tay hoàn thành một sản phẩm cụ thể hoặc sửa xong một bài toán kỹ thuật hóc búa",
-        "Khám phá ra một tri thức mới lạ hoặc hiểu sâu sắc một nguyên lý trước giờ chưa rõ",
-        "Lắng nghe, sẻ chia và giúp đỡ được một ai đó vượt qua khó khăn",
-        "Hoàn thành đúng hạn các mục tiêu đã đề ra trong ngày với sự kỷ luật và tập trung"
+        "Phân tích nguyên nhân gốc rễ và cùng bạn ấy vạch ra các giải pháp cụ thể để giải quyết dứt điểm vấn đề",
+        "Đồng cảm, lắng nghe và gửi gắm những lời động viên tinh thần trước khi bàn đến giải pháp"
       ]
     },
     "q10": {
-      "question": "Yếu tố nào thôi thúc bạn quyết định đăng ký tham gia một hoạt động ngay lập tức?",
+      "question": "Khi nhận một đồ án môn học hoặc kế hoạch tổ chức sự kiện có thời hạn một tháng, bạn thường:",
       "answers": [
-        "Có cơ hội được học hỏi trực tiếp từ các chuyên gia, diễn giả và mentor đầu ngành",
-        "Cơ hội mở rộng việc làm, học bổng danh giá hoặc giải thưởng có giá trị thực tế",
-        "Chủ đề độc đáo, tiên phong, kích thích mạnh mẽ trí tò mò khám phá",
-        "Có bạn bè thân thiết hoặc đồng đội cùng tham gia",
-        "Hoạt động phi thương mại, mang ý nghĩa nhân văn và đóng góp thực chất cho cộng đồng"
+        "Lập kế hoạch chi tiết, chia nhỏ deadline từng tuần và bám sát tiến độ để hoàn thành sớm",
+        "Giữ lịch trình mở, tìm tòi nhiều hướng tiếp cận khác nhau và bứt phá mạnh mẽ ở giai đoạn nước rút"
+      ]
+    },
+    "q11": {
+      "question": "Trong cuộc sống sinh viên hàng ngày, không gian làm việc và thời gian biểu của bạn thường:",
+      "answers": [
+        "Khá ngăn nắp, có danh sách việc cần làm (To-do list) và cảm thấy an tâm khi mọi thứ theo đúng trật tự",
+        "Tùy biến linh hoạt, thích ứng theo hoàn cảnh và cảm hứng, không thích bị gò bó vào khung giờ cứng nhắc"
+      ]
+    },
+    "q12": {
+      "question": "Khi kế hoạch đi chơi hoặc tham gia sự kiện cuối tuần bất ngờ bị thay đổi vào phút chót, bạn cảm thấy:",
+      "answers": [
+        "Hơi khó chịu hoặc bối rối vì lịch trình đã sắp xếp từ trước bị xáo trộn",
+        "Thoải mái, xem đây là cơ hội thú vị để thử một trải nghiệm mới bất ngờ"
       ]
     },
     "personas": {
+      "INTJ": {
+        "title": "Nhà Kiến Tạo Chiến Lược (INTJ)",
+        "tagline": "Tư duy chiến lược độc lập, nhìn xa trông rộng và luôn tối ưu hóa mọi hệ thống.",
+        "strengths": ["Tư duy Chiến lược", "Quy hoạch Dài hạn", "Độc lập Tự chủ", "Giải quyết Vấn đề"],
+        "advice": "Hãy cân bằng giữa kế hoạch chiến lược và sự linh hoạt, đồng thời cởi mở chia sẻ tầm nhìn với đồng đội."
+      },
+      "INTP": {
+        "title": "Nhà Tư Duy Logic (INTP)",
+        "tagline": "Tò mò vô tận về cách thế giới vận hành, bậc thầy mổ xẻ và xây dựng lý thuyết mới.",
+        "strengths": ["Tư duy Phân tích", "Tò mò Trí tuệ", "Tư duy Độc lập", "Giải quyết Khái niệm"],
+        "advice": "Chủ động biến các ý tưởng và lý thuyết tuyệt vời thành các dự án thực tiễn cụ thể để tạo ra thành quả hữu hình."
+      },
+      "ENTJ": {
+        "title": "Nhà Lãnh Đạo Quyết Đoán (ENTJ)",
+        "tagline": "Bản lĩnh tiên phong, vạch định tầm nhìn vĩ mô và dẫn dắt tập thể vượt qua mọi rào cản.",
+        "strengths": ["Năng lực Lãnh đạo", "Quyết đoán Mạnh mẽ", "Tổ chức Chiến lược", "Hiệu suất Đỉnh cao"],
+        "advice": "Lắng nghe ý kiến của các thành viên và tạo không gian cho những góc nhìn đa dạng cùng đóng góp."
+      },
+      "ENTP": {
+        "title": "Người Thách Thức Ý Tưởng (ENTP)",
+        "tagline": "Thông minh, hóm hỉnh, luôn háo hức tranh biện và khám phá những chân trời chưa ai tới.",
+        "strengths": ["Tư duy Đột phá", "Tranh biện Sắc bén", "Sáng tạo Ý tưởng", "Thích ứng Nhanh"],
+        "advice": "Tập trung kiên trì hoàn thiện dự án đến cùng sau khi đã khơi nguồn những ý tưởng đột phá ban đầu."
+      },
+      "INFJ": {
+        "title": "Người Cố Vấn Khai Sáng (INFJ)",
+        "tagline": "Trực giác sâu sắc, lý tưởng nhân văn kiên định và thầm lặng truyền cảm hứng thay đổi thế giới.",
+        "strengths": ["Trực giác Sâu sắc", "Thấu cảm Con người", "Định hướng Giá trị", "Cống hiến Ý nghĩa"],
+        "advice": "Dành thời gian chăm sóc bản thân để tránh kiệt sức khi dồn quá nhiều tâm huyết cho các mục tiêu cộng đồng."
+      },
+      "INFP": {
+        "title": "Người Truyền Cảm Hứng Lý Tưởng (INFP)",
+        "tagline": "Tâm hồn giàu cảm xúc, trung thành với giá trị nội tâm và luôn kiếm tìm vẻ đẹp chân thực.",
+        "strengths": ["Chân thành Tận tụy", "Sáng tạo Nghệ thuật", "Lòng Trắc ẩn", "Tư duy Cởi mở"],
+        "advice": "Biến những cảm xúc và lý tưởng cao đẹp thành hành động cụ thể từng bước nhỏ mỗi ngày."
+      },
+      "ENFJ": {
+        "title": "Người Dẫn Dắt Đồng Đội (ENFJ)",
+        "tagline": "Ngọn lửa ấm áp khơi dậy tiềm năng con người, gắn kết tập thể bằng sự chân thành.",
+        "strengths": ["Truyền Cảm hứng", "Giao tiếp Thuyết phục", "Trí tuệ Cảm xúc", "Gắn kết Tập thể"],
+        "advice": "Dành sự ưu tiên cho bản thân và đặt ra ranh giới lành mạnh để không bị quá tải bởi việc hỗ trợ người khác."
+      },
+      "ENFP": {
+        "title": "Người Khởi Xướng Đam Mê (ENFP)",
+        "tagline": "Nhiệt huyết lan tỏa, tràn ngập ý tưởng mới và luôn nhìn thấy khả năng kỳ diệu trong mọi điều.",
+        "strengths": ["Nhiệt huyết Tràn trề", "Giao tiếp Sôi nổi", "Sáng tạo Tự nhiên", "Kết nối Mạng lưới"],
+        "advice": "Rèn luyện tính kỷ luật để sắp xếp thứ tự ưu tiên và duy trì sự tập trung dài hạn cho các dự án lớn."
+      },
+      "ISTJ": {
+        "title": "Người Thực Thi Trách Nhiệm (ISTJ)",
+        "tagline": "Nguyên tắc, đáng tin cậy tuyệt đối, luôn hoàn thành mọi nhiệm vụ với sự chuẩn xác cao nhất.",
+        "strengths": ["Độ Tin cậy Tuyệt đối", "Tổ chức Kỷ luật", "Chú trọng Chi tiết", "Thực tế Vững vàng"],
+        "advice": "Mở lòng đón nhận các góc nhìn mới mẻ và linh hoạt hơn khi kế hoạch cần điều chỉnh."
+      },
+      "ISFJ": {
+        "title": "Người Che Chở Tận Tụy (ISFJ)",
+        "tagline": "Ân cần, chu đáo, người giữ lửa thầm lặng bảo vệ sự ổn định và chăm sóc mọi người.",
+        "strengths": ["Chu đáo Tỉ mỉ", "Tận tâm Phụng sự", "Lắng nghe Thấu hiểu", "Trách nhiệm Cao"],
+        "advice": "Tự tin nói lên chính kiến của mình và ghi nhận xứng đáng giá trị cũng như công sức của bản thân."
+      },
+      "ESTJ": {
+        "title": "Người Quản Trị Hệ Thống (ESTJ)",
+        "tagline": "Thực tế, quyết liệt, bậc thầy sắp xếp trật tự và vận hành dự án với hiệu quả tối đa.",
+        "strengths": ["Quản trị Dự án", "Tổ chức Thực thi", "Rõ ràng Quyết đoán", "Kỷ luật Vững vàng"],
+        "advice": "Dành sự quan tâm đến cảm xúc của đồng đội để tạo nên sự đồng thuận và hợp tác bền chặt hơn."
+      },
+      "ESFJ": {
+        "title": "Người Chăm Sóc Gắn Kết (ESFJ)",
+        "tagline": "Trái tim của tập thể, ấm áp, hào phóng và luôn mang lại bầu không khí hòa hợp vui vẻ.",
+        "strengths": ["Gắn kết Cộng đồng", "Hỗ trợ Chu đáo", "Tổ chức Sự kiện", "Hòa đồng Thân thiện"],
+        "advice": "Xây dựng sự tự tin từ giá trị nội tại thay vì chỉ phụ thuộc vào sự công nhận từ bên ngoài."
+      },
+      "ISTP": {
+        "title": "Bậc Thầy Khéo Léo (ISTP)",
+        "tagline": "Bình tĩnh, thực dụng, bậc thầy làm chủ công cụ và gỡ rối mọi bài toán thực tế phức tạp.",
+        "strengths": ["Làm chủ Kỹ thuật", "Tư duy Thực chiến", "Bình tĩnh Dưới áp lực", "Thích ứng Nhanh"],
+        "advice": "Tích cực chia sẻ kiến thức và kinh nghiệm xử lý kỹ thuật của bạn với bạn bè và đồng đội."
+      },
+      "ISFP": {
+        "title": "Nghệ Sĩ Phiêu Lưu (ISFP)",
+        "tagline": "Cởi mở, tinh tế, sống trọn vẹn từng khoảnh khắc và biểu đạt cái tôi qua thẩm mỹ độc đáo.",
+        "strengths": ["Cảm thụ Thẩm mỹ", "Linh hoạt Thích ứng", "Đồng cảm Chân tình", "Tự do Sáng tạo"],
+        "advice": "Đặt ra các mục tiêu dài hạn rõ ràng để tạo không gian cho tài năng sáng tạo của bạn thăng hoa."
+      },
+      "ESTP": {
+        "title": "Người Tiên Phong Năng Động (ESTP)",
+        "tagline": "Tràn đầy năng lượng, hành động tức thì, sẵn sàng dấn thân vào những thử thách cam go nhất.",
+        "strengths": ["Hành động Nhanh nhạy", "Xử lý Khủng hoảng", "Thuyết phục Thực chiến", "Dũng cảm Tiên phong"],
+        "advice": "Cân nhắc kỹ các hệ quả dài hạn trước khi đưa ra quyết định hành động chớp nhoáng."
+      },
+      "ESFP": {
+        "title": "Tâm Điểm Năng Lượng (ESFP)",
+        "tagline": "Tươi vui, hóm hỉnh, biến cuộc sống thành bữa tiệc tràn ngập niềm vui và truyền cảm hứng sống.",
+        "strengths": ["Lan tỏa Năng lượng", "Trình diễn Thuyết phục", "Hòa đồng Cởi mở", "Ứng biến Nhạy bén"],
+        "advice": "Cân bằng giữa niềm vui ngẫu hứng và cam kết kỷ luật đối với các mục tiêu học tập quan trọng."
+      },
       "tech_builder": {
         "title": "Người Thực Thi & Giải Quyết Vấn Đề",
         "tagline": "Hành động thực tế, bẻ khóa các bài toán hóc búa và tạo ra sản phẩm chạy được.",
-        "strengths": [
-          "Tư duy Logic",
-          "Kiến trúc Phần mềm",
-          "Giải quyết Vấn đề",
-          "Làm chủ Công nghệ"
-        ],
+        "strengths": ["Tư duy Logic", "Kiến trúc Phần mềm", "Giải quyết Vấn đề", "Làm chủ Công nghệ"],
         "advice": "Hãy tiếp tục thử thách bản thân với các bài toán thuật toán khó, thực hiện các dự án cá nhân và tham gia hackathon để rèn luyện kỹ năng thực tiễn."
       },
       "community_leader": {
         "title": "Người Kết Nối & Truyền Lửa",
         "tagline": "Lan tỏa năng lượng tích cực, thấu cảm và là chất keo gắn kết tập thể.",
-        "strengths": [
-          "Năng lực Lãnh đạo",
-          "Khả năng Tổ chức",
-          "Thuyết trình trước đám đông",
-          "Lập kế hoạch Chiến lược"
-        ],
+        "strengths": ["Năng lực Lãnh đạo", "Khả năng Tổ chức", "Thuyết trình trước đám đông", "Lập kế hoạch Chiến lược"],
         "advice": "Hãy đón nhận các vai trò quản lý trong các tổ chức sinh viên, rèn luyện kỹ năng lắng nghe và dẫn dắt đội ngũ đạt mục tiêu chung."
       },
       "creative_innovator": {
         "title": "Tâm Hồn Sáng Tạo & Đổi Mới",
         "tagline": "Tự do biểu đạt, phá vỡ lối mòn và thổi hồn thẩm mỹ vào mọi ý tưởng.",
-        "strengths": [
-          "Thiết kế Mỹ thuật",
-          "Tư duy Đổi mới",
-          "Sáng tạo Ý tưởng",
-          "Nhạy bén Thẩm mỹ"
-        ],
+        "strengths": ["Thiết kế Mỹ thuật", "Tư duy Đổi mới", "Sáng tạo Ý tưởng", "Nhạy bén Thẩm mỹ"],
         "advice": "Tiếp tục làm phong phú portfolio cá nhân, thử nghiệm các xu hướng thiết kế mới và hợp tác cùng các đối tác công nghệ để hiện thực hóa ý tưởng."
       },
       "career_strategist": {
         "title": "Người Định Hướng & Bứt Phá",
         "tagline": "Mục tiêu rõ ràng, tự giác cao độ và luôn chủ động kiến tạo tương lai.",
-        "strengths": [
-          "Xây dựng Hồ sơ",
-          "Kết nối Doanh nghiệp",
-          "Hiểu biết Ngành nghề",
-          "Định hướng Mục tiêu"
-        ],
+        "strengths": ["Xây dựng Hồ sơ", "Kết nối Doanh nghiệp", "Hiểu biết Ngành nghề", "Định hướng Mục tiêu"],
         "advice": "Hãy tham gia các buổi networking doanh nghiệp, tìm kiếm cơ hội thực tập sớm và tinh chỉnh CV để nêu bật các thành tựu định lượng."
       },
       "deep_learner": {
         "title": "Người Chiêm Nghiệm & Đào Sâu",
         "tagline": "Tư duy sâu sắc, kiên nhẫn khai mở tri thức và đi tìm bản chất gốc rễ.",
-        "strengths": [
-          "Nghiên cứu Khoa học",
-          "Phân tích Phản biện",
-          "Tập trung Chuyên sâu",
-          "Xử lý Dữ liệu"
-        ],
+        "strengths": ["Nghiên cứu Khoa học", "Phân tích Phản biện", "Tập trung Chuyên sâu", "Xử lý Dữ liệu"],
         "advice": "Hãy tham gia các nhóm nghiên cứu khoa học của trường, đọc các bài báo chuyên ngành và trao đổi kiến thức học thuật cùng bạn bè."
       },
       "changemaker": {
         "title": "Người Lan Tỏa Giá Trị & Phụng Sự",
         "tagline": "Ấm áp, giàu trắc ẩn, tìm thấy niềm vui trọn vẹn khi hỗ trợ cộng đồng.",
-        "strengths": [
-          "Lòng Trắc ẩn",
-          "Trách nhiệm Xã hội",
-          "Kỹ năng Hợp tác",
-          "Đồng cảm & Sẻ chia"
-        ],
+        "strengths": ["Lòng Trắc ẩn", "Trách nhiệm Xã hội", "Kỹ năng Hợp tác", "Đồng cảm & Sẻ chia"],
         "advice": "Tích cực tham gia các dự án tình nguyện xã hội, điều phối các chiến dịch cộng đồng và thực hành làm việc nhóm bền vững."
       },
       "dynamic_explorer": {
         "title": "Người Trải Nghiệm & Thích Nghi",
         "tagline": "Cởi mở, linh hoạt, luôn sẵn sàng đón nhận những chân trời và trải nghiệm mới.",
-        "strengths": [
-          "Thích ứng Nhanh",
-          "Tò mò Khám phá",
-          "Đa tài Đa nghệ",
-          "Tư duy Cởi mở"
-        ],
+        "strengths": ["Thích ứng Nhanh", "Tò mò Khám phá", "Đa tài Đa nghệ", "Tư duy Cởi mở"],
         "advice": "Hãy tiếp tục thử sức ở nhiều lĩnh vực khác nhau, tham gia các CLB năng động để tích lũy trải nghiệm sống phong phú."
       }
     },

@@ -870,12 +870,32 @@ async function renderAIProfile() {
     if (personaKey && !localStorage.getItem("springwave_persona_key")) {
       localStorage.setItem("springwave_persona_key", personaKey);
     }
+
+    const TEMPERAMENTS = {
+      analysts: { keys: ['INTJ', 'INTP', 'ENTJ', 'ENTP'], color: '#7c3aed', icon: 'psychology' },
+      diplomats: { keys: ['INFJ', 'INFP', 'ENFJ', 'ENFP'], color: '#059669', icon: 'favorite' },
+      sentinels: { keys: ['ISTJ', 'ISFJ', 'ESTJ', 'ESFJ'], color: '#2563eb', icon: 'verified_user' },
+      explorers: { keys: ['ISTP', 'ISFP', 'ESTP', 'ESFP'], color: '#ea580c', icon: 'explore' },
+    };
+
+    function getPersonaTheme(key) {
+      if (!key) return { color: '#8B5CF6', icon: 'auto_awesome' };
+      const upper = key.toUpperCase();
+      for (const group of Object.values(TEMPERAMENTS)) {
+        if (group.keys.includes(upper)) {
+          return { color: group.color, icon: group.icon };
+        }
+      }
+      return { color: '#8B5CF6', icon: 'auto_awesome' };
+    }
+
+    const pTheme = getPersonaTheme(personaKey);
     const rawPersonaTitle = personaKey ? t(`quiz.personas.${personaKey}.title`) : null;
     const fallbackTitle = (rawPersonaTitle && rawPersonaTitle !== `quiz.personas.${personaKey}.title`) ? rawPersonaTitle : personaKey;
     const displayTitle = localized.archetypeTitle || fallbackTitle;
     const personaBadge = displayTitle ? `
-      <div class="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 text-[#8B5CF6] text-xs font-semibold">
-        <span class="material-symbols-outlined !text-[14px]">auto_awesome</span>
+      <div class="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold" style="background-color: ${pTheme.color}15; border: 1px solid ${pTheme.color}30; color: ${pTheme.color};">
+        <span class="material-symbols-outlined !text-[14px]">${pTheme.icon}</span>
         <span>${escapeHtml(displayTitle)}</span>
       </div>
     ` : '';
