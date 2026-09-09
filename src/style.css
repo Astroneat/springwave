@@ -16062,6 +16062,20 @@ a.popup-host-row:hover .popup-host-avatar {
   background-position: center;
 }
 
+.auth-brand-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 26, 58, 0.52) 0%,
+    rgba(15, 26, 58, 0.76) 42%,
+    rgba(11, 19, 43, 0.94) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
 @media (min-width: 1024px) {
   .auth-brand-panel {
     display: flex;
@@ -16095,13 +16109,13 @@ a.popup-host-row:hover .popup-host-avatar {
 
 .auth-brand-logo .brand-spring {
   color: #ffffff;
-  text-shadow: 0 2px 6px rgba(28, 39, 76, 0.25);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   transition: color 0.25s ease;
 }
 
 .auth-brand-logo .brand-wave {
   color: #cffafe;
-  text-shadow: 0 2px 6px rgba(28, 39, 76, 0.25);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   transition: color 0.25s ease;
 }
 
@@ -16112,11 +16126,14 @@ a.popup-host-row:hover .popup-host-avatar {
 .auth-brand-headline {
   @apply text-4xl xl:text-[2.75rem] font-bold text-white leading-tight mt-auto mb-5 max-w-md;
   font-family: var(--font-headline-lg), "Inter", sans-serif;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .auth-brand-subtext {
   @apply text-base leading-relaxed max-w-sm mb-10;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .auth-feature-list {
@@ -16124,13 +16141,15 @@ a.popup-host-row:hover .popup-host-avatar {
 }
 
 .auth-feature-item {
-  @apply flex items-center gap-2.5 text-white/90 text-[15px] font-medium;
+  @apply flex items-center gap-2.5 text-white text-[15px] font-semibold;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 .auth-feature-item::before {
   content: "";
-  @apply w-1.5 h-1.5 rounded-full shrink-0;
+  @apply w-2 h-2 rounded-full shrink-0;
   background: var(--color-electric-yellow);
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.7);
 }
 
 /* --- Form panel --- */
