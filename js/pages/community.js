@@ -5,6 +5,7 @@ import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/th
 import { sanitizeHtml } from "../lib/sanitize.js";
 import { showToast as globalShowToast } from "../components/toast.js";
 import { renderPagination as renderGlobalPagination } from "../components/pagination.js";
+import { showLoginPrompt } from "../components/authModal.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
 import {
   getTrendingDiscussions,
@@ -198,8 +199,15 @@ function eventToDiscussion(event) {
 
 // Unverified students are view-only: warn + redirect to the verify page.
 function requireVerifiedOrRedirect() {
+  if (!isAuthenticated()) {
+    showLoginPrompt({
+      message: t("auth_modal.desc_post", "Vui lòng đăng nhập để đăng bài hoặc bình luận."),
+      redirectUrl: window.location.pathname + window.location.search
+    });
+    return false;
+  }
   if (isStudentVerified(getUser())) return true;
-  showToast(t("community.verify_required_to_post", "Bạn cần xác thực sinh viên trước khi đăng bài hoặc bình luận."), true);
+  globalShowToast(t("community.verify_required_to_post", "Bạn cần xác thực sinh viên trước khi đăng bài hoặc bình luận."), true);
   setTimeout(() => { window.location.href = "/student-verify.html"; }, 900);
   return false;
 }
@@ -1163,7 +1171,13 @@ function initDiscussionDetail() {
       if (!id) return;
       const icon = actionBtn.querySelector(".material-symbols-outlined");
       if (icon && icon.textContent.includes("bookmark")) {
-        if (!isAuthenticated()) { alert("Please login to save posts"); return; }
+        if (!isAuthenticated()) {
+          showLoginPrompt({
+            message: t("auth_modal.desc_bookmark", "Vui lòng đăng nhập để lưu bài viết."),
+            redirectUrl: window.location.pathname + window.location.search
+          });
+          return;
+        }
         const currentlySaved = icon.textContent === "bookmark";
         icon.textContent = currentlySaved ? "bookmark_border" : "bookmark";
         icon.classList.toggle("bookmarked", !currentlySaved);
@@ -2287,6 +2301,13 @@ async function renderUniGrid() {
   container.querySelectorAll(".forum-uni-join-btn").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
+      if (!isAuthenticated()) {
+        showLoginPrompt({
+          message: t("auth_modal.desc_default", "Vui lòng đăng nhập để tham gia cộng đồng trường."),
+          redirectUrl: window.location.pathname + window.location.search
+        });
+        return;
+      }
       const card = btn.closest(".forum-uni-card");
       const id = card?.dataset.uniId;
       if (!id) return;
@@ -2833,6 +2854,13 @@ function initPostModal() {
   }
 
   function open(config) {
+    if (!isAuthenticated()) {
+      showLoginPrompt({
+        message: t("auth_modal.desc_post", "Vui lòng đăng nhập để đăng bài và thảo luận cùng cộng đồng."),
+        redirectUrl: window.location.pathname + window.location.search
+      });
+      return;
+    }
     const user = getUser();
     if (user && !isProfileComplete(user)) {
       showProfileModal();
@@ -3262,7 +3290,10 @@ async function renderOrgGrid() {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       if (!isAuthenticated()) {
-        window.location.href = "/login.html";
+        showLoginPrompt({
+          message: t("auth_modal.desc_follow", "Vui lòng đăng nhập để theo dõi tổ chức."),
+          redirectUrl: window.location.pathname + window.location.search
+        });
         return;
       }
       const orgId = btn.dataset.orgId;

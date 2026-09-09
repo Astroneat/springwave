@@ -8,6 +8,7 @@ import { formatDate, capitalize, timeAgo, isToday, isPastDate, getEventStatus } 
 import { openPostModal } from "./postModal.js";
 import { explainRecommendation } from "../api/recommendations.js";
 import { getMyProfile } from "../api/profile.js";
+import { showLoginPrompt } from "./authModal.js";
 
 let userParticipatedIds = null;
 let userFavouriteIds = null;
@@ -67,6 +68,13 @@ if (isAuthenticated()) {
 
 // Unverified students are view-only: prompt + redirect to the verify page.
 async function requireVerifiedOrRedirect() {
+    if (!isAuthenticated()) {
+        showLoginPrompt({
+            message: t("auth_modal.desc_participate", "Vui lòng đăng nhập để đăng ký và tham gia hoạt động."),
+            redirectUrl: window.location.href
+        });
+        return false;
+    }
     if (isStudentVerified(getUser())) return true;
     try {
         const { getCurrentUser } = await import("../api/auth.js");
@@ -282,7 +290,10 @@ function bindPopupInteractiveElements(container, activity, activityID, options =
             event.preventDefault();
             event.stopPropagation();
             if (!isAuthenticated()) {
-                alert(t("explore.please_login") || "Please login first to favourite activities!");
+                showLoginPrompt({
+                    message: t("auth_modal.desc_favorite", "Vui lòng đăng nhập để lưu hoạt động yêu thích."),
+                    redirectUrl: window.location.href
+                });
                 return;
             }
             const isActive = btn.classList.contains("active");
@@ -1103,7 +1114,10 @@ function initParticipateButton(activityID) {
             }
 
             if (!isAuthenticated()) {
-                alert(t("explore.please_login") || "Please login first!");
+                showLoginPrompt({
+                    message: t("auth_modal.desc_participate", "Vui lòng đăng nhập để đăng ký và tham gia hoạt động."),
+                    redirectUrl: window.location.href
+                });
                 return;
             }
 
@@ -1247,7 +1261,10 @@ function initAIMatchButton(container, activityID) {
     btns.forEach(btn => {
         btn.addEventListener("click", async () => {
             if (!isAuthenticated()) {
-                alert(t("explore.please_login", "Please login first to use AI Match!"));
+                showLoginPrompt({
+                    message: t("auth_modal.desc_ai_match", "Vui lòng đăng nhập để sử dụng tính năng AI Match cá nhân hoá."),
+                    redirectUrl: window.location.href
+                });
                 return;
             }
 
@@ -1504,8 +1521,10 @@ async function initEventComments(eventId, container) {
 
     submitBtn?.addEventListener('click', async () => {
         if (!isAuthenticated()) {
-            alert('Please login to comment!');
-            window.location.href = '/login.html';
+            showLoginPrompt({
+                message: t("auth_modal.desc_comment", "Vui lòng đăng nhập để gửi bình luận."),
+                redirectUrl: window.location.href
+            });
             return;
         }
         

@@ -17,6 +17,7 @@ import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerification
 import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
 import { showExploreLoading, hideExploreLoading, bindLoadingLanguage, EXPLORE_SKELETON_OPTIONS } from "../lib/exploreLoading.js";
 import { getMyUniversity, getUniversities } from "../api/universities.js";
+import { showLoginPrompt } from "../components/authModal.js";
 
 let allActivities = [];
 let masterActivitiesList = [];
@@ -970,8 +971,10 @@ async function initMyUniToggle() {
         toggleInput.addEventListener("change", (e) => {
             e.preventDefault();
             toggleInput.checked = false;
-            alert(t("explore.my_university_login_prompt", "Please log in to view events from your university."));
-            window.location.href = `./login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+            showLoginPrompt({
+                message: t("auth_modal.desc_filter_uni", "Vui lòng đăng nhập để xem các sự kiện từ trường của bạn."),
+                redirectUrl: window.location.pathname + window.location.search
+            });
         });
         return;
     }
@@ -1058,7 +1061,10 @@ function initCardClickHandlers() {
             const id = card?.dataset.id;
             if (!id || favLocks.has(id)) return;
             if (!isAuthenticated()) {
-                alert(t("explore.please_login") || "Please login first to favourite activities!");
+                showLoginPrompt({
+                    message: t("auth_modal.desc_favorite", "Vui lòng đăng nhập để lưu hoạt động yêu thích."),
+                    redirectUrl: window.location.pathname + window.location.search
+                });
                 return;
             }
 
@@ -1304,7 +1310,10 @@ function setFavourited(activityID) {
 
 async function showFavourites() {
     if (!isAuthenticated()) {
-        window.location.href = "/login.html";
+        showLoginPrompt({
+            message: t("auth_modal.desc_favorite", "Vui lòng đăng nhập để xem các hoạt động yêu thích."),
+            redirectUrl: window.location.pathname + window.location.search
+        });
         return;
     }
     try {

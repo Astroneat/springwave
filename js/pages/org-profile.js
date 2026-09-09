@@ -13,6 +13,7 @@ import {
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { t, applyTranslation } from "../lib/i18n.js";
 import { showToast as globalShowToast } from "../components/toast.js";
+import { showLoginPrompt } from "../components/authModal.js";
 
 // --- State ---
 let allEvents = [];
@@ -440,10 +441,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     followBtn.addEventListener("click", async () => {
       if (!isAuthenticated()) {
-        showToast(t("org_profile.login_required_follow", "Please log in to follow organizations."), true);
-        setTimeout(() => {
-          window.location.href = `/login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-        }, 1200);
+        showLoginPrompt({
+          message: t("auth_modal.desc_follow", "Vui lòng đăng nhập để theo dõi tổ chức."),
+          redirectUrl: window.location.pathname + window.location.search
+        });
         return;
       }
 

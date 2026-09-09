@@ -7,6 +7,10 @@ let toastContainer = null;
 
 function ensureToastContainer() {
   if (toastContainer && document.body.contains(toastContainer)) {
+    // Keep container as last element of body to guarantee highest stacking layer
+    if (document.body.lastElementChild !== toastContainer) {
+      document.body.appendChild(toastContainer);
+    }
     return toastContainer;
   }
   toastContainer = document.getElementById("global-toast-container");
@@ -15,10 +19,11 @@ function ensureToastContainer() {
     toastContainer.id = "global-toast-container";
     toastContainer.setAttribute("role", "region");
     toastContainer.setAttribute("aria-label", "Notifications");
-    toastContainer.className =
-      "fixed top-5 right-5 z-[200] flex flex-col gap-2.5 max-w-sm w-[calc(100vw-40px)] sm:w-full pointer-events-none transition-all";
     document.body.appendChild(toastContainer);
   }
+  toastContainer.className =
+    "fixed top-5 right-5 flex flex-col gap-2.5 max-w-sm w-[calc(100vw-40px)] sm:w-full pointer-events-none transition-all";
+  toastContainer.style.setProperty("z-index", "999999", "important");
   return toastContainer;
 }
 
@@ -85,6 +90,7 @@ export function showToast(options, typeOrIsError = "info", duration = 3500) {
   const config = TYPE_CONFIG[type];
 
   const toast = document.createElement("div");
+  toast.style.setProperty("z-index", "999999", "important");
   toast.className = `pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl border ${config.border} ${config.bg} shadow-lg shadow-black/5 transform translate-y-2 opacity-0 transition-all duration-300 backdrop-blur-md`;
   toast.setAttribute("role", type === "error" ? "alert" : "status");
 

@@ -2367,5 +2367,22 @@
     "prompt_rejected": "Hồ sơ đăng ký trước đây của bạn đã bị từ chối. Bạn có muốn tạo hồ sơ mới không?",
     "enter_url": "Vui lòng nhập đường dẫn URL",
     "err_upload": "Tải tệp lên thất bại. Vui lòng thử tệp nhỏ hơn hoặc định dạng khác."
+  },
+  "auth_modal": {
+    "title": "Yêu Cầu Đăng Nhập",
+    "desc_default": "Bạn cần đăng nhập để sử dụng tính năng này.",
+    "desc_favorite": "Vui lòng đăng nhập để lưu hoạt động yêu thích.",
+    "desc_participate": "Vui lòng đăng nhập để đăng ký và tham gia hoạt động.",
+    "desc_comment": "Vui lòng đăng nhập để gửi bình luận.",
+    "desc_ai_match": "Vui lòng đăng nhập để sử dụng tính năng AI Match cá nhân hoá.",
+    "desc_post": "Vui lòng đăng nhập để đăng bài và thảo luận cùng cộng đồng.",
+    "desc_bookmark": "Vui lòng đăng nhập để lưu bài viết.",
+    "desc_reply": "Vui lòng đăng nhập để gửi phản hồi thảo luận.",
+    "desc_follow": "Vui lòng đăng nhập để theo dõi tổ chức.",
+    "desc_filter_uni": "Vui lòng đăng nhập để xem các sự kiện từ trường của bạn.",
+    "login_btn": "Đăng nhập ngay",
+    "register_prompt": "Chưa có tài khoản?",
+    "register_btn": "Đăng ký ngay",
+    "close_btn": "Để sau"
   }
 }

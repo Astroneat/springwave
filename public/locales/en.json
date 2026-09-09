@@ -2367,5 +2367,22 @@
     "prompt_rejected": "Your previous host registration was rejected. Would you like to create a new one?",
     "enter_url": "Please enter a URL",
     "err_upload": "File upload failed. Please try smaller files or different format."
+  },
+  "auth_modal": {
+    "title": "Login Required",
+    "desc_default": "You need to log in to use this feature.",
+    "desc_favorite": "Please log in to save your favorite activities.",
+    "desc_participate": "Please log in to register and participate in activities.",
+    "desc_comment": "Please log in to leave a comment.",
+    "desc_ai_match": "Please log in to use personalized AI Match.",
+    "desc_post": "Please log in to create posts and discussions in the community.",
+    "desc_bookmark": "Please log in to bookmark discussions.",
+    "desc_reply": "Please log in to reply to discussions.",
+    "desc_follow": "Please log in to follow organizations.",
+    "desc_filter_uni": "Please log in to view events from your university.",
+    "login_btn": "Log In Now",
+    "register_prompt": "Don't have an account?",
+    "register_btn": "Sign Up",
+    "close_btn": "Maybe Later"
   }
 }

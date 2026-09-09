@@ -3,12 +3,16 @@ import { t } from "../lib/i18n.js";
 import { formatDate, capitalize, getEventStatus } from "../lib/utils.js";
 import { isAuthenticated } from "../lib/session.js";
 import { openEventPopup } from "./eventPopup.js";
+import { showLoginPrompt } from "./authModal.js";
 
 let favouritesOverlay = null;
 
 export async function showFavouritesGlobal() {
     if (!isAuthenticated()) {
-        window.location.href = "/login.html";
+        showLoginPrompt({
+            message: t("auth_modal.desc_favorite", "Vui lòng đăng nhập để xem các hoạt động yêu thích."),
+            redirectUrl: window.location.pathname + window.location.search
+        });
         return;
     }
 

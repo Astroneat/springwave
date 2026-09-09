@@ -104,7 +104,17 @@
   --z-chatbot-window: 80;
   --z-modal-backdrop: 100;
   --z-modal: 110;
-  --z-toast: 200;
+  --z-toast: 999999;
+}
+
+/* Global Toast Layer: Absolute Top Level Across All Modals & Backdrops */
+#global-toast-container,
+.global-toast-container,
+#navbar-toast-host,
+#cert-toast,
+.toast-notification,
+.org-toast {
+  z-index: 999999 !important;
 }
 
 /* Performance & Rendering Optimizations */
