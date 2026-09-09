@@ -4327,11 +4327,15 @@ textarea {
   flex-shrink: 0;
 }
 
-#cards-container .info i.fa-location-dot {
+#cards-container .info i.fa-location-dot,
+#recommendations-container .info i.fa-location-dot,
+.card .info i.fa-location-dot {
   color: #3493fa;
 }
 
-#cards-container .info i.fa-calendar {
+#cards-container .info i.fa-calendar,
+#recommendations-container .info i.fa-calendar,
+.card .info i.fa-calendar {
   color: #5d6b98;
 }
 
@@ -9847,7 +9851,61 @@ textarea {
   margin: 0;
 }
 
-.recommendations-container,
+.recommendations-container {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding: 6px 4px 18px 4px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+
+.recommendations-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recommendations-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.recommendations-container .card {
+  flex: 0 0 280px;
+  width: 280px;
+  max-width: 280px;
+  scroll-snap-align: start;
+}
+
+@media (max-width: 1280px) {
+  .recommendations-container .card {
+    flex: 0 0 270px;
+    width: 270px;
+    max-width: 270px;
+  }
+}
+
+@media (max-width: 900px) {
+  .recommendations-container {
+    gap: 0.85rem;
+  }
+  .recommendations-container .card {
+    flex: 0 0 240px;
+    width: 240px;
+    max-width: 240px;
+  }
+}
+
+@media (max-width: 640px) {
+  .recommendations-container {
+    gap: 0.65rem;
+  }
+  .recommendations-container .card {
+    flex: 0 0 200px;
+    width: 200px;
+    max-width: 200px;
+  }
+}
+
 .similar-events-grid {
   display: flex;
   gap: 12px;
@@ -9890,22 +9948,45 @@ textarea {
   background: #f1f5f9;
 }
 
-.recommendation-match-pill {
+.card-top-right {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: #7c3aed;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 9999px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  z-index: 10;
+  pointer-events: none;
+  max-width: 65%;
+}
+
+.recommendation-match-pill {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  z-index: 5;
+  gap: 4.5px;
+  background: linear-gradient(135deg, #a21caf, #6d28d9);
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 3.5px 9px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(109, 40, 217, 0.35);
   letter-spacing: 0.02em;
+  pointer-events: auto;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.recommendation-match-pill i {
+  font-size: 9.5px;
+}
+
+.recommendation-thumb .recommendation-match-pill {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
 }
 
 .recommendation-thumb img {
