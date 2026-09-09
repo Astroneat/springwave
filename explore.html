@@ -255,14 +255,17 @@
       <div class="map-modal-body">
         <div class="map-search-bar">
           <input type="text" id="mapSearchInput" placeholder="Search location name (e.g. Da Nang)..." />
-          <button id="mapSearchBtn">
+          <button id="mapLocateBtn" type="button" aria-label="Use my current location" title="Use my current location">
+            <span class="material-symbols-outlined" aria-hidden="true">my_location</span>
+          </button>
+          <button id="mapSearchBtn" type="button" aria-label="Search location">
             <span class="material-symbols-outlined">search</span>
           </button>
         </div>
         <div id="leafletMap" class="leaflet-map-element"></div>
         <div class="map-selected-address">
           <strong>Selected Address:</strong>
-          <span id="selectedAddressText">None</span>
+          <span id="selectedAddressText" role="status" aria-live="polite">None</span>
         </div>
       </div>
       <div class="map-modal-footer">

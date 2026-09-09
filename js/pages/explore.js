@@ -1532,6 +1532,7 @@ function initMapSelector() {
     const confirmBtn = document.getElementById("mapConfirmBtn");
     const searchInput = document.getElementById("mapSearchInput");
     const searchBtn = document.getElementById("mapSearchBtn");
+    const locateBtn = document.getElementById("mapLocateBtn");
     const addressText = document.getElementById("selectedAddressText");
 
     if (!trigger || !overlay) return;
@@ -1614,6 +1615,45 @@ function initMapSelector() {
         }
     };
 
+    const useCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            addressText.textContent = "Your browser does not support location services. Search for an address instead.";
+            return;
+        }
+
+        const originalButtonContent = locateBtn?.innerHTML;
+        if (locateBtn) {
+            locateBtn.disabled = true;
+            locateBtn.innerHTML = '<span class="material-symbols-outlined map-locating-icon" aria-hidden="true">progress_activity</span>';
+        }
+        addressText.textContent = "Getting your current location...";
+
+        const restoreButton = () => {
+            if (locateBtn) {
+                locateBtn.disabled = false;
+                locateBtn.innerHTML = originalButtonContent;
+            }
+        };
+
+        navigator.geolocation.getCurrentPosition(
+            async ({ coords }) => {
+                try {
+                    map.setView([coords.latitude, coords.longitude], 15);
+                    await updateMarker(coords.latitude, coords.longitude);
+                } finally {
+                    restoreButton();
+                }
+            },
+            (error) => {
+                addressText.textContent = error.code === error.PERMISSION_DENIED
+                    ? "Location permission was not granted. Search for an address instead."
+                    : "We could not get your location. Check your connection and try again.";
+                restoreButton();
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+    };
+
     const reverseGeocode = async (lat, lng) => {
         addressText.textContent = "Loading address details...";
         try {
@@ -1641,6 +1681,7 @@ function initMapSelector() {
     });
 
     searchBtn.addEventListener("click", searchAddress);
+    locateBtn?.addEventListener("click", useCurrentLocation);
     searchInput.addEventListener("keyup", (e) => {
         if (e.key === "Enter") searchAddress();
     });
@@ -1663,7 +1704,6 @@ if (typeof window !== "undefined") {
         loadRecommendations().catch(() => {});
     });
 }
-
 
 
 
