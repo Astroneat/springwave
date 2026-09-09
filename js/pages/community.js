@@ -1161,18 +1161,16 @@ function renderEventRef(eventId, eventData) {
   const safeEventTitle = sanitizeHtml(event.title || "SpringWave event");
   const safeCertificateCode = sanitizeHtml(certificateCode || "");
   const certPreview = certificateCode ? `
-    <div class="forum-certificate-ref" ${certificateBackground ? `style="--certificate-bg: url('${certificateBackground.replace(/'/g, "%27")}')"` : ""}>
+    <a class="forum-certificate-ref" href="/certificate.html?code=${encodeURIComponent(certificateCode)}" aria-label="View certificate for ${safeEventTitle}" ${certificateBackground ? `style="--certificate-bg: url('${certificateBackground.replace(/'/g, "%27")}')"` : ""}>
       <div class="forum-certificate-ref-art" aria-hidden="true">
         <span class="material-symbols-outlined">workspace_premium</span>
-        <span>SPRINGWAVE</span>
       </div>
       <div class="forum-certificate-ref-copy">
         <span class="forum-certificate-ref-label">Certificate earned</span>
         <strong>${safeEventTitle}</strong>
         <span class="forum-certificate-ref-code">${safeCertificateCode}</span>
       </div>
-      <a class="forum-certificate-ref-link" href="/certificate.html?code=${encodeURIComponent(certificateCode)}" target="_blank" rel="noopener" aria-label="View certificate for ${safeEventTitle}">View certificate</a>
-    </div>` : "";
+    </a>` : "";
   return `
     <div class="forum-event-ref" data-event-id="${eventId}" role="button" tabindex="0" aria-label="View event: ${safeEventTitle}">
       <div class="forum-event-ref-icon">

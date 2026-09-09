@@ -21032,13 +21032,21 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: -4px 0 16px;
-  padding: 10px 12px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
   overflow: hidden;
-  border: 1px solid #c9dced;
-  border-radius: 12px;
-  background: #f7fbff;
+  border: 1px solid rgba(52, 147, 250, 0.15);
+  border-radius: 16px;
+  background: rgba(52, 147, 250, 0.06);
   color: #18345b;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.forum-certificate-ref:hover {
+  border-color: #3493fa;
+  background: rgba(52, 147, 250, 0.12);
 }
 
 .forum-certificate-ref::before {
@@ -21060,26 +21068,17 @@ body {
 .forum-certificate-ref-art {
   display: grid;
   place-items: center;
-  flex: 0 0 62px;
-  width: 62px;
-  height: 48px;
-  border: 1px solid #b5d2ec;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: #e7f2fc;
-  color: #1755ba;
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
 }
 
 .forum-certificate-ref-art .material-symbols-outlined {
-  font-size: 23px;
+  font-size: 19px;
   line-height: 1;
-}
-
-.forum-certificate-ref-art span:last-child {
-  margin-top: -7px;
-  font-family: "Aleo", serif;
-  font-size: 7px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
 }
 
 .forum-certificate-ref-copy {
@@ -21113,27 +21112,8 @@ body {
   font-size: 0.7rem;
 }
 
-.forum-certificate-ref-link {
-  flex: 0 0 auto;
-  padding: 6px 9px;
-  border: 1px solid #b8d7f4;
-  border-radius: 8px;
-  background: #fff;
-  color: #1755ba;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.forum-certificate-ref-link:hover,
-.forum-certificate-ref-link:focus-visible {
-  background: #eaf3fb;
-  border-color: #6fa8dc;
-}
-
 .forum-event-ref:focus-visible,
-.forum-certificate-ref-link:focus-visible {
+.forum-certificate-ref:focus-visible {
   outline: 3px solid rgba(52, 137, 225, 0.3);
   outline-offset: 2px;
 }
@@ -21152,9 +21132,6 @@ body {
     white-space: normal;
   }
 
-  .forum-certificate-ref-link {
-    margin-left: 74px;
-  }
 }
 
 .forum-post-upload-label {
@@ -21314,4 +21291,3 @@ body {
     grid-template-columns: 1fr;
   }
 }
-
