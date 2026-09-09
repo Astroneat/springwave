@@ -1042,6 +1042,7 @@ function renderDiscussionPagination(totalItems, totalPages, category) {
 
 function buildDiscussionCardHTML(d) {
   const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, { ...d._event, certificateCode: d.certificateCode }) : "";
+  const imageAttachments = renderDiscussionImages(d.images);
   const saved = isSaved(d.id || d._id);
   return `
       <div class="forum-discussion-card" data-discussion-id="${d.id || d._id}">
@@ -1057,6 +1058,7 @@ function buildDiscussionCardHTML(d) {
       </div>
       <h3 class="forum-discussion-title">${d.title || ""}</h3>
       <p class="forum-discussion-preview">${d.preview || ""}</p>
+      ${imageAttachments}
       ${eventRef}
       <div class="forum-discussion-meta">
         <span class="forum-category-badge forum-category-${d.category || "general"}">${capitalize(d.category || "general")}</span>
@@ -1127,6 +1129,25 @@ function renderAvatar(avatar, name) {
     return `<img src="${avatar}" alt="${name || ''}" class="forum-avatar-img" />`;
   }
   return avatar || (name || '?').charAt(0).toUpperCase();
+}
+
+function renderDiscussionImages(images) {
+  if (!Array.isArray(images) || images.length === 0) return "";
+  const safeImages = images
+    .map((image, index) => {
+      const source = typeof image === "string" ? image : image?.url;
+      if (typeof source !== "string") return "";
+      try {
+        const url = new URL(source, window.location.origin);
+        if (!/^https?:$/.test(url.protocol)) return "";
+        const safeUrl = sanitizeHtml(url.href);
+        return `<a class="forum-discussion-image-link" href="${safeUrl}" target="_blank" rel="noopener" aria-label="Open attached image ${index + 1}"><img src="${safeUrl}" alt="Discussion attachment ${index + 1}" loading="lazy"></a>`;
+      } catch {
+        return "";
+      }
+    })
+    .filter(Boolean);
+  return safeImages.length ? `<div class="forum-discussion-images">${safeImages.join("")}</div>` : "";
 }
 
 function renderEventRef(eventId, eventData) {
@@ -2037,6 +2058,7 @@ function buildEmptyState() {
 
 function buildDiscussionDetailHTML(d, comments) {
   const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, { ...d._event, certificateCode: d.certificateCode }) : "";
+  const imageAttachments = renderDiscussionImages(d.images);
   const user = getUser();
   const isOwner = user && (d.author === (user.fullname || user.username));
   const isAdmin = user && user.role === "admin";
@@ -2075,6 +2097,7 @@ function buildDiscussionDetailHTML(d, comments) {
           </div>
           <h3 class="forum-discussion-title">${d.title}</h3>
           <p class="forum-discussion-preview">${d.preview || d.content || ""}</p>
+          ${imageAttachments}
           <div id="discussion-event-ref-wrap">${eventRef}</div>
           <div class="forum-discussion-meta">
             <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
@@ -2659,6 +2682,8 @@ function initPostModal() {
   const postEventCards = document.getElementById("postEventCards");
   const postEventLabel = document.getElementById("postEventLabel");
   const postScopeField = document.getElementById("postScopeField");
+  const postImagesInput = document.getElementById("postImages");
+  const postImagePreview = document.getElementById("postImagePreview");
 
   let selectedEventId = null;
   let selectedCertificateCode = null;
@@ -2667,6 +2692,65 @@ function initPostModal() {
   let _allEvents = [];
   let _eventSearchTimeout = null;
   let communityTurnstileWidgetId = null;
+  let selectedDiscussionImages = [];
+  let previewObjectUrls = [];
+
+  function clearDiscussionImages() {
+    previewObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    previewObjectUrls = [];
+    selectedDiscussionImages = [];
+    if (postImagesInput) postImagesInput.value = "";
+    if (postImagePreview) postImagePreview.replaceChildren();
+  }
+
+  function renderDiscussionImagePreview() {
+    if (!postImagePreview) return;
+    previewObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    previewObjectUrls = [];
+    postImagePreview.replaceChildren();
+
+    selectedDiscussionImages.forEach((file, index) => {
+      const url = URL.createObjectURL(file);
+      previewObjectUrls.push(url);
+      const item = document.createElement("div");
+      item.className = "forum-post-image-preview-item";
+
+      const image = document.createElement("img");
+      image.src = url;
+      image.alt = `Selected image ${index + 1}: ${file.name}`;
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "forum-post-image-remove";
+      removeButton.setAttribute("aria-label", `Remove ${file.name}`);
+      removeButton.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
+      removeButton.addEventListener("click", () => {
+        selectedDiscussionImages.splice(index, 1);
+        renderDiscussionImagePreview();
+      });
+
+      item.append(image, removeButton);
+      postImagePreview.append(item);
+    });
+  }
+
+  postImagesInput?.addEventListener("change", () => {
+    const incoming = Array.from(postImagesInput.files || []);
+    const imageFiles = incoming.filter(file => file.type.startsWith("image/"));
+    if (imageFiles.length !== incoming.length) {
+      showToast("Only image files can be attached to a discussion.", true);
+    }
+    const oversized = imageFiles.find(file => file.size > 10 * 1024 * 1024);
+    if (oversized) {
+      showToast("Each image must be 10 MB or smaller.", true);
+    }
+    selectedDiscussionImages = [...selectedDiscussionImages, ...imageFiles.filter(file => file.size <= 10 * 1024 * 1024)].slice(0, 4);
+    if (incoming.length + selectedDiscussionImages.length > 4) {
+      showToast("You can attach up to 4 images.", true);
+    }
+    postImagesInput.value = "";
+    renderDiscussionImagePreview();
+  });
 
   function renderEventCards(events) {
     if (!postEventCards) return;
@@ -2826,6 +2910,7 @@ function initPostModal() {
     selectedEventId = null;
     selectedCertificateCode = config?.certificateCode || null;
     _selectedEventData = null;
+    clearDiscussionImages();
     checkScope();
     checkPostIdentity();
     overlay.style.display = "flex";
@@ -2970,6 +3055,7 @@ function initPostModal() {
         const result = await createDiscussionWithScope({
           title, content, category, tags, relatedEvent,
           certificateCode: selectedCertificateCode || undefined,
+          images: selectedDiscussionImages,
           scope, communityId,
           cfTurnstileResponse: (typeof turnstile !== "undefined" && communityTurnstileWidgetId !== null)
             ? turnstile.getResponse(communityTurnstileWidgetId) : undefined,
@@ -3024,6 +3110,7 @@ function initPostModal() {
         document.getElementById("postTitle").value = "";
         document.getElementById("postContent").value = "";
         document.getElementById("postTags").value = "";
+        clearDiscussionImages();
         selectedEventId = null;
         selectedCertificateCode = null;
 
