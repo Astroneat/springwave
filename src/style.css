@@ -15928,8 +15928,37 @@ a.popup-host-row:hover .popup-host-avatar {
 }
 
 .auth-brand-logo {
-  @apply inline-flex items-center gap-2 text-white font-bold text-xl w-fit;
-  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
+  display: inline-block;
+  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-weight: 800;
+  font-size: 1.85rem;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+  line-height: 1.2;
+  width: fit-content;
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+}
+
+.auth-brand-logo:hover {
+  transform: translateY(-1.5px) scale(1.04);
+  filter: drop-shadow(0 6px 16px rgba(207, 250, 254, 0.35));
+}
+
+.auth-brand-logo .brand-spring {
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(28, 39, 76, 0.25);
+  transition: color 0.25s ease;
+}
+
+.auth-brand-logo .brand-wave {
+  color: #cffafe;
+  text-shadow: 0 2px 6px rgba(28, 39, 76, 0.25);
+  transition: color 0.25s ease;
+}
+
+.auth-brand-logo:hover .brand-wave {
+  color: #a5f3fc;
 }
 
 .auth-brand-headline {
@@ -15972,9 +16001,33 @@ a.popup-host-row:hover .popup-host-avatar {
 }
 
 .auth-mobile-brand {
-  @apply flex lg:hidden items-center gap-2 font-bold text-lg;
-  color: var(--brand);
-  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
+  display: inline-block;
+  font-family: "Aleo", "Plus Jakarta Sans", sans-serif;
+  font-weight: 800;
+  font-size: 1.45rem;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (min-width: 1024px) {
+  .auth-mobile-brand {
+    display: none !important;
+  }
+}
+
+.auth-mobile-brand:hover {
+  transform: translateY(-1px) scale(1.04);
+}
+
+.auth-mobile-brand .brand-spring {
+  color: #1755ba;
+}
+
+.auth-mobile-brand .brand-wave {
+  color: #0284c7;
 }
 
 .auth-back-link {
