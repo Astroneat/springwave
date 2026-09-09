@@ -68,7 +68,7 @@ export function showFloatingWarnings(needsVerification, needsProfileComplete) {
     if (!container) {
         container = document.createElement('div');
         container.id = 'floating-notice-container';
-        container.className = 'fixed bottom-6 left-6 z-[9999] flex flex-col gap-3 max-w-sm w-[calc(100vw-48px)] pointer-events-none';
+        container.className = 'fixed bottom-6 left-6 z-[60] flex flex-col gap-3 max-w-sm w-[calc(100vw-96px)] sm:w-[360px] pointer-events-none';
         document.body.appendChild(container);
     }
 
@@ -80,22 +80,22 @@ export function showFloatingWarnings(needsVerification, needsProfileComplete) {
 
         const card = document.createElement('div');
         card.id = 'profile-complete-banner';
-        card.className = 'pointer-events-auto relative p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-indigo-500/30 dark:border-indigo-500/20 backdrop-blur-md shadow-xl flex gap-3 transform translate-y-0 opacity-100 transition-all duration-300';
+        card.className = 'pointer-events-auto relative p-4 rounded-2xl bg-white/95 border border-indigo-500/30 backdrop-blur-md shadow-xl flex gap-3 transform translate-y-0 opacity-100 transition-all duration-300';
         
         card.innerHTML = `
-            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-[24px]">contact_page</span>
             </div>
             <div class="pr-6 text-left">
-                <h4 class="text-sm font-bold text-indigo-950 dark:text-indigo-200 leading-tight">${profileTitle}</h4>
-                <p class="text-xs text-indigo-800/80 dark:text-indigo-300/80 font-medium leading-relaxed mt-1">${profileDesc}</p>
+                <h4 class="text-sm font-bold text-indigo-950 leading-tight">${profileTitle}</h4>
+                <p class="text-xs text-indigo-800/80 font-medium leading-relaxed mt-1">${profileDesc}</p>
                 <div class="mt-3 flex gap-2">
                     <a href="/profile.html" class="py-1.5 px-3 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-bold text-[11px] shadow-sm transition-all whitespace-nowrap">
                         ${profileBtn}
                     </a>
                 </div>
             </div>
-            <button type="button" id="dismiss-profile-banner" class="absolute top-2.5 right-2.5 p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer" aria-label="Dismiss">
+            <button type="button" id="dismiss-profile-banner" class="absolute top-2.5 right-2.5 p-1 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer" aria-label="Dismiss">
                 <span class="material-symbols-outlined text-[16px]">close</span>
             </button>
         `;
@@ -205,7 +205,7 @@ export function showVerificationModal(actionName) {
     if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'verification-guard-modal';
-        overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300 opacity-0';
+        overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300 opacity-0';
         
         const titleText = t('verification.modal_title', 'Student Verification Required');
         const descText = t('verification.modal_desc', 'You are currently in Read-Only mode. Please verify your student status to participate in events and join communities.');
@@ -213,24 +213,24 @@ export function showVerificationModal(actionName) {
         const cancelBtnText = t('verification.modal_cancel_btn', 'Explore More');
 
         overlay.innerHTML = `
-            <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-8 max-w-md w-full text-center relative overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-3xl shadow-2xl p-8 max-w-md w-full text-center relative overflow-hidden transform scale-95 transition-transform duration-300">
                 <!-- Background ambient glow -->
-                <div class="absolute -top-20 -left-20 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -bottom-20 -right-20 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -top-20 -left-20 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-20 -right-20 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-5 shadow-inner">
                     <span class="material-symbols-outlined text-[36px]">shield_person</span>
                 </div>
 
-                <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2 font-headline">${titleText}</h3>
-                <p class="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">${descText}</p>
+                <h3 class="text-2xl font-bold text-slate-900 mb-2 font-headline">${titleText}</h3>
+                <p class="text-sm text-slate-600 mb-6 leading-relaxed">${descText}</p>
 
                 <div class="flex flex-col gap-3">
                     <a href="/student-verify.html" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
                         <span class="material-symbols-outlined text-[20px]">verified</span>
                         <span>${verifyBtnText}</span>
                     </a>
-                    <button type="button" id="close-verification-modal-btn" class="w-full py-3 px-6 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-colors cursor-pointer">
+                    <button type="button" id="close-verification-modal-btn" class="w-full py-3 px-6 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors cursor-pointer">
                         ${cancelBtnText}
                     </button>
                 </div>
@@ -245,6 +245,14 @@ export function showVerificationModal(actionName) {
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeVerificationModal();
         });
+
+        const onEsc = (e) => {
+            if (e.key === 'Escape') {
+                closeVerificationModal();
+                document.removeEventListener('keydown', onEsc);
+            }
+        };
+        document.addEventListener('keydown', onEsc);
     }
 
     // Trigger animation

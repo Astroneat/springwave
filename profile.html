@@ -378,7 +378,7 @@
               <i class="fa-regular fa-eye text-xs"></i>
             </button>
           </div>
-          <p class="text-[11px] text-slate-400 mt-1">Xác nhận mật khẩu để đảm bảo an toàn tài khoản.</p>
+          <p class="text-[11px] text-slate-400 mt-1" data-i18n="profile.confirm_password_security_hint">Xác nhận mật khẩu để đảm bảo an toàn tài khoản.</p>
         </div>
 
         <div id="change-email-step1-status" class="text-xs rounded-xl p-3 hidden font-medium"></div>
@@ -398,8 +398,8 @@
             <span class="material-symbols-outlined text-2xl">mark_email_read</span>
           </div>
           <h3 class="text-base font-bold text-slate-800" data-i18n="profile.enter_otp_title">Nhập mã xác thực OTP</h3>
-          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-            Mã OTP 6 số đã được gửi tới <strong id="change-email-target-display" class="text-slate-800"></strong>. Vui lòng kiểm tra hộp thư (bao gồm cả thư rác/spam).
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed" id="change-email-target-desc" data-i18n="profile.otp_sent_to_desc">
+            Mã OTP 6 số đã được gửi tới email của bạn. Vui lòng kiểm tra hộp thư (bao gồm cả thư rác/spam).
           </p>
         </div>
 
@@ -412,7 +412,7 @@
               <span class="material-symbols-outlined text-sm text-slate-400">timer</span>
               <span id="change-email-timer">10:00</span>
             </span>
-            <button type="button" id="change-email-resend-btn" class="font-bold text-primary hover:underline bg-transparent border-0 cursor-pointer disabled:text-slate-400 disabled:no-underline disabled:cursor-not-allowed">
+            <button type="button" id="change-email-resend-btn" class="font-bold text-primary hover:underline bg-transparent border-0 cursor-pointer disabled:text-slate-400 disabled:no-underline disabled:cursor-not-allowed" data-i18n="profile.resend_otp_btn">
               Gửi lại mã
             </button>
           </div>

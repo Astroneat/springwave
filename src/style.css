@@ -14,7 +14,7 @@
   --color-accent-glow: rgb(59 111 212 / 14%);
   --color-text-primary: #1a1d2e;
   --color-text-secondary: #4a5068;
-  --color-text-muted: #9298ae;
+  --color-text-muted: #64748b;
   --color-surface-container-low: #f3f3fc;
   --color-secondary-container: #ceee93;
   --color-on-secondary-fixed: #131f00;
@@ -31,6 +31,7 @@
   --color-surface-container-highest: #e2e2eb;
   --color-primary-container: #3b6fd4;
   --color-primary: #1755ba;
+  --color-primary-hover: #134699;
   --color-surface-bright: #faf8ff;
   --color-tertiary: #8e4700;
   --color-surface-tint: #1f5abe;
@@ -93,6 +94,17 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
+}
+
+:root {
+  --z-dropdown: 40;
+  --z-sticky-nav: 50;
+  --z-verification-banner: 60;
+  --z-chatbot-btn: 70;
+  --z-chatbot-window: 80;
+  --z-modal-backdrop: 100;
+  --z-modal: 110;
+  --z-toast: 200;
 }
 
 /* Performance & Rendering Optimizations */
@@ -5155,14 +5167,6 @@ textarea {
   @apply bg-slate-100;
 }
 
-.btn-primary {
-  @apply bg-blue-600 text-white;
-}
-
-.btn-primary:hover {
-  @apply opacity-[0.92];
-}
-
 @media (max-width: 900px) {
   .activity-type-grid,
   .date-grid {
@@ -6014,7 +6018,7 @@ textarea {
 }
 
 .btn-primary {
-  @apply border-none bg-primary text-white hover:bg-blue-600 shadow-sm shadow-blue-200;
+  @apply border-none bg-primary text-white hover:bg-[#134699] shadow-sm shadow-blue-900/15 cursor-pointer;
 }
 
 .btn-secondary {
@@ -6095,7 +6099,7 @@ textarea {
   position: fixed !important;
   top: 24px !important;
   right: 24px !important;
-  z-index: 2147483647 !important;
+  z-index: var(--z-toast, 200) !important;
   padding: 12px 20px !important;
   border-radius: 16px !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
@@ -9259,7 +9263,7 @@ textarea {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
-  z-index: 2147483647 !important;
+  z-index: var(--z-toast, 200) !important;
   transform: translateX(120%) !important;
   opacity: 0 !important;
   transition:
@@ -9316,7 +9320,7 @@ textarea {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
-  z-index: 2147483647 !important;
+  z-index: var(--z-toast, 200) !important;
   transform: translateX(120%) !important;
   opacity: 0 !important;
   transition:
@@ -9400,7 +9404,7 @@ textarea {
   position: fixed !important;
   bottom: 24px !important;
   right: 24px !important;
-  z-index: 2147483647 !important;
+  z-index: var(--z-toast, 200) !important;
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;

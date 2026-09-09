@@ -12,33 +12,15 @@ import {
 } from "../api/organizations.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { t, applyTranslation } from "../lib/i18n.js";
+import { showToast as globalShowToast } from "../components/toast.js";
 
 // --- State ---
 let allEvents = [];
 let currentTab = "all";
-let toastTimeout = null;
 
 // --- Toast Helper ---
 function showToast(message, isError = false) {
-  const toast = document.getElementById("org-toast");
-  const msgEl = document.getElementById("org-toast-msg");
-  const iconEl = document.getElementById("org-toast-icon");
-  if (!toast || !msgEl) return;
-
-  clearTimeout(toastTimeout);
-  msgEl.textContent = message;
-
-  if (isError) {
-    toast.className = "org-toast show toast-error";
-    if (iconEl) iconEl.textContent = "error";
-  } else {
-    toast.className = "org-toast show toast-success";
-    if (iconEl) iconEl.textContent = "check_circle";
-  }
-
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove("show");
-  }, 3500);
+  return globalShowToast(message, isError);
 }
 
 // --- Event delegation for cards ---

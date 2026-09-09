@@ -10,6 +10,7 @@ import { openEventPopup } from "../components/eventPopup.js";
 import { t } from "../lib/i18n.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
+import { renderPagination } from "../components/pagination.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml, escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard, isToday, isPastDate, isUpcomingDate, getEventStatus } from "../lib/utils.js";
@@ -829,85 +830,41 @@ function renderPaginationControls(totalItems, totalPages) {
     if (!container) return;
     container.style.display = ""; // Ensure it's visible again after search
 
-    if (totalPages <= 1) {
-        container.innerHTML = "";
-        return;
-    }
-
-    let html = "";
-
-    // Prev Button
-    html += `
-        <button class="pagination-btn nav-btn" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">
-            <span class="material-symbols-outlined text-sm">chevron_left</span>
-        </button>
-    `;
-
-    // Page Numbers
-    for (let i = 1; i <= totalPages; i++) {
-        if (
-            i === 1 ||
-            i === totalPages ||
-            (i >= currentPage - 2 && i <= currentPage + 2)
-        ) {
-            html += `
-                <button class="pagination-btn num-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">
-                    ${i}
-                </button>
-            `;
-        } else if (
-            i === currentPage - 3 ||
-            i === currentPage + 3
-        ) {
-            html += `<span class="pagination-ellipsis">...</span>`;
-        }
-    }
-
-    // Next Button
-    html += `
-        <button class="pagination-btn nav-btn" ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">
-            <span class="material-symbols-outlined text-sm">chevron_right</span>
-        </button>
-    `;
-
-    container.innerHTML = html;
-
-    // Add click handlers
-    container.querySelectorAll(".pagination-btn:not([disabled])").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            const page = parseInt(btn.dataset.page, 10);
-            if (!isNaN(page)) {
-                const cardsContainer = document.getElementById("cards-container");
-                if (cardsContainer) {
-                    cardsContainer.querySelectorAll(".explore-skeleton-card").forEach(el => el.classList.add("fade-out"));
-                }
-
-                // Scroll to results header smoothly, accounting for fixed navbar
-                const target = document.querySelector(".results-header");
-                if (target) {
-                    const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
-                    const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
-                    window.scrollTo({ top: y, behavior: "smooth" });
-                }
-
-                // Wait for smooth scroll to finish before rendering new cards
-                await new Promise(resolve => {
-                    let done = false;
-                    const finish = () => {
-                        if (done) return;
-                        done = true;
-                        window.removeEventListener('scrollend', finish);
-                        clearTimeout(fallback);
-                        resolve();
-                    };
-                    const fallback = setTimeout(finish, 800);
-                    window.addEventListener('scrollend', finish, { once: true });
-                });
-
-                currentPage = page;
-                await renderCardsDirect(currentFilteredActivities);
+    renderPagination({
+        container,
+        currentPage,
+        totalPages,
+        onPageChange: async (page) => {
+            const cardsContainer = document.getElementById("cards-container");
+            if (cardsContainer) {
+                cardsContainer.querySelectorAll(".explore-skeleton-card").forEach(el => el.classList.add("fade-out"));
             }
-        });
+
+            // Scroll to results header smoothly, accounting for fixed navbar
+            const target = document.querySelector(".results-header");
+            if (target) {
+                const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
+                const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
+                window.scrollTo({ top: y, behavior: "smooth" });
+            }
+
+            // Wait for smooth scroll to finish before rendering new cards
+            await new Promise(resolve => {
+                let done = false;
+                const finish = () => {
+                    if (done) return;
+                    done = true;
+                    window.removeEventListener('scrollend', finish);
+                    clearTimeout(fallback);
+                    resolve();
+                };
+                const fallback = setTimeout(finish, 800);
+                window.addEventListener('scrollend', finish, { once: true });
+            });
+
+            currentPage = page;
+            await renderCardsDirect(currentFilteredActivities);
+        }
     });
 }
 

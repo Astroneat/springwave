@@ -3,6 +3,8 @@ import { t, getLang } from "../lib/i18n.js";
 import { isAuthenticated, getUser, getToken, setUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
+import { showToast as globalShowToast } from "../components/toast.js";
+import { renderPagination as renderGlobalPagination } from "../components/pagination.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
 import {
   getTrendingDiscussions,
@@ -197,7 +199,7 @@ function eventToDiscussion(event) {
 // Unverified students are view-only: warn + redirect to the verify page.
 function requireVerifiedOrRedirect() {
   if (isStudentVerified(getUser())) return true;
-  showToast("Bạn cần xác thực sinh viên trước khi đăng bài hoặc bình luận.", true);
+  showToast(t("community.verify_required_to_post", "Bạn cần xác thực sinh viên trước khi đăng bài hoặc bình luận."), true);
   setTimeout(() => { window.location.href = "/student-verify.html"; }, 900);
   return false;
 }
@@ -944,18 +946,18 @@ function renderDiscussions(discussions, category, page = 1) {
       paginationContainer.style.display = "none";
     }
     const emptyMessages = {
-      general:["chat", "No general discussions yet", "Start an open conversation, ask a question, or share something with the community!"],
-      mine:   ["forum", "No discussions yet", "You haven't started any discussions yet. Click 'Start Discussion' to create one!"],
-      saved:  ["bookmark", "No saved posts", "You haven't saved any posts yet. Click the bookmark icon on a discussion to save it for later."],
-      uni:    ["account_balance", "No university discussions", "Join a university community above to see discussions from your campus."],
-      event:  ["event", "No event discussions", "There are no event discussions yet. Be the first to start one!"],
+      general: ["chat", t("community.empty_general_title", "No general discussions yet"), t("community.empty_general_desc", "Start an open conversation, ask a question, or share something with the community!")],
+      mine:    ["forum", t("community.empty_mine_title", "No discussions yet"), t("community.empty_mine_desc", "You haven't started any discussions yet. Click 'Start Discussion' to create one!")],
+      saved:   ["bookmark", t("community.empty_saved_title", "No saved posts"), t("community.empty_saved_desc", "You haven't saved any posts yet. Click the bookmark icon on a discussion to save it for later.")],
+      uni:     ["account_balance", t("community.empty_uni_title", "No university discussions"), t("community.empty_uni_desc", "Join a university community above to see discussions from your campus.")],
+      event:   ["event", t("community.empty_event_title", "No event discussions"), t("community.empty_event_desc", "There are no event discussions yet. Be the first to start one!")],
     };
-    const msg = emptyMessages[category] || ["forum", "No discussions yet", "Be the first to start a discussion in this category."];
+    const msg = emptyMessages[category] || ["forum", t("community.empty_default_title", "No discussions yet"), t("community.empty_default_desc", "Be the first to start a discussion in this category.")];
     container.innerHTML = `
-      <div class="forum-empty">
-        <span class="material-symbols-outlined forum-empty-icon">${msg[0]}</span>
-        <p class="forum-empty-title">${msg[1]}</p>
-        <p class="forum-empty-desc">${msg[2]}</p>
+      <div class="empty-state py-12 text-center flex flex-col items-center justify-center">
+        <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">${msg[0]}</span>
+        <p class="text-base font-bold text-slate-700">${msg[1]}</p>
+        <p class="text-xs text-slate-500 max-w-sm mt-1 leading-relaxed">${msg[2]}</p>
       </div>
     `;
     return;
@@ -979,64 +981,19 @@ function renderDiscussionPagination(totalItems, totalPages, category) {
   const container = document.getElementById("forumPagination");
   if (!container) return;
 
-  if (totalPages <= 1) {
-    container.innerHTML = "";
-    container.style.display = "none";
-    return;
-  }
-
-  container.style.display = "flex";
-  let html = "";
-
-  // Prev Button
-  html += `
-    <button class="pagination-btn nav-btn" ${currentDiscussionPage === 1 ? 'disabled' : ''} data-page="${currentDiscussionPage - 1}">
-      <span class="material-symbols-outlined text-sm">chevron_left</span>
-    </button>
-  `;
-
-  // Page Numbers
-  for (let i = 1; i <= totalPages; i++) {
-    if (
-      i === 1 ||
-      i === totalPages ||
-      (i >= currentDiscussionPage - 2 && i <= currentDiscussionPage + 2)
-    ) {
-      html += `
-        <button class="pagination-btn num-btn ${i === currentDiscussionPage ? 'active' : ''}" data-page="${i}">
-          ${i}
-        </button>
-      `;
-    } else if (
-      i === currentDiscussionPage - 3 ||
-      i === currentDiscussionPage + 3
-    ) {
-      html += `<span class="pagination-ellipsis">...</span>`;
-    }
-  }
-
-  // Next Button
-  html += `
-    <button class="pagination-btn nav-btn" ${currentDiscussionPage === totalPages ? 'disabled' : ''} data-page="${currentDiscussionPage + 1}">
-      <span class="material-symbols-outlined text-sm">chevron_right</span>
-    </button>
-  `;
-
-  container.innerHTML = html;
-
-  container.querySelectorAll(".pagination-btn:not([disabled])").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const p = parseInt(btn.dataset.page, 10);
-      if (!isNaN(p) && p !== currentDiscussionPage) {
-        const target = document.getElementById("forumFeedTabs") || document.getElementById("trending");
-        if (target) {
-          const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
-          const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
-          window.scrollTo({ top: y, behavior: "smooth" });
-        }
-        renderDiscussions(window._allCurrentDiscussions || window._currentDiscussions || [], category, p);
+  renderGlobalPagination({
+    container,
+    currentPage: currentDiscussionPage,
+    totalPages,
+    onPageChange: (p) => {
+      const target = document.getElementById("forumFeedTabs") || document.getElementById("trending");
+      if (target) {
+        const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
+        const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
+        window.scrollTo({ top: y, behavior: "smooth" });
       }
-    });
+      renderDiscussions(window._allCurrentDiscussions || window._currentDiscussions || [], category, p);
+    },
   });
 }
 
@@ -1207,7 +1164,12 @@ function initDiscussionDetail() {
         if (navigator.share) {
           try { await navigator.share({ title: "Check this discussion", url }); } catch {}
         } else {
-          try { await navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); } catch {}
+          try {
+            await navigator.clipboard.writeText(url);
+            showToast(t("community.link_copied", "Link copied to clipboard!"));
+          } catch {
+            showToast(t("common.copy_failed", "Failed to copy link"), true);
+          }
         }
       }
       return;
@@ -1876,7 +1838,12 @@ function wireDiscussionEvents(id, container) {
       if (navigator.share) {
         try { navigator.share({ title: "Check this discussion", url }); } catch {}
       } else {
-        try { navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); } catch {}
+        try {
+          navigator.clipboard.writeText(url);
+          showToast(t("community.link_copied", "Link copied to clipboard!"));
+        } catch {
+          showToast(t("common.copy_failed", "Failed to copy link"), true);
+        }
       }
       return;
     }
@@ -2550,37 +2517,7 @@ function openUniDialog(editData, callback) {
    ============================= */
 
 function showToast(message, isError = false) {
-  const existing = document.querySelectorAll(".success-toast");
-  const offset = existing.length * 80;
-
-  const toast = document.createElement("div");
-  toast.className = "success-toast" + (isError ? " error" : "");
-  toast.style.bottom = `${24 + offset}px`;
-  toast.innerHTML = `
-    <div class="success-toast-icon">
-      <span class="material-symbols-outlined">${isError ? "error" : "check_circle"}</span>
-    </div>
-    <div class="success-toast-body">
-      <span class="success-toast-heading">${isError ? "Error" : "Success!"}</span>
-      <span class="success-toast-message">${message}</span>
-    </div>
-    <button class="success-toast-close">
-      <span class="material-symbols-outlined">close</span>
-    </button>
-  `;
-  document.body.appendChild(toast);
-  requestAnimationFrame(() => toast.classList.add("show"));
-
-  toast.querySelector(".success-toast-close")?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 400);
-  });
-
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 400);
-  }, 6000);
+  return globalShowToast(message, isError);
 }
 
 function showSuccessToast(message, linkUrl, linkText = "View Discussion Detail") {
