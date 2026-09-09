@@ -1,71 +1,88 @@
-# Implementation Plan: Mobile Responsive 2-Column Event Grid & Full Page Mobile Optimization
+# Implementation Plan: Restructure Org Dashboard & Events Tab Timeline Display
 
 ## Overview
-Optimize SpringWave's Explore page and mobile responsiveness across the frontend. Specifically, transition event cards on mobile viewports from a 1x1 full-width layout to an elegant, compact **2 cards per row (2 columns)** grid, meticulously styling all card sub-elements (thumbnails, category tags, clamped titles, truncated location/date/host badges, action buttons) and resolving mobile responsive issues across search bars, drawers, filter toggles, modals, and page layouts.
+Optimize `org-dashboard.html` and `js/pages/org-dashboard.js` by consolidating the host dashboard and redesigning the Events tab:
+1. **Eliminate Redundant Host Dashboard Section & Move Stats to Events Tab**:
+   - The standalone "Dashboard" tab (`#section-dashboard`) only hosts 4 stat cards and a 5-item recent events table, duplicating the Events view.
+   - We remove the separate "Dashboard" navigation item and section, promote "Events" as the primary landing tab of the organizer command center, and place the key metric cards (Total Events, Participants, Upcoming, Ongoing) directly at the top of the Events tab.
+2. **Re-engineer the Events Tab Timeline Display**:
+   - Re-architect event categorization into three distinct time phases: **Sắp diễn ra (Upcoming)**, **Đang diễn ra (Ongoing / Live)**, and **Đã diễn ra (Past / Ended)**.
+   - Introduce dedicated timeline filter tabs with dynamic count badges (`Tất cả`, `Sắp diễn ra`, `Đang diễn ra`, `Đã diễn ra`).
+   - Enhance the Events table with status badges (e.g. pulsing live dot for ongoing events, clear upcoming badges, distinct draft badges) and remove the obsolete "Show Expired Events" button.
+   - Maintain strict adherence to SpringWave's global design tokens, spacing scale, mobile responsiveness, and bilingual localization (`vi.json` / `en.json`).
 
 ---
 
-## Proposed Architecture & Design Changes
+## Architecture & Design Details
 
-### 1. 2-Column Mobile Card Grid (`.cards-container` & `.card`)
-- **Grid Layout**:
-  - Breakpoints:
-    - `>= 1280px` (Desktop): 4 columns (`grid-cols-4`, `gap-6`)
-    - `1024px - 1279px` (Laptop): 3 columns (`grid-cols-3`, `gap-5`)
-    - `< 1024px` down to `320px` (Tablet & Mobile): **2 columns** (`grid-cols-2`, `gap-2.5 sm:gap-4`)
-  - Set `max-width: none` and `width: 100%` on `.card` so cards stretch and align evenly within their grid column.
-  - Card container flex column layout with `height: 100%` and `margin-top: auto` on `.card-bottom` so cards in the same row maintain uniform height and bottom buttons align horizontally.
+### 1. Navigation & Section Restructure
+- **Sidebar (`<nav id="sidenav">`) & Mobile Sub-nav (`#mobile-dashboard-tabs`)**:
+  - Remove the "Dashboard" entry (`data-section="dashboard"`).
+  - Make "Events" (`data-section="events"`) the first navigation tab and mark it `active` by default.
+  - Set default state `currentSection = "events"` in `org-dashboard.js`.
+  - Add backwards-compatibility redirect in `switchSection(section)`: if `section === "dashboard"`, gracefully route to `"events"`.
+- **Remove `#section-dashboard`**:
+  - Delete `#section-dashboard` from `org-dashboard.html`.
+  - Ensure `#section-events` starts without the `hidden` class.
 
-### 2. Card Component Refinements for 2-Column Density
-- **Image Banner (`.card-image`)**:
-  - Responsive height: `h-[100px] sm:h-[120px] md:h-[135px]` with `object-fit: cover` and smooth rounded top corners.
-- **Floating Tag Overlay**:
-  - Mobile size: `top-2 right-2 px-2 py-0.5 text-[9.5px] font-bold rounded-md max-w-[75%] truncate`.
-- **Card Content Padding**:
-  - `p-2.5 sm:p-3 md:p-4`.
-- **Title (`.card-title`)**:
-  - `font-size: 0.82rem sm:0.9rem md:1.02rem`, `font-weight: 700`, `line-height: 1.25`.
-  - Strict 2-line clamp (`-webkit-line-clamp: 2; height: 2.5em; overflow: hidden;`) to ensure predictable vertical rhythm across cards.
-- **Info Lines (`.info-location`, `.info-date`)**:
-  - Font size `0.70rem sm:0.75rem`, gap `4px`.
-  - Single-line ellipsis truncation on location & date so long address strings (e.g. "Đại học Nguyễn Tất Thành, Đỗ Mười...") never wrap into multi-line blocks that distort card heights.
-- **Host Badge (`.card .info:nth-of-type(3)`)**:
-  - Compact capsule badge (`padding: 2.5px 7px; font-size: 0.65rem sm:0.72rem; border-radius: 6px; max-width: 100%;`).
-  - Text ellipsis truncation for long organizer names (`overflow: hidden; text-overflow: ellipsis; white-space: nowrap;`).
-- **Action Bar (`.card-bottom`)**:
-  - Details Button: `py-1.5 px-2.5 sm:px-3 text-[10.5px] sm:text-[12px] font-bold rounded-lg whitespace-nowrap`.
-  - Favorite Star Button: `w-7 h-7 sm:w-8 sm:h-8` with centered star icon.
+### 2. Events Tab Metric Cards (`#events-stats`)
+- Positioned directly below the Events header (title, description, and "Create Event" button), before the filter toolbar.
+- Responsive grid: `grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-7`.
+- **Card 1: Total Events**:
+  - ID: `stat-events`
+  - Icon: `<i class="fa-regular fa-calendar"></i>` in `bg-blue-50 text-blue-600`
+  - Label: `Total Events` / `Tổng sự kiện`
+- **Card 2: Participants**:
+  - ID: `stat-participants`
+  - Icon: `<i class="fa-solid fa-users"></i>` in `bg-emerald-50 text-emerald-600`
+  - Label: `Participants` / `Người tham gia`
+- **Card 3: Upcoming**:
+  - ID: `stat-upcoming`
+  - Icon: `<i class="fa-solid fa-clock"></i>` in `bg-amber-50 text-amber-600`
+  - Label: `Upcoming` / `Sắp diễn ra`
+- **Card 4: Ongoing**:
+  - ID: `stat-ongoing`
+  - Icon: `<i class="fa-solid fa-tower-broadcast"></i>` in `bg-purple-50 text-purple-600`
+  - Label: `Ongoing` / `Đang diễn ra`
+- All cards use the standard `spring-card spring-card-hover p-4 sm:p-5` classes.
 
-### 3. Explore Page Full Responsive Optimization
-- **Header & Search Bar (`.explore-search-bar`)**:
-  - Mobile layout: stacked card design with rounded corners (`rounded-2xl`), clear field separators, responsive input fonts, and unified button row (Search button flex-1 + Refresh button aligned side-by-side).
-  - Date Range Dropdown (`.dr-dropdown`): responsive centered sheet / mobile popup with proper touch targets and clear/close buttons.
-  - Map Modal (`.map-modal-container`): full responsive width (`w-[94%] max-w-[650px] max-h-[85vh]`).
-- **Sidebar & Filter Drawer (`.explore-sidebar`)**:
-  - Smooth mobile slide-out drawer on `< 1024px` with dark backdrop blur, header close touch, scrollable category chips, and sticky action buttons.
-  - Results bar: results counter and "Filters" button aligned cleanly with adequate spacing.
-- **Recommendations Section**:
-  - Smooth horizontal scrolling cards with touch scroll snap and clean padding.
-- **Pagination & Floating Chatbot**:
-  - Centered pagination buttons with 36px touch targets.
-  - Chatbot widget offset to prevent covering bottom content.
-- **Viewport & Global Overflow Protection**:
-  - Ensure zero horizontal scroll jitter (`overflow-x: hidden`) on mobile viewports.
+### 3. Timeline Categorization Logic (`getEventTimelineStatus`)
+- Computes real-time status using event dates:
+  - `start = new Date(event.heldDate).getTime()`
+  - `end = event.heldDateEnd ? new Date(event.heldDateEnd).getTime() : defaultEndOfEvent(event.heldDate)`
+  - `now = Date.now()`
+- Status definitions:
+  - **`ongoing` (Đang diễn ra)**: `now >= start && now <= end`
+  - **`upcoming` (Sắp diễn ra)**: `now < start`
+  - **`ended` (Đã diễn ra)**: `now > end`
+
+### 4. Events Filter Toolbar & Table Redesign
+- **Filter Tabs**:
+  - Segmented control pills:
+    - `All (Tất cả)`: badge showing total events
+    - `Upcoming (Sắp diễn ra)`: badge showing upcoming count
+    - `Ongoing (Đang diễn ra)`: badge showing ongoing count with green indicator
+    - `Past (Đã diễn ra)`: badge showing ended count
+  - Integrated search input for instant filtering by title, category, or location.
+  - Secondary publication status dropdown/filter (`All Status`, `Published`, `Draft`).
+  - Deprecate and remove `#toggle-expired-events`.
+- **Table Status Column**:
+  - **Ongoing**: `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>Đang diễn ra</span></span>`
+  - **Upcoming**: `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span><span>Sắp diễn ra</span></span>`
+  - **Ended / Past**: `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200/80"><span>Đã kết thúc</span></span>`
+  - **Draft Indicator**: When `status === "draft"`, also show `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Draft</span>`.
+- **Dynamic Empty States**:
+  - Specific empty messages tailored to the active tab (e.g., "Không có sự kiện nào đang diễn ra", "Không có sự kiện sắp tới", etc.).
 
 ---
 
 ## Verification Plan
-
-### Automated / Build Verification
-- Run `npm run build` in `springwave-frontend` to verify all CSS, HTML, and JS assets compile cleanly with Vite without any bundling or syntax errors.
-
-### Visual & Responsive Verification
-- Test multiple viewport widths in browser DevTools:
-  - 375px (iPhone SE / smaller mobile)
-  - 390px - 414px (iPhone 12/13/14/15/16, standard modern mobile)
-  - 430px (iPhone Pro Max / Galaxy Plus)
-  - 768px (iPad Mini / Portrait Tablet)
-  - 1024px (iPad Pro / Small Laptop)
-  - 1280px+ (Desktop)
-- Confirm 2-column grid renders cleanly without text overlaps, clipping, or horizontal overflow.
-- Test search bar inputs, date range picker, filter drawer, map modal, and card click / favorite interactions.
+1. **Build Verification**:
+   - Run `npm run build` in `springwave-frontend` to confirm Vite bundles all HTML/JS assets cleanly with zero build errors.
+2. **Behavioral & UI Verification**:
+   - Verify sidebar and mobile navigation highlight "Events" by default.
+   - Verify stat cards render correct counts for Total Events, Participants, Upcoming, and Ongoing.
+   - Verify switching between "All", "Sắp diễn ra", "Đang diễn ra", and "Đã diễn ra" tabs accurately filters the event table.
+   - Verify status badges display properly with live animation for ongoing events.
+   - Verify search filter and publication status filter operate seamlessly.
+   - Check responsive layouts across mobile (375px), tablet (768px), and desktop (1280px).

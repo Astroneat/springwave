@@ -19,7 +19,7 @@ import { drawStyledQR } from "../lib/qr-styler.js";
 let currentOrgId = null;
 let currentOrgs = [];
 let currentEvents = [];
-let currentSection = "dashboard";
+let currentSection = "events";
 
 // Analytics scope state
 let analyticsScope = "all"; // "all" or "event"
@@ -316,6 +316,7 @@ function initSideNav() {
 }
 
 function switchSection(section) {
+  if (section === "dashboard") section = "events";
   currentSection = section;
   document.querySelectorAll(".section-content").forEach(el => el.classList.add("hidden"));
   const target = document.getElementById(`section-${section}`);
@@ -359,36 +360,70 @@ function switchSection(section) {
   }
 }
 
-// ─── Dashboard ───
+// ─── Timeline Status & Metrics ───
+
+export function getEventTimelineStatus(event) {
+  if (!event || !event.heldDate) return "upcoming";
+  const now = Date.now();
+  const startTime = new Date(event.heldDate).getTime();
+  if (isNaN(startTime)) return "upcoming";
+
+  let endTime;
+  if (event.heldDateEnd) {
+    endTime = new Date(event.heldDateEnd).getTime();
+  }
+  // If no end time, default to end of the heldDate in Vietnam timezone (+7)
+  if (!endTime || isNaN(endTime)) {
+    const eventDateStr = new Date(event.heldDate).toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
+    const endOfDay = new Date(`${eventDateStr}T23:59:59.999+07:00`).getTime();
+    endTime = !isNaN(endOfDay) ? Math.max(endOfDay, startTime + 4 * 60 * 60 * 1000) : (startTime + 24 * 60 * 60 * 1000);
+  }
+
+  if (now > endTime) {
+    return "ended";
+  }
+  if (now >= startTime && now <= endTime) {
+    return "ongoing";
+  }
+  return "upcoming";
+}
+
+function updateEventsMetrics(events = currentEvents) {
+  const totalParticipants = events.reduce((s, e) => s + (e.participants?.length || 0), 0);
+  const upcoming = events.filter(e => getEventTimelineStatus(e) === "upcoming").length;
+  const ongoing = events.filter(e => getEventTimelineStatus(e) === "ongoing").length;
+  const ended = events.filter(e => getEventTimelineStatus(e) === "ended").length;
+  const totalViews = events.reduce((s, e) => s + (e.viewCount || 0), 0);
+
+  const elEvents = document.getElementById("stat-events");
+  if (elEvents) elEvents.textContent = events.length;
+  const elPart = document.getElementById("stat-participants");
+  if (elPart) elPart.textContent = totalParticipants;
+  const elUpcoming = document.getElementById("stat-upcoming");
+  if (elUpcoming) elUpcoming.textContent = upcoming;
+  const elOngoing = document.getElementById("stat-ongoing");
+  if (elOngoing) elOngoing.textContent = ongoing;
+  const elViews = document.getElementById("stat-views");
+  if (elViews) elViews.textContent = totalViews;
+
+  const countAll = document.getElementById("tab-count-all");
+  if (countAll) countAll.textContent = events.length;
+  const countUpcoming = document.getElementById("tab-count-upcoming");
+  if (countUpcoming) countUpcoming.textContent = upcoming;
+  const countOngoing = document.getElementById("tab-count-ongoing");
+  if (countOngoing) countOngoing.textContent = ongoing;
+  const countEnded = document.getElementById("tab-count-ended");
+  if (countEnded) countEnded.textContent = ended;
+}
+
+// ─── Dashboard (Compatibility Alias) ───
 
 async function loadDashboard() {
   if (!currentOrgId) return;
   try {
     const { events: rawEvents = [] } = await getOrgActivities(currentOrgId);
-    const events = rawEvents.filter(a => a._id);
-
-    const totalParticipants = events.reduce((s, e) => s + (e.participants?.length || 0), 0);
-    const upcoming = events.filter(e => e.heldDate && new Date(e.heldDate) > new Date()).length;
-    const totalViews = events.reduce((s, e) => s + (e.viewCount || 0), 0);
-
-    document.getElementById("stat-events").textContent = events.length;
-    document.getElementById("stat-participants").textContent = totalParticipants;
-    document.getElementById("stat-upcoming").textContent = upcoming;
-    document.getElementById("stat-views").textContent = totalViews;
-
-    const tbody = document.getElementById("dashboard-events-body");
-    const recent = events.slice(0, 5);
-    tbody.innerHTML = recent.length
-      ? recent.map(e => `
-        <tr class="border-b border-[#ecedfa]">
-          <td class="py-3 px-4"><span class="font-semibold">${e.title}</span></td>
-          <td class="py-3 px-4 text-[#64748b] hidden md:table-cell">${formatDate(e.heldDate)}</td>
-          <td class="py-3 px-4 text-[#64748b] hidden sm:table-cell">${e.participants?.length || 0}</td>
-          <td class="py-3 px-4">${e.status === "published"
-          ? '<span class="badge-approved" style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Published</span>'
-          : '<span class="badge-pending" style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Draft</span>'}</td>
-        </tr>`).join("")
-      : `<tr><td colspan="4" class="text-center py-8 text-[#94a3b8]">No events yet</td></tr>`;
+    currentEvents = rawEvents.filter(a => a._id);
+    updateEventsMetrics(currentEvents);
   } catch (err) {
     console.error("Dashboard load error:", err);
   }
@@ -396,18 +431,35 @@ async function loadDashboard() {
 
 // ─── Events ───
 
-let eventsFilter = "all";
-let showExpiredEvents = false;
+let eventsTimelineFilter = "all";
+let eventsStatusFilter = "all";
+let eventsSearchQuery = "";
 
 function initEventsTabs() {
-  document.querySelectorAll("[data-events-tab]").forEach(btn => {
+  document.querySelectorAll("[data-events-timeline]").forEach(btn => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll("[data-events-tab]").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll("[data-events-timeline]").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      eventsFilter = btn.dataset.eventsTab;
+      eventsTimelineFilter = btn.dataset.eventsTimeline;
       renderEventsTable();
     });
   });
+
+  const searchInput = document.getElementById("events-search-input");
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      eventsSearchQuery = searchInput.value.trim().toLowerCase();
+      renderEventsTable();
+    });
+  }
+
+  const statusFilter = document.getElementById("events-status-filter");
+  if (statusFilter) {
+    statusFilter.addEventListener("change", () => {
+      eventsStatusFilter = statusFilter.value;
+      renderEventsTable();
+    });
+  }
 }
 
 async function loadEvents() {
@@ -415,6 +467,7 @@ async function loadEvents() {
   try {
     const { events: rawEvents = [] } = await getOrgActivities(currentOrgId);
     currentEvents = rawEvents.filter(a => a._id);
+    updateEventsMetrics(currentEvents);
     renderEventsTable();
     populateEventSelects();
 
@@ -460,49 +513,99 @@ function canEditEvent(heldDate) {
 function renderEventsTable() {
   const tbody = document.getElementById("events-table-body");
   const empty = document.getElementById("events-empty");
-  const expiredToggle = document.getElementById("toggle-expired-events");
-  if (expiredToggle) {
-    const hasExpired = currentEvents.some(e => isEventExpired(e.heldDate));
-    expiredToggle.classList.toggle("hidden", !hasExpired);
-  }
+  if (!tbody) return;
 
   let filtered = currentEvents;
-  if (eventsFilter !== "all") filtered = filtered.filter(e => e.status === eventsFilter);
-  if (!showExpiredEvents) filtered = filtered.filter(e => !isEventExpired(e.heldDate));
+  if (eventsTimelineFilter !== "all") {
+    filtered = filtered.filter(e => getEventTimelineStatus(e) === eventsTimelineFilter);
+  }
+  if (eventsStatusFilter !== "all") {
+    filtered = filtered.filter(e => e.status === eventsStatusFilter);
+  }
+  if (eventsSearchQuery) {
+    filtered = filtered.filter(e => {
+      const title = (e.title || "").toLowerCase();
+      const type = (e.type || "").toLowerCase();
+      const loc = (e.location || "").toLowerCase();
+      return title.includes(eventsSearchQuery) || type.includes(eventsSearchQuery) || loc.includes(eventsSearchQuery);
+    });
+  }
 
   if (!filtered.length) {
     tbody.innerHTML = "";
-    empty.classList.remove("hidden");
+    if (empty) {
+      empty.classList.remove("hidden");
+      const emptyTitle = empty.querySelector(".font-bold");
+      const emptyDesc = empty.querySelector(".text-xs");
+      if (emptyTitle && emptyDesc) {
+        if (eventsTimelineFilter === "ongoing") {
+          emptyTitle.textContent = t("org_dashboard.no_ongoing_events", {}, "Không có sự kiện nào đang diễn ra");
+          emptyDesc.textContent = t("org_dashboard.no_ongoing_events_desc", {}, "Hiện tại không có sự kiện nào diễn ra trong khung thời gian này");
+        } else if (eventsTimelineFilter === "upcoming") {
+          emptyTitle.textContent = t("org_dashboard.no_upcoming_events", {}, "Không có sự kiện sắp tới");
+          emptyDesc.textContent = t("org_dashboard.no_upcoming_events_desc", {}, "Hãy tạo sự kiện mới để thu hút sinh viên tham gia");
+        } else if (eventsTimelineFilter === "ended") {
+          emptyTitle.textContent = t("org_dashboard.no_ended_events", {}, "Không có sự kiện đã kết thúc");
+          emptyDesc.textContent = t("org_dashboard.no_ended_events_desc", {}, "Các sự kiện đã hoàn thành sẽ xuất hiện tại đây");
+        } else {
+          emptyTitle.textContent = t("org_dashboard.no_events_found", {}, "Không tìm thấy sự kiện");
+          emptyDesc.textContent = t("org_dashboard.no_events_found_desc", {}, "Tạo sự kiện đầu tiên hoặc thử thay đổi bộ lọc tìm kiếm");
+        }
+      }
+    }
     return;
   }
-  empty.classList.add("hidden");
+  if (empty) empty.classList.add("hidden");
 
   tbody.innerHTML = filtered.map(e => {
-    const expired = isEventExpired(e.heldDate);
+    const timelineStatus = getEventTimelineStatus(e);
+    const isEnded = timelineStatus === "ended";
     const canEdit = canEditEvent(e.heldDate);
-    const editDisabled = !canEdit && !expired;
-    const editTitle = editDisabled ? 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút' : 'Edit';
+    const editDisabled = !canEdit || isEnded;
+    const editTitle = isEnded ? 'Sự kiện đã kết thúc' : (!canEdit ? 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút' : 'Edit');
+
+    let timelineBadge = "";
+    if (timelineStatus === "ongoing") {
+      timelineBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>${t("org_dashboard.timeline_ongoing", {}, "Đang diễn ra")}</span></span>`;
+    } else if (timelineStatus === "upcoming") {
+      timelineBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span><span>${t("org_dashboard.timeline_upcoming", {}, "Sắp diễn ra")}</span></span>`;
+    } else {
+      timelineBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200/80 whitespace-nowrap"><span>${t("org_dashboard.timeline_ended", {}, "Đã diễn ra")}</span></span>`;
+    }
+
+    const isDraft = e.status === "draft";
+    const draftBadge = isDraft
+      ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 whitespace-nowrap">Draft</span>`
+      : "";
+
+    const dateDisplay = e.heldDateEnd
+      ? `<span class="font-medium text-slate-700">${formatDate(e.heldDate)}</span><span class="block text-[11px] text-slate-400 font-normal">đến ${formatDate(e.heldDateEnd)}</span>`
+      : `<span class="font-medium text-slate-700">${formatDate(e.heldDate)}</span>`;
+
     return `
-    <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc] transition-colors ${expired ? 'opacity-60' : ''}" data-id="${e._id}">
+    <tr class="border-b border-[#ecedfa] hover:bg-[#f8f9fc] transition-colors ${isEnded ? 'bg-slate-50/40 text-slate-600' : ''}" data-id="${e._id}">
       <td class="py-3.5 px-4">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-[#ecedfa] overflow-hidden shrink-0">
             ${e.thumbnail
-      ? `<img src="${e.thumbnail}" class="w-full h-full object-cover" />`
-      : `<div class="w-full h-full flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-sm"></i></div>`
-    }
+              ? `<img src="${e.thumbnail}" class="w-full h-full object-cover" alt="" />`
+              : `<div class="w-full h-full flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-sm"></i></div>`
+            }
           </div>
           <div class="min-w-0">
-            <p class="font-semibold text-[#191b22] truncate max-w-[200px]">${e.title}</p>
+            <p class="font-semibold text-[#191b22] truncate max-w-[220px]" title="${e.title || ''}">${e.title}</p>
           </div>
         </div>
       </td>
-      <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell">${formatDate(e.heldDate)}</td>
-      <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${e.participants?.length || 0}</td>
-      <td class="py-3.5 px-4 text-[#64748b] hidden lg:table-cell">${capitalize(e.type || "")}</td>
-      <td class="py-3.5 px-4">${e.status === "published"
-      ? '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#d1fae5;color:#059669">Published</span>'
-      : '<span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#d97706">Draft</span>'}</td>
+      <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell text-xs">${dateDisplay}</td>
+      <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell font-medium">${e.participants?.length || 0}</td>
+      <td class="py-3.5 px-4 text-[#64748b] hidden lg:table-cell text-xs font-medium">${capitalize(e.type || "")}</td>
+      <td class="py-3.5 px-4">
+        <div class="flex flex-wrap items-center gap-1.5">
+          ${timelineBadge}
+          ${draftBadge}
+        </div>
+      </td>
       <td class="py-3.5 px-4 text-right">
         <div class="flex items-center justify-end gap-1.5">
           <button class="view-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#64748b] hover:bg-[#dae1ff] hover:text-primary transition-all spring-ease" title="View">
@@ -548,6 +651,7 @@ function renderEventsTable() {
       try {
         await del(`/events/${id}`);
         currentEvents = currentEvents.filter(ev => ev._id !== id);
+        updateEventsMetrics(currentEvents);
         renderEventsTable();
       } catch (err) {
         alert(err.message || "Failed to delete event");
