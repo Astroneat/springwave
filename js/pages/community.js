@@ -86,7 +86,13 @@ async function enrichDiscussionsEventData(discussions) {
       const ev = data?.activity || data;
       if (ev) {
         needEnrich.filter(d => d.relatedEvent === eventId).forEach(d => {
-          d._event = { title: ev.title, date: ev.heldDate || ev.date, attendees: ev.participants || ev.attendees || 0 };
+          d._event = {
+            title: ev.title,
+            date: ev.heldDate || ev.date,
+            attendees: ev.participants || ev.attendees || 0,
+            thumbnail: ev.thumbnail || ev.image || ev.banner,
+            certificateBackground: ev.certificateBackground,
+          };
         });
       }
     } catch {
@@ -94,7 +100,13 @@ async function enrichDiscussionsEventData(discussions) {
         const event = await getEventById(eventId);
         if (event) {
           needEnrich.filter(d => d.relatedEvent === eventId).forEach(d => {
-            d._event = { title: event.title, date: event.date, attendees: event.attendees || 0 };
+          d._event = {
+            title: event.title,
+            date: event.date,
+            attendees: event.attendees || 0,
+            thumbnail: event.thumbnail || event.image || event.banner,
+            certificateBackground: event.certificateBackground,
+          };
           });
         }
       } catch {}
@@ -141,7 +153,13 @@ async function getEventDiscussions() {
       views: 0,
       lastActivity: e.heldDate || e.date,
       relatedEvent: e.id,
-      _event: { title: e.title, date: e.heldDate || e.date, attendees: e.participants || e.attendees || 0 },
+    _event: {
+      title: e.title,
+      date: e.heldDate || e.date,
+      attendees: e.participants || e.attendees || 0,
+      thumbnail: e.thumbnail || e.image || e.banner,
+      certificateBackground: e.certificateBackground,
+    },
     }));
   }
 }
@@ -164,7 +182,13 @@ function eventToDiscussion(event) {
     views: 0,
     lastActivity: event.heldDate ? formatDate(event.heldDate) : "Upcoming",
     relatedEvent: event.activityID || event._id,
-    _event: { title: event.title, date: event.heldDate, attendees: event.participants?.length || event.participants || 0 },
+    _event: {
+      title: event.title,
+      date: event.heldDate,
+      attendees: event.participants?.length || event.participants || 0,
+      thumbnail: event.thumbnail || event.image || event.banner,
+      certificateBackground: event.certificateBackground,
+    },
   };
 }
 
@@ -266,6 +290,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           category: eventId ? "event" : "general",
           eventId: eventId || undefined,
           eventTitle: eventTitle || undefined,
+          certificateCode: certCode || undefined,
           title: defaultTitle,
           content: defaultContent,
           tags: "Certificate, Achievement, SpringWave",
@@ -1016,7 +1041,7 @@ function renderDiscussionPagination(totalItems, totalPages, category) {
 }
 
 function buildDiscussionCardHTML(d) {
-  const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
+  const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, { ...d._event, certificateCode: d.certificateCode }) : "";
   const saved = isSaved(d.id || d._id);
   return `
       <div class="forum-discussion-card" data-discussion-id="${d.id || d._id}">
@@ -1107,21 +1132,42 @@ function renderAvatar(avatar, name) {
 function renderEventRef(eventId, eventData) {
   if (!eventData) return "";
   const event = eventData;
+  const certificateCode = event.certificateCode || eventData.certificateCode;
+  const certificateBackground = typeof event.certificateBackground === "string"
+    && /^(https?:\/\/|\/)/.test(event.certificateBackground)
+    ? event.certificateBackground
+    : "";
+  const safeEventTitle = sanitizeHtml(event.title || "SpringWave event");
+  const safeCertificateCode = sanitizeHtml(certificateCode || "");
+  const certPreview = certificateCode ? `
+    <div class="forum-certificate-ref" ${certificateBackground ? `style="--certificate-bg: url('${certificateBackground.replace(/'/g, "%27")}')"` : ""}>
+      <div class="forum-certificate-ref-art" aria-hidden="true">
+        <span class="material-symbols-outlined">workspace_premium</span>
+        <span>SPRINGWAVE</span>
+      </div>
+      <div class="forum-certificate-ref-copy">
+        <span class="forum-certificate-ref-label">Certificate earned</span>
+        <strong>${safeEventTitle}</strong>
+        <span class="forum-certificate-ref-code">${safeCertificateCode}</span>
+      </div>
+      <a class="forum-certificate-ref-link" href="/certificate.html?code=${encodeURIComponent(certificateCode)}" target="_blank" rel="noopener" aria-label="View certificate for ${safeEventTitle}">View certificate</a>
+    </div>` : "";
   return `
-    <div class="forum-event-ref" data-event-id="${eventId}">
+    <div class="forum-event-ref" data-event-id="${eventId}" role="button" tabindex="0" aria-label="View event: ${safeEventTitle}">
       <div class="forum-event-ref-icon">
         <span class="material-symbols-outlined">event</span>
       </div>
       <div class="forum-event-ref-info">
         <span class="forum-event-ref-label">Discussing</span>
-        <span class="forum-event-ref-title">${event.title}</span>
+        <span class="forum-event-ref-title">${safeEventTitle}</span>
         <span class="forum-event-ref-meta">
           <span class="material-symbols-outlined text-xs">calendar_today</span>
           ${formatDate(event.date)}
         </span>
       </div>
-      <span class="forum-event-ref-link">View Event</span>
+      <span class="forum-event-ref-link">View event</span>
     </div>
+    ${certPreview}
   `;
 }
 
@@ -1396,7 +1442,7 @@ async function openDiscussionDetail(id, targetCommentId = null) {
       }
       const eventWrap = container.querySelector("#discussion-event-ref-wrap");
       if (eventWrap && discussion._event) {
-        eventWrap.innerHTML = renderEventRef(discussion.relatedEvent, discussion._event);
+        eventWrap.innerHTML = renderEventRef(discussion.relatedEvent, { ...discussion._event, certificateCode: discussion.certificateCode });
       }
     }
   })();
@@ -1990,7 +2036,7 @@ function buildEmptyState() {
 }
 
 function buildDiscussionDetailHTML(d, comments) {
-  const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, d._event) : "";
+  const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, { ...d._event, certificateCode: d.certificateCode }) : "";
   const user = getUser();
   const isOwner = user && (d.author === (user.fullname || user.username));
   const isAdmin = user && user.role === "admin";
@@ -2615,6 +2661,7 @@ function initPostModal() {
   const postScopeField = document.getElementById("postScopeField");
 
   let selectedEventId = null;
+  let selectedCertificateCode = null;
   let _selectedEventData = null;
   let closeTimer = null;
   let _allEvents = [];
@@ -2777,6 +2824,7 @@ function initPostModal() {
       closeTimer = null;
     }
     selectedEventId = null;
+    selectedCertificateCode = config?.certificateCode || null;
     _selectedEventData = null;
     checkScope();
     checkPostIdentity();
@@ -2920,7 +2968,9 @@ function initPostModal() {
         const orgId = postAsOrg ? identityVal.replace("org-", "") : undefined;
 
         const result = await createDiscussionWithScope({
-          title, content, category, tags, relatedEvent, scope, communityId,
+          title, content, category, tags, relatedEvent,
+          certificateCode: selectedCertificateCode || undefined,
+          scope, communityId,
           cfTurnstileResponse: (typeof turnstile !== "undefined" && communityTurnstileWidgetId !== null)
             ? turnstile.getResponse(communityTurnstileWidgetId) : undefined,
           postAsOrg,
@@ -2975,6 +3025,7 @@ function initPostModal() {
         document.getElementById("postContent").value = "";
         document.getElementById("postTags").value = "";
         selectedEventId = null;
+        selectedCertificateCode = null;
 
         const currentCat = getCategoryFromURL();
 
@@ -3236,5 +3287,3 @@ if (typeof window !== "undefined") {
     loadSidebar(category).catch(() => {});
   });
 }
-
-

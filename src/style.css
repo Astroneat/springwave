@@ -21026,5 +21026,135 @@ body {
   touch-action: manipulation;
 }
 
+/* Certificate shares keep the event reference, then add a compact proof preview. */
+.forum-certificate-ref {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -4px 0 16px;
+  padding: 10px 12px;
+  overflow: hidden;
+  border: 1px solid #c9dced;
+  border-radius: 12px;
+  background: #f7fbff;
+  color: #18345b;
+}
+
+.forum-certificate-ref::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--certificate-bg);
+  background-position: center;
+  background-size: cover;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.forum-certificate-ref > * {
+  position: relative;
+  z-index: 1;
+}
+
+.forum-certificate-ref-art {
+  display: grid;
+  place-items: center;
+  flex: 0 0 62px;
+  width: 62px;
+  height: 48px;
+  border: 1px solid #b5d2ec;
+  border-radius: 8px;
+  background: #e7f2fc;
+  color: #1755ba;
+}
+
+.forum-certificate-ref-art .material-symbols-outlined {
+  font-size: 23px;
+  line-height: 1;
+}
+
+.forum-certificate-ref-art span:last-child {
+  margin-top: -7px;
+  font-family: "Aleo", serif;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.forum-certificate-ref-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.forum-certificate-ref-label {
+  color: #3479b7;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.forum-certificate-ref-copy strong {
+  overflow: hidden;
+  color: #233a5c;
+  font-size: 0.83rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.forum-certificate-ref-code {
+  color: #7890a9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+}
+
+.forum-certificate-ref-link {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid #b8d7f4;
+  border-radius: 8px;
+  background: #fff;
+  color: #1755ba;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.forum-certificate-ref-link:hover,
+.forum-certificate-ref-link:focus-visible {
+  background: #eaf3fb;
+  border-color: #6fa8dc;
+}
+
+.forum-event-ref:focus-visible,
+.forum-certificate-ref-link:focus-visible {
+  outline: 3px solid rgba(52, 137, 225, 0.3);
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .forum-certificate-ref {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .forum-certificate-ref-copy {
+    flex-basis: calc(100% - 78px);
+  }
+
+  .forum-certificate-ref-copy strong {
+    white-space: normal;
+  }
+
+  .forum-certificate-ref-link {
+    margin-left: 74px;
+  }
+}
 
 

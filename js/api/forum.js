@@ -391,10 +391,11 @@ export async function getMyUniversity() {
   return null;
 }
 
-export async function createDiscussionWithScope({ title, content, category, tags, relatedEvent, scope, communityId, cfTurnstileResponse, postAsOrg, orgId }) {
+export async function createDiscussionWithScope({ title, content, category, tags, relatedEvent, certificateCode, scope, communityId, cfTurnstileResponse, postAsOrg, orgId }) {
   const data = await post("/community/discussions", {
     title, content, category, tags: tags || [],
     relatedEvent: relatedEvent || undefined,
+    certificateCode: certificateCode || undefined,
     scope: scope || "general",
     communityId: communityId || undefined,
     cfTurnstileResponse: cfTurnstileResponse || undefined,
