@@ -6,6 +6,7 @@ import { sanitizeHtml } from "../lib/sanitize.js";
 import { showToast as globalShowToast } from "../components/toast.js";
 import { renderPagination as renderGlobalPagination } from "../components/pagination.js";
 import { showLoginPrompt } from "../components/authModal.js";
+import { showConfirmDialog, showAlertDialog } from "../lib/modal.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
 import {
   getTrendingDiscussions,
@@ -1503,7 +1504,7 @@ async function openDiscussionDetail(id, targetCommentId = null) {
 async function postCommentOrReply({ discussionId, text, replyToId, container, inputEl, submitBtn, inlineBox }) {
   const sanitized = sanitizeHtml(text.trim());
   if (!sanitized) {
-    showToast("Please enter a comment before submitting.", true);
+    showToast(t("community.comment_required", "Please enter a comment before submitting."), true);
     inputEl?.focus();
     return;
   }
@@ -1512,7 +1513,7 @@ async function postCommentOrReply({ discussionId, text, replyToId, container, in
 
   const check = canPerformAction('addComment');
   if (!check.allowed) {
-    showToast(`Please wait ${check.remaining} seconds before posting another comment.`, true);
+    showToast(t("community.wait_before_comment", { seconds: check.remaining }, `Please wait ${check.remaining} seconds before posting another comment.`), true);
     return;
   }
 
@@ -1706,7 +1707,7 @@ function wireDiscussionEvents(id, container) {
   }, { signal });
 
   // Click delegation
-  container.addEventListener("click", (e) => {
+  container.addEventListener("click", async (e) => {
     const currentDiscussionId = container.dataset.activeDiscussionId || id;
 
     // 1. Reply button clicked on a comment
@@ -1727,8 +1728,8 @@ function wireDiscussionEvents(id, container) {
         inline.style.display = "flex";
         const input = inline.querySelector(".forum-comment-inline-input");
         if (input) {
+          input.value = `@${author} `;
           input.dataset.replyToId = commentId;
-          input.placeholder = `Reply to @${author}... (Press Enter to post)`;
           input.focus();
         }
       }
@@ -1758,9 +1759,10 @@ function wireDiscussionEvents(id, container) {
       const inline = submitInlineBtn.closest(".forum-comment-inline-reply");
       if (!inline) return;
       const input = inline.querySelector(".forum-comment-inline-input");
-      const text = input?.value || "";
-      const replyToId = input?.dataset.replyToId || inline.dataset.parentId;
-      postCommentOrReply({
+      if (!input) return;
+      const text = input.value.trim();
+      const replyToId = input.dataset.replyToId;
+      await postCommentOrReply({
         discussionId: currentDiscussionId,
         text,
         replyToId,
@@ -1772,42 +1774,62 @@ function wireDiscussionEvents(id, container) {
       return;
     }
 
-    // 4. Expand hidden replies button
-    const expandBtn = e.target.closest(".forum-comment-expand-btn");
-    if (expandBtn) {
-      e.stopPropagation();
-      const parentEl = expandBtn.closest(".discussion-detail-comment");
-      if (!parentEl) return;
-      const extraContainer = parentEl.querySelector(".forum-comment-extra-replies");
-      if (!extraContainer) return;
-      const isExpanded = expandBtn.classList.contains("expanded");
-      if (isExpanded) {
-        extraContainer.style.maxHeight = "0";
-        expandBtn.classList.remove("expanded");
-      } else {
-        extraContainer.style.maxHeight = "2000px";
-        expandBtn.classList.add("expanded");
-      }
-      return;
-    }
-
-    // 5. Like comment button
+    // 4. Like comment button
     const likeBtn = e.target.closest(".forum-comment-like-btn");
     if (likeBtn) {
       e.stopPropagation();
       const commentId = likeBtn.dataset.commentId;
       if (!commentId) return;
-      const likeSpan = likeBtn.querySelector(".like-count");
-      const currentLikes = parseInt(likeSpan?.textContent || "0");
-      const wasLiked = likeBtn.classList.contains("liked");
-      if (likeSpan) likeSpan.textContent = wasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1;
-      likeBtn.classList.toggle("liked", !wasLiked);
-      likeComment(currentDiscussionId, commentId).then(result => {
-        if (!result) {
-          if (likeSpan) likeSpan.textContent = currentLikes;
-          likeBtn.classList.toggle("liked", wasLiked);
+      likeComment(currentDiscussionId, commentId).then(res => {
+        if (res && res.comment) {
+          const countEl = likeBtn.querySelector(".forum-comment-like-count");
+          if (countEl) countEl.textContent = res.comment.likes || 0;
+          if (res.hasLiked) {
+            likeBtn.classList.add("text-primary-600");
+          } else {
+            likeBtn.classList.remove("text-primary-600");
+          }
         }
       });
+      return;
+    }
+
+    // 5. Bookmark button inside discussion
+    const bookmarkBtn = e.target.closest(".forum-discussion-bookmark-btn");
+    if (bookmarkBtn) {
+      e.stopPropagation();
+      if (!isAuthenticated()) {
+        showLoginPrompt({
+          message: t("auth_modal.desc_bookmark", "Please log in to bookmark discussions."),
+          redirectUrl: window.location.href
+        });
+        return;
+      }
+      const isSaved = bookmarkBtn.classList.contains("saved");
+      const icon = bookmarkBtn.querySelector(".material-symbols-outlined");
+      if (isSaved) {
+        unsaveDiscussion(currentDiscussionId).then(ok => {
+          if (ok) {
+            bookmarkBtn.classList.remove("saved");
+            if (icon) {
+              icon.textContent = "bookmark_border";
+              icon.style.fontVariationSettings = "'FILL' 0";
+            }
+            updateFeedDiscussionSavedState(currentDiscussionId, false);
+          }
+        });
+      } else {
+        saveDiscussion(currentDiscussionId).then(ok => {
+          if (ok) {
+            bookmarkBtn.classList.add("saved");
+            if (icon) {
+              icon.textContent = "bookmark";
+              icon.style.fontVariationSettings = "'FILL' 1";
+            }
+            updateFeedDiscussionSavedState(currentDiscussionId, true);
+          }
+        });
+      }
       return;
     }
 
@@ -1817,7 +1839,13 @@ function wireDiscussionEvents(id, container) {
       e.stopPropagation();
       const commentId = deleteBtn.dataset.commentId;
       if (!commentId) return;
-      if (!confirm("Delete this comment?")) return;
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.delete_confirm_title",
+        messageKey: "community.delete_comment_confirm",
+        confirmTextKey: "common.delete_btn",
+        type: "danger"
+      });
+      if (!confirmed) return;
       const commentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${commentId}"]`);
       deleteDiscussionComment(currentDiscussionId, commentId).then(success => {
         if (success) {
@@ -1853,13 +1881,19 @@ function wireDiscussionEvents(id, container) {
     // 8. Share & Delete discussion
     const deleteDiscBtn = e.target.closest("#discussion-delete-btn");
     if (deleteDiscBtn) {
-      if (!confirm("Are you sure you want to delete this discussion?")) return;
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.delete_confirm_title",
+        messageKey: "community.delete_post_confirm",
+        confirmTextKey: "common.delete_btn",
+        type: "danger"
+      });
+      if (!confirmed) return;
       deleteDiscussion(currentDiscussionId).then(ok => {
         if (ok) {
           closeDiscussionDetail();
           window.location.reload();
         } else {
-          alert("Failed to delete discussion");
+          showToast(t("community.delete_failed", "Failed to delete discussion"), true);
         }
       });
       return;
@@ -2377,7 +2411,13 @@ async function renderUniGrid() {
       const card = btn.closest(".forum-uni-card");
       const id = card?.dataset.uniId;
       if (!id) return;
-      if (!confirm("Delete this university? This action cannot be undone.")) return;
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.delete_confirm_title",
+        messageKey: "community.delete_uni_confirm",
+        confirmTextKey: "common.delete_btn",
+        type: "danger"
+      });
+      if (!confirmed) return;
       const ok = await deleteUni(id);
       if (ok) window.location.reload();
     });
@@ -2694,15 +2734,15 @@ function initPostModal() {
     const incoming = Array.from(postImagesInput.files || []);
     const imageFiles = incoming.filter(file => file.type.startsWith("image/"));
     if (imageFiles.length !== incoming.length) {
-      showToast("Only image files can be attached to a discussion.", true);
+      showToast(t("community.image_only", "Only image files can be attached to a discussion."), true);
     }
     const oversized = imageFiles.find(file => file.size > 10 * 1024 * 1024);
     if (oversized) {
-      showToast("Each image must be 10 MB or smaller.", true);
+      showToast(t("community.image_size_limit", "Each image must be 10 MB or smaller."), true);
     }
     selectedDiscussionImages = [...selectedDiscussionImages, ...imageFiles.filter(file => file.size <= 10 * 1024 * 1024)].slice(0, 4);
     if (incoming.length + selectedDiscussionImages.length > 4) {
-      showToast("You can attach up to 4 images.", true);
+      showToast(t("community.image_count_limit", "You can attach up to 4 images."), true);
     }
     postImagesInput.value = "";
     renderDiscussionImagePreview();
@@ -2959,7 +2999,7 @@ function initPostModal() {
     publishBtn.addEventListener("click", async () => {
       const user = getUser();
       if (user && user.emailVerified === false) {
-        showToast("Please verify your email before posting. Check your inbox or resend the verification.", true);
+        showToast(t("community.verify_email_post", "Please verify your email before posting. Check your inbox or resend the verification."), true);
         return;
       }
       if (!requireVerifiedOrRedirect()) return;
@@ -2970,26 +3010,26 @@ function initPostModal() {
       const content = sanitizeHtml(contentInput?.value.trim() || "");
 
       if (!title && !content) {
-        showToast("Please enter both a title and content for your discussion.", true);
+        showToast(t("community.title_content_required", "Please enter both a title and content for your discussion."), true);
         titleInput?.focus();
         return;
       }
 
       if (!title) {
-        showToast("Please enter a title for your discussion.", true);
+        showToast(t("community.title_required", "Please enter a title for your discussion."), true);
         titleInput?.focus();
         return;
       }
 
       if (!content) {
-        showToast("Please enter the content for your discussion.", true);
+        showToast(t("community.content_required", "Please enter the content for your discussion."), true);
         contentInput?.focus();
         return;
       }
 
       const check = canPerformAction('createDiscussion');
       if (!check.allowed) {
-        showToast(`Please wait ${check.remaining} seconds before posting another discussion.`, true);
+        showToast(t("community.wait_before_post", { seconds: check.remaining }, `Please wait ${check.remaining} seconds before posting another discussion.`), true);
         return;
       }
 
@@ -3319,7 +3359,7 @@ async function renderOrgGrid() {
           if (counter) counter.textContent = result.followerCount;
         }
       } catch (err) {
-        alert(err.message || "Failed to update follow status.");
+        showToast(err.message || t("community.failed_update_follow", "Failed to update follow status."), true);
       } finally {
         btn.disabled = false;
       }

@@ -56,10 +56,10 @@ function ensureAuthModal() {
       </div>
 
       <!-- Title & Description -->
-      <h3 id="auth-modal-title" class="text-xl sm:text-2xl font-bold text-slate-900 mb-2 font-headline">
+      <h3 id="auth-modal-title" data-i18n="auth_modal.title" class="text-xl sm:text-2xl font-bold text-slate-900 mb-2 font-headline">
         ${t("auth_modal.title", "Login Required")}
       </h3>
-      <p id="auth-modal-desc" class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
+      <p id="auth-modal-desc" data-i18n="auth_modal.desc_default" class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
         ${t("auth_modal.desc_default", "You need to log in to use this feature.")}
       </p>
 
@@ -67,17 +67,17 @@ function ensureAuthModal() {
       <div class="flex flex-col gap-2.5">
         <a id="auth-modal-login-btn" href="/login.html" class="w-full py-3 px-5 rounded-2xl bg-[#1755ba] hover:bg-[#134699] text-white font-semibold text-sm shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
           <span class="material-symbols-outlined text-[20px]">login</span>
-          <span class="auth-modal-login-text">${t("auth_modal.login_btn", "Log In Now")}</span>
+          <span class="auth-modal-login-text" data-i18n="auth_modal.login_btn">${t("auth_modal.login_btn", "Log In Now")}</span>
         </a>
 
         <div class="pt-3 border-t border-slate-100 flex items-center justify-center gap-1.5 text-xs text-slate-500">
-          <span class="auth-modal-register-prompt">${t("auth_modal.register_prompt", "Don't have an account?")}</span>
-          <a id="auth-modal-register-btn" href="/register.html" class="font-bold text-[#1755ba] hover:underline">
+          <span class="auth-modal-register-prompt" data-i18n="auth_modal.register_prompt">${t("auth_modal.register_prompt", "Don't have an account?")}</span>
+          <a id="auth-modal-register-btn" href="/register.html" data-i18n="auth_modal.register_btn" class="font-bold text-[#1755ba] hover:underline">
             ${t("auth_modal.register_btn", "Sign Up")}
           </a>
         </div>
 
-        <button type="button" class="auth-modal-cancel-btn mt-1 w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+        <button type="button" class="auth-modal-cancel-btn mt-1 w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" data-i18n="auth_modal.close_btn">
           ${t("auth_modal.close_btn", "Maybe Later")}
         </button>
       </div>
@@ -126,11 +126,15 @@ export function showLoginPrompt(options = {}) {
   if (registerBtn) registerBtn.href = registerHref;
 
   if (titleEl) {
-    titleEl.textContent = options.title || t("auth_modal.title", "Login Required");
+    const titleKey = options.titleKey || (options.title ? "" : "auth_modal.title");
+    titleEl.dataset.i18n = titleKey;
+    titleEl.textContent = options.title || (titleKey ? t(titleKey) : "Login Required");
   }
 
   if (descEl) {
-    descEl.textContent = options.message || t("auth_modal.desc_default", "You need to log in to use this feature.");
+    const descKey = options.messageKey || (typeof options.message === "string" && options.message.startsWith("auth_modal.") ? options.message : (options.message ? "" : "auth_modal.desc_default"));
+    descEl.dataset.i18n = descKey;
+    descEl.textContent = options.message ? (descKey ? t(descKey) : options.message) : t("auth_modal.desc_default", "You need to log in to use this feature.");
   }
 
   // Prevent background scroll with scrollbar compensation
@@ -249,4 +253,21 @@ if (typeof window !== "undefined") {
       return false;
     }
   }, true);
+
+  window.addEventListener("language-changed", () => {
+    if (!authModalOverlay) return;
+    const titleEl = authModalOverlay.querySelector("#auth-modal-title");
+    const descEl = authModalOverlay.querySelector("#auth-modal-desc");
+    const loginText = authModalOverlay.querySelector(".auth-modal-login-text");
+    const registerPrompt = authModalOverlay.querySelector(".auth-modal-register-prompt");
+    const registerBtn = authModalOverlay.querySelector("#auth-modal-register-btn");
+    const cancelBtn = authModalOverlay.querySelector(".auth-modal-cancel-btn");
+
+    if (titleEl?.dataset.i18n) titleEl.textContent = t(titleEl.dataset.i18n);
+    if (descEl?.dataset.i18n) descEl.textContent = t(descEl.dataset.i18n);
+    if (loginText?.dataset.i18n) loginText.textContent = t(loginText.dataset.i18n);
+    if (registerPrompt?.dataset.i18n) registerPrompt.textContent = t(registerPrompt.dataset.i18n);
+    if (registerBtn?.dataset.i18n) registerBtn.textContent = t(registerBtn.dataset.i18n);
+    if (cancelBtn?.dataset.i18n) cancelBtn.textContent = t(cancelBtn.dataset.i18n);
+  });
 }

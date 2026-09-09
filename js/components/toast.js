@@ -3,6 +3,8 @@
  * Supports unified styling, accessible live regions, auto-dismiss, and flexible argument signatures.
  */
 
+import { t } from "../lib/i18n.js";
+
 let toastContainer = null;
 
 function ensureToastContainer() {
@@ -68,13 +70,23 @@ export function showToast(options, typeOrIsError = "info", duration = 3500) {
   let message = "";
   let type = "info";
   let timeout = duration;
+  let i18nKey = "";
+  let i18nParams = {};
 
   if (typeof options === "object" && options !== null) {
-    message = options.message || "";
+    i18nKey = options.key || options.i18nKey || (typeof options.message === "string" && options.message.includes(".") ? options.message : "");
+    i18nParams = options.params || {};
+    message = options.message || (i18nKey ? t(i18nKey, i18nParams, options.fallback || "") : "");
     type = options.type || "info";
     timeout = options.duration || 3500;
   } else {
-    message = String(options || "");
+    const raw = String(options || "");
+    if (raw.includes(".") && !raw.includes(" ")) {
+      i18nKey = raw;
+      message = t(i18nKey, {}, raw);
+    } else {
+      message = raw;
+    }
     if (typeof typeOrIsError === "boolean") {
       type = typeOrIsError ? "error" : "success";
     } else if (typeof typeOrIsError === "string") {
@@ -101,7 +113,7 @@ export function showToast(options, typeOrIsError = "info", duration = 3500) {
 
   toast.innerHTML = `
     <span class="material-symbols-outlined text-xl ${config.iconColor} shrink-0 mt-0.5">${config.icon}</span>
-    <div class="text-xs font-semibold ${config.text} leading-relaxed flex-1">${escapedMessage}</div>
+    <div class="toast-message-text text-xs font-semibold ${config.text} leading-relaxed flex-1" ${i18nKey ? `data-i18n="${i18nKey}"` : ""} ${Object.keys(i18nParams).length ? `data-i18n-params='${JSON.stringify(i18nParams)}'` : ""}>${escapedMessage}</div>
     <button type="button" class="toast-close-btn p-0.5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer shrink-0" aria-label="Close notification">
       <span class="material-symbols-outlined text-sm">close</span>
     </button>
@@ -138,4 +150,17 @@ export function showToast(options, typeOrIsError = "info", duration = 3500) {
 // Expose globally for pages using vanilla inline scripts
 if (typeof window !== "undefined") {
   window.showToast = showToast;
+
+  window.addEventListener("language-changed", () => {
+    document.querySelectorAll(".toast-message-text[data-i18n]").forEach((el) => {
+      const key = el.dataset.i18n;
+      if (key) {
+        let params = {};
+        try {
+          if (el.dataset.i18nParams) params = JSON.parse(el.dataset.i18nParams);
+        } catch {}
+        el.textContent = t(key, params, el.textContent);
+      }
+    });
+  });
 }

@@ -8,6 +8,7 @@ import { createDiscussionWithScope } from "../api/forum.js";
 import { CDN_DOMAIN } from "../config.js";
 import { openEventPopup } from "../components/eventPopup.js";
 import { t } from "../lib/i18n.js";
+import { showConfirmDialog } from "../lib/modal.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
 import { renderPagination } from "../components/pagination.js";
@@ -1028,11 +1029,17 @@ async function initMyUniToggle() {
         // User logged in but has not verified student status / no school
         subtitle.className = "text-xs sm:text-[13px] text-amber-700 font-medium leading-relaxed mt-2.5 break-words flex items-center gap-1.5";
         subtitle.innerHTML = `<span class="material-symbols-outlined text-[15px] shrink-0 text-amber-600">info</span><span>${t("explore.my_university_verify_hint", "Verify student ID to filter")}</span>`;
-        toggleInput.addEventListener("change", (e) => {
+        toggleInput.addEventListener("change", async (e) => {
             e.preventDefault();
             toggleInput.checked = false;
             document.getElementById("myUniSection")?.classList.remove("active");
-            if (confirm(t("explore.my_university_verify_prompt", "Please verify your student status to view your school's events."))) {
+            const confirmed = await showConfirmDialog({
+                titleKey: "common.confirm_title",
+                messageKey: "explore.my_university_verify_prompt",
+                confirmTextKey: "common.confirm_btn",
+                type: "primary"
+            });
+            if (confirmed) {
                 window.location.href = "./student-verify.html";
             }
         });

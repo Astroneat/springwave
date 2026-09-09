@@ -15,6 +15,7 @@ import { populateOrgUniversitySelect } from "../api/universities.js";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 import { drawStyledQR } from "../lib/qr-styler.js";
+import { showConfirmDialog, showAlertDialog } from "../lib/modal.js";
 
 let currentOrgId = null;
 let currentOrgs = [];
@@ -544,7 +545,13 @@ function renderEventsTable() {
     btn.addEventListener("click", async e => {
       e.stopPropagation();
       const id = btn.closest("tr").dataset.id;
-      if (!confirm("Delete this event? This cannot be undone.")) return;
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.delete_confirm_title",
+        messageKey: "org_dashboard.delete_event_confirm",
+        confirmTextKey: "common.delete_btn",
+        type: "danger"
+      });
+      if (!confirmed) return;
       try {
         await del(`/events/${id}`);
         currentEvents = currentEvents.filter(ev => ev._id !== id);
@@ -1528,7 +1535,13 @@ function renderParticipantsTable(list) {
         ? `Remove guest "${name}" from this event?`
         : `Remove "${name}" from this event? This will revoke their QR ticket and cancel participation.`;
       
-      if (!confirm(confirmMsg)) return;
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.delete_confirm_title",
+        message: confirmMsg,
+        confirmTextKey: "common.delete_btn",
+        type: "danger"
+      });
+      if (!confirmed) return;
 
       try {
         await removeParticipant(eventId, id);
@@ -2588,7 +2601,13 @@ function initEditExternalModal() {
     const attendanceId = document.getElementById("edit-ext-attendance-id")?.value;
     if (!eventId || !attendanceId) return;
 
-    if (!confirm("Are you sure you want to remove this participant?")) return;
+    const confirmed = await showConfirmDialog({
+      titleKey: "common.delete_confirm_title",
+      messageKey: "org_dashboard.remove_participant_confirm",
+      confirmTextKey: "common.delete_btn",
+      type: "danger"
+    });
+    if (!confirmed) return;
 
     deleteBtn.disabled = true;
     try {
@@ -2874,8 +2893,16 @@ function initAddParticipantsModal() {
     if (container) setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
   });
 
-  document.getElementById("grid-clear-btn")?.addEventListener("click", () => {
-    if (participantGridRows.length > 0 && !confirm("Clear all participant rows?")) return;
+  document.getElementById("grid-clear-btn")?.addEventListener("click", async () => {
+    if (participantGridRows.length > 0) {
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.confirm_title",
+        messageKey: "org_dashboard.clear_grid_confirm",
+        confirmTextKey: "common.confirm_btn",
+        type: "warning"
+      });
+      if (!confirmed) return;
+    }
     participantGridRows = [{ fullname: "", studentId: "", email: "" }];
     renderParticipantGridRows();
     const banner = document.getElementById("parse-status-banner");
@@ -3205,8 +3232,13 @@ function renderAttendanceTableRows(records, isPastEvent) {
     btn.addEventListener("click", async () => {
       const userId = btn.dataset.userId;
       const eventId = document.getElementById("attendance-event-select").value;
-      if (!eventId || !userId) return;
-      if (!confirm("Change status to Absent for this participant?")) return;
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.confirm_title",
+        messageKey: "org_dashboard.status_absent_confirm",
+        confirmTextKey: "common.confirm_btn",
+        type: "warning"
+      });
+      if (!confirmed) return;
       try {
         await markAttendance(eventId, userId, "absent");
         await loadAttendance(eventId);
@@ -4130,12 +4162,18 @@ function initAttendanceButtons() {
     initBtn.addEventListener("click", async () => {
       if (initBtn.disabled) return;
       const eventId = document.getElementById("attendance-event-select")?.value;
-      if (!eventId) return alert("Select an event first");
-      if (!confirm("Initialize/refresh attendance records for all participants?")) return;
+      if (!eventId) return alert(t("org_dashboard.select_event_first", "Select an event first"));
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.confirm_title",
+        messageKey: "org_dashboard.init_attendance_confirm",
+        confirmTextKey: "common.confirm_btn",
+        type: "primary"
+      });
+      if (!confirmed) return;
       try {
         await initAttendance(eventId);
         await loadAttendance(eventId);
-        alert("Attendance initialized");
+        alert(t("attendance.init_success", "Attendance initialized"));
       } catch (err) {
         alert(err.message || "Failed to init attendance");
       }
@@ -4241,7 +4279,13 @@ function initCertBackgroundManager() {
 
   resetBtn?.addEventListener("click", async () => {
     if (!selectedCertEventId) return;
-    if (!confirm("Reset certificate background to the default SpringWave template?")) return;
+    const confirmed = await showConfirmDialog({
+      titleKey: "common.confirm_title",
+      messageKey: "org_dashboard.reset_cert_template_confirm",
+      confirmTextKey: "common.confirm_btn",
+      type: "warning"
+    });
+    if (!confirmed) return;
 
     const origText = resetBtn.innerHTML;
     resetBtn.disabled = true;
@@ -4646,16 +4690,21 @@ function initCertLayoutDesigner() {
     pushHistoryState();
   }
 
-  // Delete a custom field
-  function deleteCustomField(key) {
+  async function deleteCustomField(key) {
     const field = currentConfig.fields[key];
     const isCustom = key.startsWith("custom") || field?.isCustomText;
     if (!isCustom) {
-      alert("Chỉ có thể xóa các khối text tùy chỉnh.");
+      alert(t("cert_designer.only_custom_text_deletable", "Chỉ có thể xóa các khối text tùy chỉnh."));
       return;
     }
 
-    if (!confirm("Bạn có chắc chắn muốn xóa khối văn bản này?")) return;
+    const confirmed = await showConfirmDialog({
+      titleKey: "common.delete_confirm_title",
+      messageKey: "org_dashboard.delete_text_block_confirm",
+      confirmTextKey: "common.delete_btn",
+      type: "danger"
+    });
+    if (!confirmed) return;
 
     const el = document.getElementById(`field-box-${key}`);
     if (el) el.remove();
@@ -5949,8 +5998,14 @@ function initCertLayoutDesigner() {
   });
 
   // Reset to default layout
-  resetBtn?.addEventListener("click", () => {
-    if (!confirm("Khôi phục vị trí các trường về mặc định của hệ thống?")) return;
+  resetBtn?.addEventListener("click", async () => {
+    const confirmed = await showConfirmDialog({
+      titleKey: "common.confirm_title",
+      messageKey: "org_dashboard.reset_fields_position_confirm",
+      confirmTextKey: "common.confirm_btn",
+      type: "warning"
+    });
+    if (!confirmed) return;
     currentConfig = JSON.parse(JSON.stringify(DEFAULT_CERT_CONFIG));
     renderArtboardCustomFields();
     renderLayersPanel();
@@ -6112,7 +6167,14 @@ async function loadCertificates(eventId) {
       btn.addEventListener("click", async () => {
         const certId = btn.dataset.certId;
         const userName = btn.dataset.userName;
-        if (!confirm(`Are you sure you want to restore the certificate for ${userName}?`)) return;
+        const confirmed = await showConfirmDialog({
+          titleKey: "common.confirm_title",
+          messageKey: "org_dashboard.restore_cert_confirm",
+          params: { name: userName },
+          confirmTextKey: "common.confirm_btn",
+          type: "primary"
+        });
+        if (!confirmed) return;
         try {
           await restoreCertificate(certId);
           await loadCertificates(eventId);
@@ -6154,12 +6216,18 @@ function closeRevokeModal() {
 function initIssueCerts() {
   document.getElementById("issue-certs-btn")?.addEventListener("click", async () => {
     const eventId = document.getElementById("cert-event-select")?.value;
-    if (!eventId) return alert("Select an event first");
+    if (!eventId) return alert(t("org_dashboard.select_event_first", "Select an event first"));
     const event = currentEvents.find(ev => ev._id === eventId);
     if (!event || !(event.hasCertificate === true || event.hasCertificate === 'true')) {
-      return alert("This event does not support certificates.");
+      return alert(t("org_dashboard.event_no_cert_support", "This event does not support certificates."));
     }
-    if (!confirm("Issue certificates to all present participants?")) return;
+    const confirmed = await showConfirmDialog({
+      titleKey: "common.confirm_title",
+      messageKey: "org_dashboard.issue_certs_confirm",
+      confirmTextKey: "common.confirm_btn",
+      type: "primary"
+    });
+    if (!confirmed) return;
     try {
       await issueCertificates(eventId);
       alert("Certificates issued!");
@@ -6237,7 +6305,13 @@ async function loadManagers() {
 
     tbody.querySelectorAll(".remove-manager-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
-        if (!confirm("Remove this manager?")) return;
+        const confirmed = await showConfirmDialog({
+          titleKey: "common.delete_confirm_title",
+          messageKey: "org_dashboard.remove_manager_confirm",
+          confirmTextKey: "common.delete_btn",
+          type: "danger"
+        });
+        if (!confirmed) return;
         try {
           await removeManager(currentOrgId, btn.dataset.userId);
           await loadManagers();
@@ -6251,8 +6325,15 @@ async function loadManagers() {
       btn.addEventListener("click", async () => {
         const fullname = btn.dataset.fullname;
         const email = btn.dataset.email;
-        if (!email) return alert("This manager does not have an email address set.");
-        if (!confirm(`Are you sure you want to transfer ownership of this organization to ${fullname} (${email})? You will become a manager instead and lose owner privileges.`)) return;
+        if (!email) return alert(t("org_dashboard.manager_no_email", "This manager does not have an email address set."));
+        const confirmed = await showConfirmDialog({
+          titleKey: "common.confirm_title",
+          messageKey: "org_dashboard.transfer_ownership_confirm",
+          params: { name: fullname, email: email },
+          confirmTextKey: "common.confirm_btn",
+          type: "warning"
+        });
+        if (!confirmed) return;
         try {
           await transferOwnership(currentOrgId, email);
           alert("Ownership transferred successfully!");
@@ -6403,8 +6484,13 @@ function initSettingsForm() {
 
   document.getElementById("delete-org-btn").addEventListener("click", async () => {
     if (!currentOrgId) return;
-    if (!confirm("Delete this organization permanently? This cannot be undone.")) return;
-    if (!confirm("Are you sure? All events will be unlinked from this organization.")) return;
+    const confirmed = await showConfirmDialog({
+      titleKey: "common.delete_confirm_title",
+      messageKey: "org_dashboard.delete_org_confirm",
+      confirmTextKey: "common.delete_btn",
+      type: "danger"
+    });
+    if (!confirmed) return;
     try {
       await deleteOrganization(currentOrgId);
       alert("Organization deleted");
