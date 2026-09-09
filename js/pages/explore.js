@@ -8,14 +8,17 @@ import { createDiscussionWithScope } from "../api/forum.js";
 import { CDN_DOMAIN } from "../config.js";
 import { openEventPopup } from "../components/eventPopup.js";
 import { t } from "../lib/i18n.js";
+import { showConfirmDialog } from "../lib/modal.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
+import { renderPagination } from "../components/pagination.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml, escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard, isToday, isPastDate, isUpcomingDate, getEventStatus } from "../lib/utils.js";
 import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
 import { showExploreLoading, hideExploreLoading, bindLoadingLanguage, EXPLORE_SKELETON_OPTIONS } from "../lib/exploreLoading.js";
 import { getMyUniversity, getUniversities } from "../api/universities.js";
+import { showLoginPrompt } from "../components/authModal.js";
 
 let allActivities = [];
 let masterActivitiesList = [];
@@ -785,26 +788,26 @@ async function renderCardsDirect(activities) {
                 btn.style.pointerEvents = "none";
             }
             const endedBadge = document.createElement("div");
-            endedBadge.className = "bg-red-100/95 backdrop-blur-sm px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold text-red-600 flex items-center gap-1.5 border border-red-200 shadow-xs";
-            endedBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[10px]"></i><span>${t("explore.ended") || "Ended"}</span>`;
+            endedBadge.className = "bg-red-50 text-red-700 border border-red-200/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
+            endedBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-xs"></i><span>${t("explore.ended") || "Ended"}</span>`;
             topLeftBadges.appendChild(endedBadge);
         } else if (status === 'ongoing') {
             const ongoingBadge = document.createElement("div");
-            ongoingBadge.className = "bg-green-100/95 backdrop-blur-sm px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold text-green-600 flex items-center gap-1.5 border border-green-200 shadow-xs";
-            ongoingBadge.innerHTML = `<i class="fa-solid fa-circle-play text-[10px] animate-pulse"></i><span>${t("explore.ongoing") || "Ongoing"}</span>`;
+            ongoingBadge.className = "bg-emerald-50 text-emerald-700 border border-emerald-200/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
+            ongoingBadge.innerHTML = `<i class="fa-solid fa-circle-play text-xs animate-pulse"></i><span>${t("explore.ongoing") || "Ongoing"}</span>`;
             topLeftBadges.appendChild(ongoingBadge);
         } else if (status === 'registration_closed') {
             const closedBadge = document.createElement("div");
-            closedBadge.className = "bg-amber-100/95 backdrop-blur-sm px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold text-amber-700 flex items-center gap-1.5 border border-amber-200 shadow-xs";
-            closedBadge.innerHTML = `<i class="fa-solid fa-user-xmark text-[10px]"></i><span>${t("explore.registration_closed") || "Hết hạn đăng ký"}</span>`;
+            closedBadge.className = "bg-amber-50 text-amber-800 border border-amber-200/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
+            closedBadge.innerHTML = `<i class="fa-solid fa-user-xmark text-xs"></i><span>${t("explore.registration_closed") || "Hết hạn đăng ký"}</span>`;
             topLeftBadges.appendChild(closedBadge);
         }
 
         const hasCert = activity.hasCertificate === true || activity.hasCertificate === 'true';
         if (hasCert) {
             const certBadge = document.createElement("div");
-            certBadge.className = "bg-amber-50/95 backdrop-blur-sm text-amber-800 border border-amber-300/80 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[9.5px] sm:text-xs font-bold flex items-center gap-1 shadow-xs";
-            certBadge.innerHTML = `<i class="fa-solid fa-award text-amber-600 text-[10px] sm:text-xs"></i><span>${t("explore.certificate_badge") || "Certificate"}</span>`;
+            certBadge.className = "bg-amber-50 text-amber-900 border border-amber-300/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
+            certBadge.innerHTML = `<i class="fa-solid fa-award text-amber-600 text-xs"></i><span>${t("explore.certificate_badge") || "Certificate"}</span>`;
             topLeftBadges.appendChild(certBadge);
         }
 
@@ -829,85 +832,41 @@ function renderPaginationControls(totalItems, totalPages) {
     if (!container) return;
     container.style.display = ""; // Ensure it's visible again after search
 
-    if (totalPages <= 1) {
-        container.innerHTML = "";
-        return;
-    }
-
-    let html = "";
-
-    // Prev Button
-    html += `
-        <button class="pagination-btn nav-btn" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">
-            <span class="material-symbols-outlined text-sm">chevron_left</span>
-        </button>
-    `;
-
-    // Page Numbers
-    for (let i = 1; i <= totalPages; i++) {
-        if (
-            i === 1 ||
-            i === totalPages ||
-            (i >= currentPage - 2 && i <= currentPage + 2)
-        ) {
-            html += `
-                <button class="pagination-btn num-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">
-                    ${i}
-                </button>
-            `;
-        } else if (
-            i === currentPage - 3 ||
-            i === currentPage + 3
-        ) {
-            html += `<span class="pagination-ellipsis">...</span>`;
-        }
-    }
-
-    // Next Button
-    html += `
-        <button class="pagination-btn nav-btn" ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">
-            <span class="material-symbols-outlined text-sm">chevron_right</span>
-        </button>
-    `;
-
-    container.innerHTML = html;
-
-    // Add click handlers
-    container.querySelectorAll(".pagination-btn:not([disabled])").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            const page = parseInt(btn.dataset.page, 10);
-            if (!isNaN(page)) {
-                const cardsContainer = document.getElementById("cards-container");
-                if (cardsContainer) {
-                    cardsContainer.querySelectorAll(".explore-skeleton-card").forEach(el => el.classList.add("fade-out"));
-                }
-
-                // Scroll to results header smoothly, accounting for fixed navbar
-                const target = document.querySelector(".results-header");
-                if (target) {
-                    const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
-                    const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
-                    window.scrollTo({ top: y, behavior: "smooth" });
-                }
-
-                // Wait for smooth scroll to finish before rendering new cards
-                await new Promise(resolve => {
-                    let done = false;
-                    const finish = () => {
-                        if (done) return;
-                        done = true;
-                        window.removeEventListener('scrollend', finish);
-                        clearTimeout(fallback);
-                        resolve();
-                    };
-                    const fallback = setTimeout(finish, 800);
-                    window.addEventListener('scrollend', finish, { once: true });
-                });
-
-                currentPage = page;
-                await renderCardsDirect(currentFilteredActivities);
+    renderPagination({
+        container,
+        currentPage,
+        totalPages,
+        onPageChange: async (page) => {
+            const cardsContainer = document.getElementById("cards-container");
+            if (cardsContainer) {
+                cardsContainer.querySelectorAll(".explore-skeleton-card").forEach(el => el.classList.add("fade-out"));
             }
-        });
+
+            // Scroll to results header smoothly, accounting for fixed navbar
+            const target = document.querySelector(".results-header");
+            if (target) {
+                const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
+                const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
+                window.scrollTo({ top: y, behavior: "smooth" });
+            }
+
+            // Wait for smooth scroll to finish before rendering new cards
+            await new Promise(resolve => {
+                let done = false;
+                const finish = () => {
+                    if (done) return;
+                    done = true;
+                    window.removeEventListener('scrollend', finish);
+                    clearTimeout(fallback);
+                    resolve();
+                };
+                const fallback = setTimeout(finish, 800);
+                window.addEventListener('scrollend', finish, { once: true });
+            });
+
+            currentPage = page;
+            await renderCardsDirect(currentFilteredActivities);
+        }
     });
 }
 
@@ -972,11 +931,17 @@ function initSidebar() {
 
         currentMyUniOnly = false;
         const myUniToggle = document.getElementById("toggleMyUni");
-        if (myUniToggle) myUniToggle.checked = false;
+        if (myUniToggle) {
+            myUniToggle.checked = false;
+            document.getElementById("myUniSection")?.classList.remove("active");
+        }
 
         currentCertificateOnly = false;
         const certToggle = document.getElementById("toggleCertificate");
-        if (certToggle) certToggle.checked = false;
+        if (certToggle) {
+            certToggle.checked = false;
+            document.getElementById("certificateSection")?.classList.remove("active-amber");
+        }
 
         await applyFiltersAndSort();
     });
@@ -986,6 +951,7 @@ function initSidebar() {
     const certToggle = document.getElementById("toggleCertificate");
     certToggle?.addEventListener("change", async () => {
         currentCertificateOnly = certToggle.checked;
+        document.getElementById("certificateSection")?.classList.toggle("active-amber", certToggle.checked);
         await applyFiltersAndSort();
     });
 
@@ -1009,12 +975,16 @@ async function initMyUniToggle() {
     if (!toggleInput || !subtitle) return;
 
     if (!isAuthenticated()) {
-        subtitle.textContent = t("explore.my_university_login_hint", "Log in to filter");
+        subtitle.className = "text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed mt-2.5 break-words flex items-center gap-1.5";
+        subtitle.innerHTML = `<span class="material-symbols-outlined text-[15px] shrink-0 text-slate-400">lock</span><span>${t("explore.my_university_login_hint", "Log in to filter")}</span>`;
         toggleInput.addEventListener("change", (e) => {
             e.preventDefault();
             toggleInput.checked = false;
-            alert(t("explore.my_university_login_prompt", "Please log in to view events from your university."));
-            window.location.href = `./login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+            document.getElementById("myUniSection")?.classList.remove("active");
+            showLoginPrompt({
+                message: t("auth_modal.desc_filter_uni", "Vui lòng đăng nhập để xem các sự kiện từ trường của bạn."),
+                redirectUrl: window.location.pathname + window.location.search
+            });
         });
         return;
     }
@@ -1046,20 +1016,30 @@ async function initMyUniToggle() {
         const displayName = myUniversity.shortName
             ? `${myUniversity.shortName} - ${myUniversity.name}`
             : myUniversity.name;
-        subtitle.textContent = displayName;
         subtitle.title = displayName;
+        subtitle.className = "text-xs sm:text-[13px] text-primary font-semibold leading-relaxed mt-2.5 break-words flex items-center gap-1.5";
+        subtitle.innerHTML = `<span class="material-symbols-outlined text-[15px] shrink-0 text-emerald-600">verified</span><span class="truncate">${escapeHtml(displayName)}</span>`;
 
         toggleInput.addEventListener("change", async () => {
             currentMyUniOnly = toggleInput.checked;
+            document.getElementById("myUniSection")?.classList.toggle("active", toggleInput.checked);
             await applyFiltersAndSort();
         });
     } else {
         // User logged in but has not verified student status / no school
-        subtitle.textContent = t("explore.my_university_verify_hint", "Verify student ID to filter");
-        toggleInput.addEventListener("change", (e) => {
+        subtitle.className = "text-xs sm:text-[13px] text-amber-700 font-medium leading-relaxed mt-2.5 break-words flex items-center gap-1.5";
+        subtitle.innerHTML = `<span class="material-symbols-outlined text-[15px] shrink-0 text-amber-600">info</span><span>${t("explore.my_university_verify_hint", "Verify student ID to filter")}</span>`;
+        toggleInput.addEventListener("change", async (e) => {
             e.preventDefault();
             toggleInput.checked = false;
-            if (confirm(t("explore.my_university_verify_prompt", "Please verify your student status to view your school's events."))) {
+            document.getElementById("myUniSection")?.classList.remove("active");
+            const confirmed = await showConfirmDialog({
+                titleKey: "common.confirm_title",
+                messageKey: "explore.my_university_verify_prompt",
+                confirmTextKey: "common.confirm_btn",
+                type: "primary"
+            });
+            if (confirmed) {
                 window.location.href = "./student-verify.html";
             }
         });
@@ -1101,7 +1081,10 @@ function initCardClickHandlers() {
             const id = card?.dataset.id;
             if (!id || favLocks.has(id)) return;
             if (!isAuthenticated()) {
-                alert(t("explore.please_login") || "Please login first to favourite activities!");
+                showLoginPrompt({
+                    message: t("auth_modal.desc_favorite", "Vui lòng đăng nhập để lưu hoạt động yêu thích."),
+                    redirectUrl: window.location.pathname + window.location.search
+                });
                 return;
             }
 
@@ -1347,7 +1330,10 @@ function setFavourited(activityID) {
 
 async function showFavourites() {
     if (!isAuthenticated()) {
-        window.location.href = "/login.html";
+        showLoginPrompt({
+            message: t("auth_modal.desc_favorite", "Vui lòng đăng nhập để xem các hoạt động yêu thích."),
+            redirectUrl: window.location.pathname + window.location.search
+        });
         return;
     }
     try {

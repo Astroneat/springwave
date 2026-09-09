@@ -7,7 +7,7 @@
     <title data-i18n="login.title">SpringWave - Login</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/google-sans-flex@5.2.5/index.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/google-sans-flex@5.3.1/index.css" />
     <link
         href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -23,7 +23,9 @@
         <aside class="auth-brand-panel">
             <div class="auth-brand-glow" aria-hidden="true"></div>
             <div class="auth-brand-content">
-                <a href="index.html" class="auth-brand-logo">SpringWave</a>
+                <a href="index.html" class="auth-brand-logo" title="SpringWave Home">
+                    <span class="brand-spring">Spring</span><span class="brand-wave">Wave</span>
+                </a>
 
                 <h1 class="auth-brand-headline" data-i18n="login.brand_headline">Your next opportunity is one click away.</h1>
                 <p class="auth-brand-subtext" data-i18n="login.brand_subtext">
@@ -47,10 +49,11 @@
         <!-- Form panel -->
         <main class="auth-form-panel">
             <div class="auth-form-wrap">
-                <!-- Top bar with Back button & Language Switcher -->
                 <div class="auth-top-bar">
                     <div class="flex items-center gap-2">
-                        <a href="index.html" class="auth-mobile-brand">SpringWave</a>
+                        <a href="index.html" class="auth-mobile-brand" title="SpringWave Home">
+                            <span class="brand-spring">Spring</span><span class="brand-wave">Wave</span>
+                        </a>
                         <a href="index.html" class="auth-back-link">
                             <span class="material-symbols-outlined text-[18px]">arrow_back</span>
                             <span data-i18n="login.home">Back to home</span>

@@ -614,8 +614,10 @@ async function setupCertificateDOM(cert, status) {
             borderRadius: field.qrRadius || 8,
           });
         } else {
+          let family = field.fontFamily || "Playfair Display";
+          if (family === "Cinzel") family = "Lora";
           fieldWrapper.style.transform = `translate(${translateX}, -50%)`;
-          fieldWrapper.style.fontFamily = `'${field.fontFamily || "Playfair Display"}', sans-serif`;
+          fieldWrapper.style.fontFamily = `'${family}', sans-serif`;
           fieldWrapper.style.fontSize = `${field.fontSize || 16}px`;
           fieldWrapper.style.fontWeight = field.fontWeight || "700";
           fieldWrapper.style.color = field.color || "#0f172a";
@@ -874,9 +876,10 @@ async function drawCertificateDirectToCanvas(cert, certNode) {
         }
 
         if (text) {
-          const family = field.fontFamily || "Playfair Display";
+          let family = field.fontFamily || "Playfair Display";
+          if (family === "Cinzel") family = "Lora";
           let fallback = "sans-serif";
-          if (family === "Playfair Display" || family === "Cinzel") fallback = "Georgia, serif";
+          if (family === "Playfair Display" || family === "Lora" || family === "Cinzel") fallback = "Georgia, serif";
           else if (family === "Great Vibes") fallback = "cursive";
 
           ctx.font = `${field.fontWeight || "700"} ${field.fontSize || 16}px "${family}", ${fallback}`;

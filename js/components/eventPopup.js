@@ -2,12 +2,13 @@ import { sanitizeHtml } from "../lib/sanitize.js";
 import { getActivityById, checkParticipation, unparticipateActivity, participateActivity, getEventComments, addEventComment, getSimilarEvents } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getParticipatedActivities, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
-import { t, getLang } from "../lib/i18n.js";
+import { t, getLang, applyTranslation } from "../lib/i18n.js";
 import { isAuthenticated, getUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
 import { formatDate, capitalize, timeAgo, isToday, isPastDate, getEventStatus } from "../lib/utils.js";
 import { openPostModal } from "./postModal.js";
 import { explainRecommendation } from "../api/recommendations.js";
 import { getMyProfile } from "../api/profile.js";
+import { showLoginPrompt } from "./authModal.js";
 
 let userParticipatedIds = null;
 let userFavouriteIds = null;
@@ -67,6 +68,13 @@ if (isAuthenticated()) {
 
 // Unverified students are view-only: prompt + redirect to the verify page.
 async function requireVerifiedOrRedirect() {
+    if (!isAuthenticated()) {
+        showLoginPrompt({
+            message: t("auth_modal.desc_participate", "Vui lòng đăng nhập để đăng ký và tham gia hoạt động."),
+            redirectUrl: window.location.href
+        });
+        return false;
+    }
     if (isStudentVerified(getUser())) return true;
     try {
         const { getCurrentUser } = await import("../api/auth.js");
@@ -282,7 +290,10 @@ function bindPopupInteractiveElements(container, activity, activityID, options =
             event.preventDefault();
             event.stopPropagation();
             if (!isAuthenticated()) {
-                alert(t("explore.please_login") || "Please login first to favourite activities!");
+                showLoginPrompt({
+                    message: t("auth_modal.desc_favorite", "Vui lòng đăng nhập để lưu hoạt động yêu thích."),
+                    redirectUrl: window.location.href
+                });
                 return;
             }
             const isActive = btn.classList.contains("active");
@@ -1012,7 +1023,7 @@ function setFavourited() {
     });
 }
 
-function showLeaveEventConfirmModal(onConfirmCallback) {
+export function showLeaveEventConfirmModal(onConfirmCallback) {
     let modal = document.getElementById("leaveEventConfirmModal");
     if (!modal) {
         modal = document.createElement("div");
@@ -1027,19 +1038,21 @@ function showLeaveEventConfirmModal(onConfirmCallback) {
     }
 
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100 transform transition-all duration-300 scale-95 opacity-0" id="leaveEventModalCard">
-            <div class="flex items-center gap-3 mb-4 text-red-500">
-                <span class="material-symbols-outlined text-3xl">warning</span>
-                <h3 class="text-lg font-bold text-slate-900">${t("explore.leave_modal_title") || "Leave Event?"}</h3>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 transform transition-all duration-200 scale-95 opacity-0" id="leaveEventModalCard">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+                    <span class="material-symbols-outlined text-2xl">warning</span>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 leading-tight" data-i18n="explore.leave_modal_title">${t("explore.leave_modal_title") || "Leave Event?"}</h3>
             </div>
-            <p class="text-sm text-slate-500 leading-relaxed mb-6">
+            <p class="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6" data-i18n="explore.leave_modal_desc">
                 ${t("explore.leave_modal_desc") || "Are you sure you want to leave this event? You will lose your registered ticket, and your slot may be taken by another student."}
             </p>
-            <div class="flex items-center justify-end gap-3">
-                <button type="button" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-full transition cursor-pointer" id="leaveModalCancel">
+            <div class="flex items-center justify-end gap-2.5">
+                <button type="button" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-200 rounded-full transition cursor-pointer" id="leaveModalCancel" data-i18n="explore.leave_modal_cancel">
                     ${t("explore.leave_modal_cancel") || "Keep Registration"}
                 </button>
-                <button type="button" class="px-4 py-2 text-xs font-bold text-white bg-red-500 hover:bg-red-600 rounded-full transition shadow-sm cursor-pointer" id="leaveModalConfirm">
+                <button type="button" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-full transition shadow-sm cursor-pointer" id="leaveModalConfirm" data-i18n="explore.leave_modal_confirm">
                     ${t("explore.leave_modal_confirm") || "Confirm Leave"}
                 </button>
             </div>
@@ -1053,23 +1066,124 @@ function showLeaveEventConfirmModal(onConfirmCallback) {
     const show = () => {
         modal.classList.remove("hidden");
         requestAnimationFrame(() => {
-            modalCard.classList.remove("scale-95", "opacity-0");
-            modalCard.classList.add("scale-100", "opacity-100");
+            modalCard?.classList.remove("scale-95", "opacity-0");
+            modalCard?.classList.add("scale-100", "opacity-100");
         });
     };
 
     const hide = () => {
-        modalCard.classList.remove("scale-100", "opacity-100");
-        modalCard.classList.add("scale-95", "opacity-0");
+        modalCard?.classList.remove("scale-100", "opacity-100");
+        modalCard?.classList.add("scale-95", "opacity-0");
         setTimeout(() => {
             modal.classList.add("hidden");
         }, 150);
+        document.removeEventListener("keydown", handleKeydown);
     };
 
-    cancelBtn.addEventListener("click", hide);
-    confirmBtn.addEventListener("click", () => {
+    const handleKeydown = (e) => {
+        if (e.key === "Escape") {
+            e.preventDefault();
+            hide();
+        }
+    };
+    document.addEventListener("keydown", handleKeydown);
+
+    cancelBtn?.addEventListener("click", hide);
+    confirmBtn?.addEventListener("click", () => {
         hide();
-        onConfirmCallback();
+        if (typeof onConfirmCallback === "function") onConfirmCallback();
+    });
+
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            hide();
+        }
+    };
+
+    show();
+}
+
+export function showJoinEventConfirmModal(onConfirmCallback, activity) {
+    let modal = document.getElementById("joinEventConfirmModal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "joinEventConfirmModal";
+        modal.className = "fixed inset-0 z-[15000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden";
+        modal.style.zIndex = "15000";
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-modal", "true");
+        document.body.appendChild(modal);
+    } else {
+        modal.style.zIndex = "15000";
+    }
+
+    const eventName = activity ? (activity.activityName || activity.title || "") : "";
+    const eventDate = activity ? (activity.heldDate || activity.date || "") : "";
+    const eventLoc = activity ? (activity.location || "") : "";
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 transform transition-all duration-200 scale-95 opacity-0" id="joinEventModalCard">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-2xl bg-blue-50 text-[#1755ba] flex items-center justify-center shrink-0 border border-blue-100">
+                    <span class="material-symbols-outlined text-2xl">event_available</span>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 leading-tight" data-i18n="explore.join_modal_title">${t("explore.join_modal_title") || "Confirm Event Registration"}</h3>
+            </div>
+            ${eventName ? `
+            <div class="bg-slate-50/80 rounded-2xl p-3 border border-slate-200/70 mb-3 text-left">
+                <div class="font-bold text-xs text-slate-800 line-clamp-2">${escapeHtml(eventName)}</div>
+                <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 mt-1.5">
+                    ${eventDate ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">calendar_today</span>${escapeHtml(eventDate)}</span>` : ""}
+                    ${eventLoc ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">location_on</span>${escapeHtml(eventLoc)}</span>` : ""}
+                </div>
+            </div>` : ""}
+            <p class="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6" data-i18n="explore.join_modal_desc">
+                ${t("explore.join_modal_desc") || "You are registering for this event. A digital ticket will be issued to your account. Please ensure you can attend on schedule."}
+            </p>
+            <div class="flex items-center justify-end gap-2.5">
+                <button type="button" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-200 rounded-full transition cursor-pointer" id="joinModalCancel" data-i18n="explore.join_modal_cancel">
+                    ${t("explore.join_modal_cancel") || "Maybe Later"}
+                </button>
+                <button type="button" class="px-4 py-2 text-xs font-bold text-white bg-[#1755ba] hover:bg-[#134494] rounded-full transition shadow-sm cursor-pointer" id="joinModalConfirm" data-i18n="explore.join_modal_confirm">
+                    ${t("explore.join_modal_confirm") || "Confirm Registration"}
+                </button>
+            </div>
+        </div>
+    `;
+
+    const modalCard = document.getElementById("joinEventModalCard");
+    const cancelBtn = document.getElementById("joinModalCancel");
+    const confirmBtn = document.getElementById("joinModalConfirm");
+
+    const show = () => {
+        modal.classList.remove("hidden");
+        requestAnimationFrame(() => {
+            modalCard?.classList.remove("scale-95", "opacity-0");
+            modalCard?.classList.add("scale-100", "opacity-100");
+        });
+    };
+
+    const hide = () => {
+        modalCard?.classList.remove("scale-100", "opacity-100");
+        modalCard?.classList.add("scale-95", "opacity-0");
+        setTimeout(() => {
+            modal.classList.add("hidden");
+        }, 150);
+        document.removeEventListener("keydown", handleKeydown);
+    };
+
+    const handleKeydown = (e) => {
+        if (e.key === "Escape") {
+            e.preventDefault();
+            hide();
+        }
+    };
+    document.addEventListener("keydown", handleKeydown);
+
+    cancelBtn?.addEventListener("click", hide);
+    confirmBtn?.addEventListener("click", () => {
+        hide();
+        if (typeof onConfirmCallback === "function") onConfirmCallback();
     });
 
     modal.onclick = (e) => {
@@ -1103,7 +1217,10 @@ function initParticipateButton(activityID) {
             }
 
             if (!isAuthenticated()) {
-                alert(t("explore.please_login") || "Please login first!");
+                showLoginPrompt({
+                    message: t("auth_modal.desc_participate", "Vui lòng đăng nhập để đăng ký và tham gia hoạt động."),
+                    redirectUrl: window.location.href
+                });
                 return;
             }
 
@@ -1212,7 +1329,7 @@ function initParticipateButton(activityID) {
             if (isActive) {
                 showLeaveEventConfirmModal(proceedAction);
             } else {
-                proceedAction();
+                showJoinEventConfirmModal(proceedAction, currentOpenActivity);
             }
         });
     });
@@ -1247,7 +1364,10 @@ function initAIMatchButton(container, activityID) {
     btns.forEach(btn => {
         btn.addEventListener("click", async () => {
             if (!isAuthenticated()) {
-                alert(t("explore.please_login", "Please login first to use AI Match!"));
+                showLoginPrompt({
+                    message: t("auth_modal.desc_ai_match", "Vui lòng đăng nhập để sử dụng tính năng AI Match cá nhân hoá."),
+                    redirectUrl: window.location.href
+                });
                 return;
             }
 
@@ -1293,24 +1413,24 @@ function initAIMatchButton(container, activityID) {
                 } catch (_) {}
 
                 let badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-                let progressGradient = "linear-gradient(90deg, #10b981, #059669)";
+                let progressBg = "#059669";
                 let levelText = isVi ? "Rất phù hợp" : "Strong Match";
 
                 if (pct >= 80) {
                     badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-                    progressGradient = "linear-gradient(90deg, #10b981, #059669)";
+                    progressBg = "#059669";
                     levelText = isVi ? "Rất phù hợp" : "Strong Match";
                 } else if (pct >= 60) {
                     badgeClass = "bg-blue-100 text-blue-800 border-blue-300";
-                    progressGradient = "linear-gradient(90deg, #3b82f6, #1d4ed8)";
+                    progressBg = "#1755ba";
                     levelText = isVi ? "Phù hợp tốt" : "Good Match";
                 } else if (pct >= 45) {
                     badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
-                    progressGradient = "linear-gradient(90deg, #f59e0b, #d97706)";
+                    progressBg = "#d97706";
                     levelText = isVi ? "Phù hợp vừa" : "Moderate Match";
                 } else {
-                    badgeClass = "bg-purple-100 text-purple-800 border-purple-300";
-                    progressGradient = "linear-gradient(90deg, #8b5cf6, #6d28d9)";
+                    badgeClass = "bg-slate-100 text-slate-700 border-slate-300";
+                    progressBg = "#475569";
                     levelText = isVi ? "Khám phá mới" : "Explore";
                 }
 
@@ -1339,7 +1459,7 @@ function initAIMatchButton(container, activityID) {
                     <div class="ai-match-card-content">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-chart-pie text-fuchsia-600"></i> ${isVi ? 'Điểm Tương Thích' : 'Match Score'}
+                                <i class="fa-solid fa-chart-pie text-primary"></i> ${isVi ? 'Điểm Tương Thích' : 'Match Score'}
                             </span>
                             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${badgeClass}">
                                 ${pct}% • ${levelText}
@@ -1348,19 +1468,19 @@ function initAIMatchButton(container, activityID) {
                         
                         <!-- Progress Bar -->
                         <div class="w-full bg-slate-200/80 rounded-full h-2.5 mb-3 overflow-hidden p-0.5">
-                            <div class="h-full rounded-full transition-all duration-700 ease-out" style="width: ${pct}%; background: ${progressGradient};"></div>
+                            <div class="h-full rounded-full transition-all duration-700 ease-out" style="width: ${pct}%; background-color: ${progressBg};"></div>
                         </div>
 
                         ${breakdownHTML}
 
-                        <p class="text-xs text-slate-700 leading-relaxed text-left mb-3 bg-white/70 p-2.5 rounded-xl border border-fuchsia-100">
+                        <p class="text-xs text-slate-700 leading-relaxed text-left mb-3 bg-white/70 p-2.5 rounded-xl border border-slate-200">
                             ${escapeHtml(explanation)}
                         </p>
                         
                         ${tagsHTML ? `<div class="flex flex-wrap gap-1.5 justify-start mb-2">${tagsHTML}</div>` : ""}
 
                         <div class="mt-2 text-right">
-                            <a href="/quiz.html" class="text-[10.5px] text-fuchsia-700 hover:text-fuchsia-900 font-semibold hover:underline inline-flex items-center gap-1">
+                            <a href="/quiz.html" class="text-[10.5px] text-primary hover:text-blue-800 font-semibold hover:underline inline-flex items-center gap-1">
                                 <i class="fa-solid fa-sliders"></i> ${isVi ? 'Cập nhật hồ sơ AI Quiz →' : 'Update AI Quiz Profile →'}
                             </a>
                         </div>
@@ -1504,8 +1624,10 @@ async function initEventComments(eventId, container) {
 
     submitBtn?.addEventListener('click', async () => {
         if (!isAuthenticated()) {
-            alert('Please login to comment!');
-            window.location.href = '/login.html';
+            showLoginPrompt({
+                message: t("auth_modal.desc_comment", "Vui lòng đăng nhập để gửi bình luận."),
+                redirectUrl: window.location.href
+            });
             return;
         }
         
@@ -1563,6 +1685,14 @@ if (typeof window !== "undefined") {
             initParticipateButton(actId);
             disableParticipationButtons(currentOpenActivity);
             bindPopupInteractiveElements(container, currentOpenActivity, actId);
+        }
+        const leaveModal = document.getElementById("leaveEventConfirmModal");
+        if (leaveModal && !leaveModal.classList.contains("hidden")) {
+            applyTranslation(leaveModal);
+        }
+        const joinModal = document.getElementById("joinEventConfirmModal");
+        if (joinModal && !joinModal.classList.contains("hidden")) {
+            applyTranslation(joinModal);
         }
     });
 }

@@ -6,6 +6,7 @@ import { fetchContent, formatDate } from "../lib/utils.js";
 import { getVerifications, getVerificationById, approveVerification, rejectVerification, batchApproveVerifications, batchRejectVerifications } from "../api/studentVerification.js";
 import { populateUniversitySelect } from "../api/universities.js";
 import { t, applyTranslation } from "../lib/i18n.js";
+import { showToast as globalShowToast } from "../components/toast.js";
 
 let currentTab = "all";
 let currentPage = 1;
@@ -239,10 +240,10 @@ function actionButtons(v) {
       <button class="view-btn w-9 h-9 rounded-lg border border-[#e2e8f0] bg-white text-[#64748b] hover:bg-[#f1f5f9] hover:border-[#cbd5e1] spring-ease active:scale-95 flex items-center justify-center" data-id="${v._id}" title="${t("admin_student_verify.btn_view", "View Details")}">
         <i class="fa-regular fa-eye text-sm"></i>
       </button>
-      <button class="approve-btn relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border-none bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 spring-ease active:scale-95 shadow-sm shadow-emerald-200" data-id="${v._id}" data-name="${v.submittedBy?.fullname || ''}" data-sid="${v.studentId}">
+      <button class="approve-btn relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border-none bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 spring-ease active:scale-95 shadow-sm" data-id="${v._id}" data-name="${v.submittedBy?.fullname || ''}" data-sid="${v.studentId}">
         <i class="fa-solid fa-check"></i> ${t("admin_student_verify.btn_approve", "Approve")}
       </button>
-      <button class="reject-btn relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border-none bg-red-400 text-white text-xs font-semibold hover:bg-red-500 spring-ease active:scale-95 shadow-sm shadow-red-200" data-id="${v._id}" data-name="${v.submittedBy?.fullname || ''}">
+      <button class="reject-btn relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border-none bg-red-400 text-white text-xs font-semibold hover:bg-red-500 spring-ease active:scale-95 shadow-sm" data-id="${v._id}" data-name="${v.submittedBy?.fullname || ''}">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
@@ -461,29 +462,7 @@ function initRefresh() {
    ========================= */
 
 function showToast(message, type = "info") {
-  const existing = document.querySelector(".toast-notification");
-  if (existing) existing.remove();
-
-  const toast = document.createElement("div");
-  toast.className = `toast-notification fixed top-6 right-6 z-[9999] px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold spring-ease translate-x-[120%] opacity-0 ${
-    type === "error"
-      ? "bg-red-50 text-red-700 border border-red-200"
-      : type === "success"
-      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-      : "bg-white text-[#191b22] border border-[#e2e8f0]"
-  }`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-
-  requestAnimationFrame(() => {
-    toast.classList.remove("translate-x-[120%]", "opacity-0");
-    toast.classList.add("translate-x-0", "opacity-100");
-  });
-
-  setTimeout(() => {
-    toast.classList.add("translate-x-[120%]", "opacity-0");
-    setTimeout(() => toast.remove(), 400);
-  }, 3000);
+  return globalShowToast(message, type);
 }
 
 /* =========================

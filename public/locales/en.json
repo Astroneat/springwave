@@ -447,6 +447,10 @@
     "comments": "Comments",
     "clear": "Clear",
     "close": "Close",
+    "join_modal_title": "Confirm Event Registration",
+    "join_modal_desc": "You are registering for this event. A digital ticket will be issued to your account. Please ensure you can attend on schedule.",
+    "join_modal_confirm": "Confirm Registration",
+    "join_modal_cancel": "Maybe Later",
     "leave_modal_title": "Leave Event?",
     "leave_modal_desc": "Are you sure you want to leave this event? You will lose your registered ticket, and your slot may be taken by another student.",
     "leave_modal_cancel": "Keep Registration",
@@ -592,6 +596,19 @@
     "org_communities": "Organizations",
     "my_discussions": "My Discussions",
     "saved_posts": "Saved Posts",
+    "verify_required_to_post": "You need to verify your student status before posting or commenting.",
+    "empty_general_title": "No general discussions yet",
+    "empty_general_desc": "Start an open conversation, ask a question, or share something with the community!",
+    "empty_mine_title": "No discussions yet",
+    "empty_mine_desc": "You haven't started any discussions yet. Click 'Start Discussion' to create one!",
+    "empty_saved_title": "No saved posts",
+    "empty_saved_desc": "You haven't saved any posts yet. Click the bookmark icon on a discussion to save it for later.",
+    "empty_uni_title": "No university discussions",
+    "empty_uni_desc": "Join a university community above to see discussions from your campus.",
+    "empty_event_title": "No event discussions",
+    "empty_event_desc": "There are no event discussions yet. Be the first to start one!",
+    "empty_default_title": "No discussions yet",
+    "empty_default_desc": "Be the first to start a discussion in this category.",
     "close": "Close",
     "trending": "Trending Discussions",
     "trending_sub": "Active conversations across the community",
@@ -630,7 +647,20 @@
     "hero_desc": "Connect with fellow students, discuss upcoming events, and share knowledge.",
     "tab_latest": "Latest",
     "tab_hot": "Hot Discussions",
-    "search_events": "Search events..."
+    "search_events": "Search events...",
+    "delete_comment_confirm": "Are you sure you want to delete this comment?",
+    "delete_post_confirm": "Are you sure you want to delete this discussion?",
+    "delete_uni_confirm": "Delete this university? This action cannot be undone.",
+    "comment_required": "Please enter a comment before submitting.",
+    "wait_before_comment": "Please wait {{seconds}} seconds before posting another comment.",
+    "wait_before_post": "Please wait {{seconds}} seconds before posting another discussion.",
+    "title_content_required": "Please enter both a title and content for your discussion.",
+    "title_required": "Please enter a title for your discussion.",
+    "content_required": "Please enter the content for your discussion.",
+    "image_only": "Only image files can be attached to a discussion.",
+    "image_size_limit": "Each image must be 10 MB or smaller.",
+    "image_count_limit": "You can attach up to 4 images.",
+    "verify_email_post": "Please verify your email before posting. Check your inbox or resend verification."
   },
   "profile": {
     "title": "Profile - SpringWave",
@@ -678,6 +708,19 @@
     "current_password": "Current Password",
     "new_password": "New Password",
     "confirm_password": "Confirm New Password",
+    "confirm_password_security_hint": "Confirm your password to ensure account security.",
+    "otp_sent_to_desc": "A 6-digit OTP code has been sent to your email. Please check your inbox (including junk/spam).",
+    "resend_otp_btn": "Resend Code",
+    "timer_expired": "Expired",
+    "password_updating": "Updating password...",
+    "password_creating": "Creating password...",
+    "password_success": "Password updated successfully!",
+    "password_create_success": "Password created successfully!",
+    "password_failed": "Action failed. Please try again.",
+    "enter_current_pass": "Please enter your current password.",
+    "enter_both_passwords": "Please enter and confirm your new password.",
+    "passwords_dont_match": "New password and confirmation password do not match.",
+    "pass_min_length": "Password must be at least 8 characters and contain both letters and numbers.",
     "full_name": "Full Name",
     "dob": "Date of Birth",
     "phone": "Phone Number",
@@ -734,13 +777,13 @@
     "save_password": "Save Password"
   },
   "quiz": {
-    "title": "SpringWave - AI Quiz",
+    "title": "SpringWave - MBTI & Personality Quiz",
     "exit_quiz": "Exit",
-    "start_title": "Discover Your Perfect Activities",
-    "start_desc": "Answer 10 quick questions to get AI-powered activity recommendations tailored to you.",
-    "questions": "10 questions",
+    "start_title": "Discover Your 16 MBTI Personality & Growth Path",
+    "start_desc": "Answer 12 quick student scenario questions to uncover your MBTI personality type and receive AI-crafted personal insights and tailored activity recommendations.",
+    "questions": "12 questions",
     "duration": "2-3 min",
-    "ai_results": "AI results",
+    "ai_results": "AI Insights",
     "start_btn": "Start Quiz",
     "previous": "Previous",
     "next": "Next",
@@ -748,35 +791,50 @@
     "retake": "Retake Quiz",
     "retake_btn": "Retake Quiz",
     "question": "Question",
-    "multi_select": "Select all that apply",
-    "finish": "Finish",
-    "analyzing": "Analyzing your answers...",
-    "persona_badge": "Your Persona",
+    "multi_select": "Select the option that best reflects your natural self",
+    "finish": "Finish & Analyze with AI",
+    "analyzing": "AI is analyzing your MBTI personality profile and mindset...",
+    "persona_badge": "MBTI Personality Type",
+    "mbti_breakdown_title": "MBTI 4-Axis Personality Breakdown",
+    "axis_ei": "Energy & Interaction",
+    "axis_sn": "Information Processing",
+    "axis_tf": "Decision Making",
+    "axis_jp": "Lifestyle & Planning",
+    "extraversion": "Extraversion (E)",
+    "introversion": "Introversion (I)",
+    "sensing": "Sensing (S)",
+    "intuition": "Intuition (N)",
+    "thinking": "Thinking (T)",
+    "feeling": "Feeling (F)",
+    "judging": "Judging (J)",
+    "perceiving": "Perceiving (P)",
+    "temperaments": {
+      "analysts": "Analysts",
+      "diplomats": "Diplomats",
+      "sentinels": "Sentinels",
+      "explorers": "Explorers"
+    },
     "strengths_title": "Key Strengths",
-    "advice_title": "Growth Advice",
+    "advice_title": "Extracurricular Growth Advice",
     "portrait_narrative_title": "Personal Portrait & Thinking Mindset",
-    "suggested_activities": "Suggested Activities",
+    "suggested_activities": "Recommended Activities",
     "register_explore": "Register to Explore Activities",
-    "result_title": "Your Personality Profile",
-    "result_desc": "Based on your responses, here's how you score across four key areas.",
+    "result_title": "Your Student Identity & MBTI Profile",
+    "result_desc": "Based on your responses, AI has crafted a comprehensive portrait of your thinking style and ideal university journey.",
     "verify_required_title": "Student Verification Required",
     "verify_required_desc": "You need to verify your student status before taking the AI Personality Quiz and generating your profile.",
     "verify_now_btn": "Verify Student Status Now",
     "back_to_profile": "Back to Profile",
     "categories": {
-      "academic_stage": "Academic Stage",
-      "core_interests": "Core Interests",
-      "activity_pref": "Activity Preferences",
-      "team_role": "Team Role",
-      "learning_style": "Learning Style",
-      "key_goals": "Key Goals",
-      "main_obstacle": "Main Obstacle",
-      "environment": "Environment",
-      "schedule": "Schedule",
-      "key_motivator": "Key Motivator",
+      "energy_source": "Energy Source (E vs I)",
+      "info_gathering": "Information Processing (S vs N)",
+      "decision_making": "Decision Making (T vs F)",
+      "lifestyle_pace": "Lifestyle & Planning (J vs P)",
       "facing_challenges": "Facing Challenges",
       "core_passion": "Core Passion",
       "inspiring_activity": "Inspiring Activity",
+      "team_role": "Team Role",
+      "learning_style": "Learning Style",
       "core_growth_goal": "Growth Goal",
       "inner_hesitation": "Inner Hesitation",
       "flow_state_space": "Flow State Space",
@@ -784,177 +842,226 @@
       "key_spark": "Key Spark"
     },
     "q1": {
-      "question": "When facing a completely new problem or feeling stuck, what is your natural reaction?",
+      "question": "When kicking off a new academic week, what recharges your energy and motivation most?",
       "answers": [
-        "Dive deep, read documentation & tirelessly experiment until finding the solution",
-        "Reach out to peers, mentors or experienced seniors to discuss and brainstorm",
-        "Step away, take a walk, listen to music and let creative intuition spark",
-        "Break the problem down into a detailed checklist and tackle it step by step"
+        "Immersing yourself in club buzz, meeting friends, and engaging in dynamic team discussions",
+        "Having quiet solo moments in your room or the library to read, reflect, and recharge privately"
       ]
     },
     "q2": {
-      "question": "Which domain naturally sparks your curiosity and makes you lose track of time?",
+      "question": "When attending a major campus event (such as a Club Fair or Seminar), what is your typical style?",
       "answers": [
-        "Technology, Software Engineering, AI & Digital Systems",
-        "Business Strategy, Entrepreneurship, Marketing & Management",
-        "Visual Arts, UI/UX Design, Media Production & Content Creation",
-        "Social Sciences, Psychology, Community Development & Humanities",
-        "Sports, Fitness, Physical Wellness & Outdoor Challenges",
-        "Fundamental Science, Academic Research & Theoretical Discovery"
+        "Confidently introducing yourself, making new acquaintances, and networking with speakers",
+        "Sticking with close friends, observing from a comfortable distance, and listening attentively"
       ]
     },
     "q3": {
-      "question": "What kind of extracurricular experience gives you the strongest sense of fulfillment?",
+      "question": "After a grueling day of coursework or final exams, how do you unwind best?",
       "answers": [
-        "Intensive Masterclasses & Hands-on Workshops with practical drills",
-        "Academic contests, Hackathons & Fast-paced Case Challenges",
-        "Arts exhibitions, Cultural festivals & Inspiring creative showcases",
-        "Club meetups, Leadership gatherings & Cross-university networking",
-        "Volunteer expeditions, Charity projects & Environmental campaigns"
+        "Going out for food, sports, or lively gatherings with a group of friends",
+        "Retreating to your own private space with headphones, movies, or games to regain serenity"
       ]
     },
     "q4": {
-      "question": "In a team or collective project, in which role do you feel most confident and valuable?",
+      "question": "When diving into a new research topic or subject, what draws your interest first?",
       "answers": [
-        "The Coordinator / Team leader defining vision and keeping everyone on schedule",
-        "The Specialist / Core builder solving tough technical problems and crafting the product",
-        "The Creative Catalyst / Idea generator breathing aesthetic and unique identity into the work",
-        "The Emotional Anchor / Caring facilitator listening, encouraging and maintaining harmony"
+        "Concrete facts, verified data, and clear step-by-step methodologies",
+        "Novel concepts, imaginative possibilities, and big-picture future potential"
       ]
     },
     "q5": {
-      "question": "How do you recharge your mind and assimilate complex knowledge most effectively?",
+      "question": "When listening to a peer present a project idea, what matters most to you?",
       "answers": [
-        "Engaging in energetic group debates, discussions and peer exchange",
-        "Deep solo contemplation in a quiet, undisturbed sanctuary",
-        "Immediate experiential practice — building, making mistakes and iterating",
-        "Listening to structured insights from masters and taking meticulous notes"
+        "Practical feasibility: Concrete resources, realistic execution steps, and viable timelines",
+        "Originality and significance: Does it solve a profound challenge with a breakthrough perspective?"
       ]
     },
     "q6": {
-      "question": "What is your biggest personal milestone or aspiration through student activities?",
+      "question": "In academic and extracurricular projects, you feel most confident when:",
       "answers": [
-        "Mastering deep expertise and building tangible products of real value",
-        "Polishing high-impact professional skills, boosting CV and accelerating career",
-        "Broadening meaningful relationships and finding lifelong like-minded allies",
-        "Cultivating emotional intelligence, public speaking charisma and personal confidence",
-        "Unwinding, relieving stress and embracing diverse youthful adventures"
+        "Applying proven hands-on skills and structured experience to execute tasks precisely",
+        "Brainstorming out-of-the-box ideas and connecting abstract theories into unique solutions"
       ]
     },
     "q7": {
-      "question": "What is your most frequent hesitation before committing to a new activity?",
+      "question": "When your project team encounters a disagreement on direction, you prioritize:",
       "answers": [
-        "Hesitant to attend alone / Feeling out of place in massive unfamiliar crowds",
-        "Overwhelmed by academic deadlines, assignments and demanding coursework",
-        "Imposter syndrome / Feeling underprepared or less qualified than peers",
-        "Concerned the event is superficial or formalistic with little practical value",
-        "Commute distance, rigid timing or registration financial costs"
+        "Objective logical analysis, empirical evidence, and efficiency—pointing out flaws candidly",
+        "Listening to everyone's feelings, seeking mutual harmony, and maintaining strong team camaraderie"
       ]
     },
     "q8": {
-      "question": "In what environment do you most easily enter your Flow State of deep immersion?",
+      "question": "When assessing the success of a student activity, your primary metric is:",
       "answers": [
-        "A secluded corner or quiet café with noise-cancelling headphones, immersed in my zone",
-        "An open, flexible space close to nature without rigid clocks or micromanagement",
-        "A dynamic collaborative room with whiteboards, buzzing with passionate brainstorming",
-        "A structured, highly professional environment where everyone is focused and disciplined"
+        "Tangible deliverables: Were the defined targets met and was quality delivered on schedule?",
+        "Human experience: Did attendees feel welcomed, connected, inspired, and uplifted?"
       ]
     },
     "q9": {
-      "question": "At the end of a long day, what gives you the most profound sense of pride and peace?",
+      "question": "When a classmate shares personal academic or career struggles, you naturally:",
       "answers": [
-        "Having built or fixed something tangible that actually runs flawlessly",
-        "Discovering an illuminating insight or truly understanding a concept that was once obscure",
-        "Knowing I genuinely supported or brightened someone's day through empathy",
-        "Executing all planned priorities on my checklist with self-discipline and focus"
+        "Break down the root causes and suggest structured, actionable solutions to fix the issue",
+        "Offer genuine empathy, active listening, and heartfelt encouragement before discussing fixes"
       ]
     },
     "q10": {
-      "question": "What decisive spark makes you immediately hit Register without a second thought?",
+      "question": "When assigned a month-long course capstone or event planning project, you typically:",
       "answers": [
-        "The presence of industry-leading mentors and renowned guest thinkers to learn from",
-        "Clear gateways to prestigious internships, career recommendations or high-value prizes",
-        "A truly cutting-edge, avant-garde topic that sparks irresistible curiosity",
-        "Close, trusted friends or trusted teammates enthusiastically going along",
-        "A genuine, non-commercial initiative dedicated to real community empowerment"
+        "Draft a structured plan, divide milestones by week, and execute steadily to finish ahead of time",
+        "Keep your schedule flexible, explore diverse directions, and peak in a burst of sprint energy"
+      ]
+    },
+    "q11": {
+      "question": "In your everyday student life, your workspace and study schedule are usually:",
+      "answers": [
+        "Organized, with structured to-do lists, feeling calm and in control when things follow an orderly plan",
+        "Fluid and adaptable, shifting with spontaneous inspiration rather than rigid timetables"
+      ]
+    },
+    "q12": {
+      "question": "When weekend plans or event schedules unexpectedly change at the last minute, you feel:",
+      "answers": [
+        "Somewhat frustrated or unsettled because your pre-arranged routine was disrupted",
+        "Easygoing and intrigued, embracing it as a fun chance for a fresh, unexpected adventure"
       ]
     },
     "personas": {
+      "INTJ": {
+        "title": "The Strategic Architect (INTJ)",
+        "tagline": "Independent strategic thinker with grand vision, constantly optimizing complex systems.",
+        "strengths": ["Strategic Thinking", "Long-term Planning", "Self-Reliance", "Complex Problem Solving"],
+        "advice": "Balance high-level master plans with operational flexibility, and communicate your visionary roadmap clearly to team members."
+      },
+      "INTP": {
+        "title": "The Logical Thinker (INTP)",
+        "tagline": "Endlessly curious analyst, master of deconstructing paradigms and engineering novel theories.",
+        "strengths": ["Analytical Acumen", "Intellectual Curiosity", "Original Reasoning", "Conceptual Mastery"],
+        "advice": "Take deliberate steps to translate your brilliant conceptual breakthroughs into tangible, ship-ready projects."
+      },
+      "ENTJ": {
+        "title": "The Decisive Commander (ENTJ)",
+        "tagline": "Bold pioneer with macro vision, commanding decisive direction through every obstacle.",
+        "strengths": ["Executive Leadership", "Decisiveness", "Strategic Blueprinting", "High-Impact Execution"],
+        "advice": "Practice empathetic listening and create welcoming space for diverse team perspectives to flourish."
+      },
+      "ENTP": {
+        "title": "The Innovative Debater (ENTP)",
+        "tagline": "Witty and inventive catalyst, thriving on intellectual debates and unexplored frontiers.",
+        "strengths": ["Breakthrough Innovation", "Sharp Debate", "Dynamic Ideation", "Agile Adaptability"],
+        "advice": "Channel your boundless enthusiasm to complete and polish projects through to full realization."
+      },
+      "INFJ": {
+        "title": "The Inspiring Advocate (INFJ)",
+        "tagline": "Profoundly intuitive and principled visionary, quietly inspiring transformative change.",
+        "strengths": ["Deep Intuition", "Human Empathy", "Purpose-Driven", "Inspiring Meaning"],
+        "advice": "Care for your own physical and mental well-being to avoid burnout while championing community causes."
+      },
+      "INFP": {
+        "title": "The Empathetic Mediator (INFP)",
+        "tagline": "Authentic and idealistic soul, fiercely loyal to inner values and genuine creative expression.",
+        "strengths": ["Earnest Authenticity", "Artistic Creativity", "Compassionate Care", "Open-Mindedness"],
+        "advice": "Ground your high ideals into consistent, daily actionable steps toward your dreams."
+      },
+      "ENFJ": {
+        "title": "The Charismatic Protagonist (ENFJ)",
+        "tagline": "Warm-hearted mentor who ignites the potential in others and unites teams with genuine care.",
+        "strengths": ["Inspirational Guidance", "Persuasive Communication", "Emotional Intelligence", "Team Cohesion"],
+        "advice": "Prioritize your own needs and set healthy boundaries so you aren't overwhelmed by others' challenges."
+      },
+      "ENFP": {
+        "title": "The Passionate Campaigner (ENFP)",
+        "tagline": "Vibrant and free-spirited enthusiast who spots magic and boundless potential everywhere.",
+        "strengths": ["Boundless Energy", "Expressive Communication", "Spontaneous Innovation", "Broad Networking"],
+        "advice": "Build steady habits to focus your radiant energy on finishing key long-term endeavors."
+      },
+      "ISTJ": {
+        "title": "The Responsible Logistician (ISTJ)",
+        "tagline": "Principled, impeccably dependable pillar who executes every duty with precision and honor.",
+        "strengths": ["Unshakable Reliability", "Structured Discipline", "Meticulous Attention", "Solid Practicality"],
+        "advice": "Keep an open mind toward creative new approaches and embrace flexibility when situations shift."
+      },
+      "ISFJ": {
+        "title": "The Dedicated Defender (ISFJ)",
+        "tagline": "Attentive, selfless guardian quietly safeguarding group harmony and tending to everyone's needs.",
+        "strengths": ["Thoughtful Thoroughness", "Devoted Service", "Empathetic Listening", "Strong Duty"],
+        "advice": "Confidently advocate for your own ideas and celebrate your invaluable accomplishments without hesitation."
+      },
+      "ESTJ": {
+        "title": "The Systemic Executive (ESTJ)",
+        "tagline": "Practical, assertive coordinator who excels at organizing people and executing orderly progress.",
+        "strengths": ["Project Coordination", "Action-Oriented Order", "Crisp Clarity", "Steadfast Discipline"],
+        "advice": "Pay close attention to team members' emotions to build enduring loyalty and heartfelt engagement."
+      },
+      "ESFJ": {
+        "title": "The Community Consul (ESFJ)",
+        "tagline": "The lively heartbeat of the group, warm, generous, and dedicated to collective joy.",
+        "strengths": ["Community Building", "Considerate Support", "Event Hosting", "Welcoming Warmth"],
+        "advice": "Anchor your confidence in your self-worth rather than depending solely on external appreciation."
+      },
+      "ISTP": {
+        "title": "The Practical Virtuoso (ISTP)",
+        "tagline": "Calm, hands-on troubleshooter who masters tools and resolves complex real-world puzzles.",
+        "strengths": ["Technical Craftsmanship", "Applied Pragmatism", "Cool-Headed Under Fire", "Swift Adaptability"],
+        "advice": "Share your technical insights and collaborate more actively with friends and project teammates."
+      },
+      "ISFP": {
+        "title": "The Sensitive Adventurer (ISFP)",
+        "tagline": "Gentle, imaginative artist living fully in the present with distinctive aesthetic grace.",
+        "strengths": ["Aesthetic Flair", "Fluid Flexibility", "Warm Empathy", "Creative Independence"],
+        "advice": "Formulate structured long-term milestones to give your expressive talents room to thrive."
+      },
+      "ESTP": {
+        "title": "The Dynamic Entrepreneur (ESTP)",
+        "tagline": "High-energy trailblazer who thrives on immediate action and bold, spontaneous adventures.",
+        "strengths": ["Decisive Action", "Crisis Leadership", "Persuasive Charisma", "Undaunted Courage"],
+        "advice": "Take a moment to reflect on long-term consequences before diving into sudden impulses."
+      },
+      "ESFP": {
+        "title": "The Energetic Entertainer (ESFP)",
+        "tagline": "Playful and spirited soul who turns student life into an inspiring celebration of joy.",
+        "strengths": ["Infectious Vitality", "Dynamic Stage Presence", "Social Charm", "Quick Improvisation"],
+        "advice": "Balance spontaneous celebrations with disciplined dedication to your core academic ambitions."
+      },
       "tech_builder": {
         "title": "The Practical Problem Solver",
         "tagline": "Action-driven builder cracking complex technical riddles into working reality.",
-        "strengths": [
-          "Logical Thinking",
-          "Software Architecture",
-          "Problem Solving",
-          "Technical Mastery"
-        ],
+        "strengths": ["Logical Thinking", "Software Architecture", "Problem Solving", "Technical Mastery"],
         "advice": "Keep challenging yourself with complex algorithm problems, build personal projects, and collaborate in hackathons to polish your engineering skills."
       },
       "community_leader": {
         "title": "The Empathetic Catalyst",
         "tagline": "Radiating positive energy, aligning people and creating lasting bonds.",
-        "strengths": [
-          "Leadership",
-          "Organization",
-          "Public Speaking",
-          "Strategic Planning"
-        ],
+        "strengths": ["Leadership", "Organization", "Public Speaking", "Strategic Planning"],
         "advice": "Take on coordination roles in student organizations, practice active listening, and guide teams towards shared objectives."
       },
       "creative_innovator": {
         "title": "The Creative Visionary",
         "tagline": "Expressive, boundary-breaking, infusing imagination into every creation.",
-        "strengths": [
-          "Visual Design",
-          "Creative Thinking",
-          "Ideation",
-          "Aesthetic Sense"
-        ],
+        "strengths": ["Visual Design", "Creative Thinking", "Ideation", "Aesthetic Sense"],
         "advice": "Keep building your creative portfolio, experiment with new design trends, and collaborate with tech partners to turn ideas into visual realities."
       },
       "career_strategist": {
         "title": "The Purposeful Achiever",
         "tagline": "Goal-oriented, disciplined, proactively architecting their future trajectory.",
-        "strengths": [
-          "Resume Writing",
-          "Networking",
-          "Industry Knowledge",
-          "Goal Alignment"
-        ],
+        "strengths": ["Resume Writing", "Networking", "Industry Knowledge", "Goal Alignment"],
         "advice": "Attend corporate networking events, search for early internships, and refine your portfolio to showcase measurable accomplishments."
       },
       "deep_learner": {
         "title": "The Deep Contemplator",
         "tagline": "Patient, profoundly curious, seeking fundamental truth beneath the surface.",
-        "strengths": [
-          "Academic Research",
-          "Critical Analysis",
-          "Focused Study",
-          "Data Literacy"
-        ],
+        "strengths": ["Academic Research", "Critical Analysis", "Focused Study", "Data Literacy"],
         "advice": "Participate in university scientific research groups, read research papers in your field, and share study strategies with others."
       },
       "changemaker": {
         "title": "The Altruistic Changemaker",
         "tagline": "Compassionate, socially conscious, finding joy in lifting others up.",
-        "strengths": [
-          "Empathy",
-          "Social Responsibility",
-          "Collaboration",
-          "Facilitation"
-        ],
+        "strengths": ["Empathy", "Social Responsibility", "Collaboration", "Facilitation"],
         "advice": "Engage in social volunteer groups, coordinate community-driven events, and practice sustainable teamwork."
       },
       "dynamic_explorer": {
         "title": "The Adaptive Explorer",
         "tagline": "Open-minded, agile, embracing life as a rich tapestry of fresh discoveries.",
-        "strengths": [
-          "Adaptability",
-          "Curiosity",
-          "Versatility",
-          "Open-mindedness"
-        ],
+        "strengths": ["Adaptability", "Curiosity", "Versatility", "Open-mindedness"],
         "advice": "Keep exploring multiple fields without pressure, participate in clubs, and build a wide variety of soft skills."
       }
     },
@@ -1144,7 +1251,11 @@
     "hide_expired": "Hide Expired",
     "show_expired": "Show Expired",
     "classification": "Classification",
-    "view_original": "View original post"
+    "view_original": "View original post",
+    "bulk_fail": "Failed to process {{n}} event(s)",
+    "bulk_approve_success": "Selected events approved successfully",
+    "bulk_delete_success": "Selected events deleted successfully",
+    "action_failed": "Action could not be completed"
   },
   "complete_profile": {
     "title": "SpringWave - Complete Profile",
@@ -1295,7 +1406,13 @@
     "draft": "Draft",
     "published": "Published",
     "view": "View",
-    "none": "None"
+    "none": "None",
+    "confirm_title": "Confirmation",
+    "confirm_btn": "Confirm",
+    "cancel_btn": "Cancel",
+    "ok_btn": "OK",
+    "delete_confirm_title": "Are you sure?",
+    "delete_confirm_desc": "This action cannot be undone."
   },
   "description": {
     "details": "Details",
@@ -1760,7 +1877,32 @@
     "manager_notice_title": "Read-only Mode (Manager)",
     "manager_readonly_notice": "You are accessing as a Manager. Only the organization Owner has permission to edit profile information or delete the organization.",
     "no_permission": "No permission",
-    "only_owner_can_edit": "Only the organization owner can perform this action."
+    "only_owner_can_edit": "Only the organization owner can perform this action.",
+    "managers": "Managers",
+    "certificates": "Certificates",
+    "settings": "Settings",
+    "delete_event_confirm": "Delete this event? This action cannot be undone.",
+    "delete_event_30min_warning": "Cannot edit or delete this event within 30 minutes of start time.",
+    "remove_participant_confirm": "Are you sure you want to remove this participant?",
+    "clear_grid_confirm": "Clear all participant rows?",
+    "status_absent_confirm": "Change status to Absent for this participant?",
+    "init_attendance_confirm": "Initialize/refresh attendance records for all participants?",
+    "reset_cert_template_confirm": "Reset certificate background to the default SpringWave template?",
+    "delete_text_block_confirm": "Are you sure you want to delete this text block?",
+    "reset_fields_position_confirm": "Restore all fields position to system default?",
+    "restore_cert_confirm": "Are you sure you want to restore the certificate for {{name}}?",
+    "issue_certs_confirm": "Issue certificates to all present participants?",
+    "remove_manager_confirm": "Remove this manager?",
+    "transfer_ownership_confirm": "Are you sure you want to transfer ownership of this organization to {{name}} ({{email}})? You will become a manager instead.",
+    "delete_org_confirm": "Delete this organization permanently? All events will be unlinked from this organization.",
+    "select_org_first": "Please select an organization first.",
+    "select_event_first": "Please select an event first before adding participants.",
+    "fullname_required": "Full Name is required.",
+    "student_id_required": "Student ID (MSSV) is required.",
+    "email_required": "Email is required.",
+    "email_invalid": "Please enter a valid email address.",
+    "org_deleted": "Organization deleted successfully.",
+    "event_deleted": "Event deleted successfully."
   },
   "admin_universities": {
     "title": "University Management",
@@ -2093,7 +2235,7 @@
     "del_step1_title": "Option 1: Self-Service Deletion",
     "del_step1_desc": "Visit your SpringWave Profile page, click \"Account Settings\", and select \"Delete Account\". All your personal data and linked tokens will be permanently purged.",
     "del_step2_title": "Option 2: Direct Privacy Email Request",
-    "del_step2_desc": "Send an email to springwave15062026@gmail.com with the subject \"Data Deletion Request\" from your registered email address. We will verify and process your deletion within 30 days.",
+    "del_step2_desc": "Send an email to springwave150626@gmail.com with the subject \"Data Deletion Request\" from your registered email address. We will verify and process your deletion within 30 days.",
     "del_step3_title": "Option 3: Revoke Access in Google Settings",
     "del_step3_desc": "You can immediately revoke SpringWave's permissions at any time via your Google Account Security Dashboard (myaccount.google.com/permissions).",
     "sec8_title": "8. Cookies & Local Storage",
@@ -2109,8 +2251,8 @@
     "tos_3_desc": "Certificates issued on SpringWave are legally tracked. Any forging, falsifying, or tampering with certificates will result in permanent account termination.",
     "sec11_title": "11. Contact & Data Protection Inquiries",
     "contact_desc": "If you have questions about this policy, Google data handling, or wish to exercise your privacy rights, our team is here to assist:",
-    "contact_email_privacy": "Privacy & Data Protection: springwave15062026@gmail.com",
-    "contact_email_support": "General Support: springwave15062026@gmail.com",
+    "contact_email_privacy": "Privacy & Data Protection: springwave150626@gmail.com",
+    "contact_email_support": "General Support: springwave150626@gmail.com",
     "contact_response": "Commitment: We respond to all formal privacy requests within 48 business hours."
   },
   "post_modal": {
@@ -2160,8 +2302,11 @@
     "rate_modal_submit": "Submit Review",
     "rate_modal_submitting": "Submitting...",
     "rate_modal_failed": "Failed to submit review",
+    "rate_success": "Thank you for submitting your review!",
     "cert_modal_title": "Certificate",
     "cert_modal_view": "View Certificate",
+    "download_qr": "Download QR",
+    "qr_modal_title": "Ticket QR Code",
     "failed_load": "Failed to load events. Please try again later.",
     "no_events_yet": "No events yet",
     "no_events_yet_desc": "Participate in an event to get started."
@@ -2359,5 +2504,22 @@
     "prompt_rejected": "Your previous host registration was rejected. Would you like to create a new one?",
     "enter_url": "Please enter a URL",
     "err_upload": "File upload failed. Please try smaller files or different format."
+  },
+  "auth_modal": {
+    "title": "Login Required",
+    "desc_default": "You need to log in to use this feature.",
+    "desc_favorite": "Please log in to save your favorite activities.",
+    "desc_participate": "Please log in to register and participate in activities.",
+    "desc_comment": "Please log in to leave a comment.",
+    "desc_ai_match": "Please log in to use personalized AI Match.",
+    "desc_post": "Please log in to create posts and discussions in the community.",
+    "desc_bookmark": "Please log in to bookmark discussions.",
+    "desc_reply": "Please log in to reply to discussions.",
+    "desc_follow": "Please log in to follow organizations.",
+    "desc_filter_uni": "Please log in to view events from your university.",
+    "login_btn": "Log In Now",
+    "register_prompt": "Don't have an account?",
+    "register_btn": "Sign Up",
+    "close_btn": "Maybe Later"
   }
 }

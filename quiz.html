@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/google-sans-flex@5.2.5/index.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/google-sans-flex@5.3.1/index.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
@@ -43,12 +43,12 @@
         </div>
         <h1 class="quiz-start-title" data-i18n="quiz.start_title">Discover Your Perfect Activities</h1>
         <p class="quiz-start-desc" data-i18n="quiz.start_desc">
-          Answer 10 quick questions to get AI-powered activity recommendations tailored to you.
+          Answer 12 quick questions to get AI-powered activity recommendations tailored to your MBTI personality.
         </p>
         <div class="quiz-start-features">
           <div class="quiz-start-feature">
             <span class="material-symbols-outlined">quiz</span>
-            <span data-i18n="quiz.questions">10 questions</span>
+            <span data-i18n="quiz.questions">12 questions</span>
           </div>
           <div class="quiz-start-feature">
             <span class="material-symbols-outlined">timer</span>
@@ -67,15 +67,15 @@
 
       <!-- Verification Required Card -->
       <div class="quiz-card hidden" id="quizVerifyRequired">
-        <div class="quiz-start-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706;">
-          <span class="material-symbols-outlined" style="font-size: 36px;">verified_user</span>
+        <div class="quiz-start-icon">
+          <span class="material-symbols-outlined">verified_user</span>
         </div>
         <h1 class="quiz-start-title" data-i18n="quiz.verify_required_title">Student Verification Required</h1>
         <p class="quiz-start-desc" data-i18n="quiz.verify_required_desc">
           You need to verify your student status before taking the AI Personality Quiz and generating your profile.
         </p>
         <div class="flex flex-col gap-3 w-full max-w-xs mx-auto mt-4">
-          <a href="/student-verify.html" class="quiz-btn-primary !w-full justify-center !bg-amber-600 hover:!bg-amber-700">
+          <a href="/student-verify.html" class="quiz-btn-primary !w-full justify-center">
             <span class="material-symbols-outlined">verified</span>
             <span data-i18n="quiz.verify_now_btn">Verify Student Status Now</span>
           </a>
@@ -86,24 +86,32 @@
         </div>
       </div>
 
-      <div class="quiz-card hidden" id="quizQuestion">
-        <div class="quiz-progress">
-          <div class="quiz-progress-bar" id="quizProgressBar" role="progressbar" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1" aria-label="Quiz progress"></div>
-          <span class="quiz-progress-text" id="quizProgressText">1 / 10</span>
+      <!-- Question Screen -->
+      <div class="quiz-card quiz-screen-container hidden" id="quizQuestion">
+        <!-- Main Card for Question and Answers -->
+        <div class="quiz-question-card">
+          <!-- Top Row: Category Badge on left, Progress Text on right -->
+          <div class="quiz-question-header">
+            <span class="quiz-category-badge" id="questionCategory">Preferences</span>
+            <span class="quiz-progress-text" id="quizProgressText">1 / 12</span>
+          </div>
+
+          <!-- Progress Bar underneath header -->
+          <div class="quiz-progress-track">
+            <div class="quiz-progress-bar" id="quizProgressBar" role="progressbar" aria-valuemin="1" aria-valuemax="12" aria-valuenow="1" aria-label="Quiz progress"></div>
+          </div>
+
+          <h2 class="quiz-question-title" id="questionTitle">Loading...</h2>
+          <div class="quiz-answers" id="quizAnswers"></div>
         </div>
-        <div class="quiz-question-header">
-          <span class="quiz-question-number" id="questionNumber">Question 1</span>
-          <span class="quiz-category-badge" id="questionCategory">Preferences</span>
-        </div>
-        <h2 class="quiz-question-title" id="questionTitle">Loading...</h2>
-        <div class="quiz-answers" id="quizAnswers"></div>
-        <div class="quiz-nav">
-          <button class="quiz-btn-nav hidden" id="quizPrevBtn">
+
+        <!-- External Navigation Buttons outside the card -->
+        <div class="quiz-external-nav">
+          <button class="quiz-btn-nav quiz-btn-prev hidden" id="quizPrevBtn">
             <span class="material-symbols-outlined">arrow_back</span>
             <span data-i18n="quiz.previous">Previous</span>
           </button>
-          <div></div>
-          <button class="quiz-btn-nav quiz-btn-next" id="quizNextBtn" disabled>
+          <button class="quiz-btn-nav quiz-btn-next ml-auto" id="quizNextBtn" disabled>
             <span data-i18n="quiz.next">Next</span>
             <span class="material-symbols-outlined">arrow_forward</span>
           </button>
@@ -136,7 +144,7 @@
   </main>
 
   <!-- EXIT CONFIRMATION MODAL -->
-  <div id="quizExitModal" hidden class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300" role="dialog" aria-modal="true" aria-labelledby="quizExitModalTitle">
+  <div id="quizExitModal" hidden class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300" role="dialog" aria-modal="true" aria-labelledby="quizExitModalTitle">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl scale-95 transition-transform duration-300 text-center relative border border-slate-100">
       <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4 border border-amber-200/60 shadow-inner">
         <span class="material-symbols-outlined text-3xl">warning</span>

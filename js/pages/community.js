@@ -3,6 +3,10 @@ import { t, getLang } from "../lib/i18n.js";
 import { isAuthenticated, getUser, getToken, setUser, isProfileComplete, isStudentVerified } from "../lib/session.js";
 import { canPerformAction, markActionPerformed, withSubmitLock } from "../lib/throttle.js";
 import { sanitizeHtml } from "../lib/sanitize.js";
+import { showToast as globalShowToast } from "../components/toast.js";
+import { renderPagination as renderGlobalPagination } from "../components/pagination.js";
+import { showLoginPrompt } from "../components/authModal.js";
+import { showConfirmDialog, showAlertDialog } from "../lib/modal.js";
 import { TURNSTILE_SITE_KEY } from "../config.js";
 import {
   getTrendingDiscussions,
@@ -196,8 +200,15 @@ function eventToDiscussion(event) {
 
 // Unverified students are view-only: warn + redirect to the verify page.
 function requireVerifiedOrRedirect() {
+  if (!isAuthenticated()) {
+    showLoginPrompt({
+      message: t("auth_modal.desc_post", "Vui lòng đăng nhập để đăng bài hoặc bình luận."),
+      redirectUrl: window.location.pathname + window.location.search
+    });
+    return false;
+  }
   if (isStudentVerified(getUser())) return true;
-  showToast("Bạn cần xác thực sinh viên trước khi đăng bài hoặc bình luận.", true);
+  globalShowToast(t("community.verify_required_to_post", "Bạn cần xác thực sinh viên trước khi đăng bài hoặc bình luận."), true);
   setTimeout(() => { window.location.href = "/student-verify.html"; }, 900);
   return false;
 }
@@ -944,18 +955,18 @@ function renderDiscussions(discussions, category, page = 1) {
       paginationContainer.style.display = "none";
     }
     const emptyMessages = {
-      general:["chat", "No general discussions yet", "Start an open conversation, ask a question, or share something with the community!"],
-      mine:   ["forum", "No discussions yet", "You haven't started any discussions yet. Click 'Start Discussion' to create one!"],
-      saved:  ["bookmark", "No saved posts", "You haven't saved any posts yet. Click the bookmark icon on a discussion to save it for later."],
-      uni:    ["account_balance", "No university discussions", "Join a university community above to see discussions from your campus."],
-      event:  ["event", "No event discussions", "There are no event discussions yet. Be the first to start one!"],
+      general: ["chat", t("community.empty_general_title", "No general discussions yet"), t("community.empty_general_desc", "Start an open conversation, ask a question, or share something with the community!")],
+      mine:    ["forum", t("community.empty_mine_title", "No discussions yet"), t("community.empty_mine_desc", "You haven't started any discussions yet. Click 'Start Discussion' to create one!")],
+      saved:   ["bookmark", t("community.empty_saved_title", "No saved posts"), t("community.empty_saved_desc", "You haven't saved any posts yet. Click the bookmark icon on a discussion to save it for later.")],
+      uni:     ["account_balance", t("community.empty_uni_title", "No university discussions"), t("community.empty_uni_desc", "Join a university community above to see discussions from your campus.")],
+      event:   ["event", t("community.empty_event_title", "No event discussions"), t("community.empty_event_desc", "There are no event discussions yet. Be the first to start one!")],
     };
-    const msg = emptyMessages[category] || ["forum", "No discussions yet", "Be the first to start a discussion in this category."];
+    const msg = emptyMessages[category] || ["forum", t("community.empty_default_title", "No discussions yet"), t("community.empty_default_desc", "Be the first to start a discussion in this category.")];
     container.innerHTML = `
-      <div class="forum-empty">
-        <span class="material-symbols-outlined forum-empty-icon">${msg[0]}</span>
-        <p class="forum-empty-title">${msg[1]}</p>
-        <p class="forum-empty-desc">${msg[2]}</p>
+      <div class="empty-state py-12 text-center flex flex-col items-center justify-center">
+        <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">${msg[0]}</span>
+        <p class="text-base font-bold text-slate-700">${msg[1]}</p>
+        <p class="text-xs text-slate-500 max-w-sm mt-1 leading-relaxed">${msg[2]}</p>
       </div>
     `;
     return;
@@ -979,64 +990,19 @@ function renderDiscussionPagination(totalItems, totalPages, category) {
   const container = document.getElementById("forumPagination");
   if (!container) return;
 
-  if (totalPages <= 1) {
-    container.innerHTML = "";
-    container.style.display = "none";
-    return;
-  }
-
-  container.style.display = "flex";
-  let html = "";
-
-  // Prev Button
-  html += `
-    <button class="pagination-btn nav-btn" ${currentDiscussionPage === 1 ? 'disabled' : ''} data-page="${currentDiscussionPage - 1}">
-      <span class="material-symbols-outlined text-sm">chevron_left</span>
-    </button>
-  `;
-
-  // Page Numbers
-  for (let i = 1; i <= totalPages; i++) {
-    if (
-      i === 1 ||
-      i === totalPages ||
-      (i >= currentDiscussionPage - 2 && i <= currentDiscussionPage + 2)
-    ) {
-      html += `
-        <button class="pagination-btn num-btn ${i === currentDiscussionPage ? 'active' : ''}" data-page="${i}">
-          ${i}
-        </button>
-      `;
-    } else if (
-      i === currentDiscussionPage - 3 ||
-      i === currentDiscussionPage + 3
-    ) {
-      html += `<span class="pagination-ellipsis">...</span>`;
-    }
-  }
-
-  // Next Button
-  html += `
-    <button class="pagination-btn nav-btn" ${currentDiscussionPage === totalPages ? 'disabled' : ''} data-page="${currentDiscussionPage + 1}">
-      <span class="material-symbols-outlined text-sm">chevron_right</span>
-    </button>
-  `;
-
-  container.innerHTML = html;
-
-  container.querySelectorAll(".pagination-btn:not([disabled])").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const p = parseInt(btn.dataset.page, 10);
-      if (!isNaN(p) && p !== currentDiscussionPage) {
-        const target = document.getElementById("forumFeedTabs") || document.getElementById("trending");
-        if (target) {
-          const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
-          const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
-          window.scrollTo({ top: y, behavior: "smooth" });
-        }
-        renderDiscussions(window._allCurrentDiscussions || window._currentDiscussions || [], category, p);
+  renderGlobalPagination({
+    container,
+    currentPage: currentDiscussionPage,
+    totalPages,
+    onPageChange: (p) => {
+      const target = document.getElementById("forumFeedTabs") || document.getElementById("trending");
+      if (target) {
+        const navbarHeight = document.getElementById("navbar")?.offsetHeight || 80;
+        const y = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 20;
+        window.scrollTo({ top: y, behavior: "smooth" });
       }
-    });
+      renderDiscussions(window._allCurrentDiscussions || window._currentDiscussions || [], category, p);
+    },
   });
 }
 
@@ -1206,7 +1172,13 @@ function initDiscussionDetail() {
       if (!id) return;
       const icon = actionBtn.querySelector(".material-symbols-outlined");
       if (icon && icon.textContent.includes("bookmark")) {
-        if (!isAuthenticated()) { alert("Please login to save posts"); return; }
+        if (!isAuthenticated()) {
+          showLoginPrompt({
+            message: t("auth_modal.desc_bookmark", "Vui lòng đăng nhập để lưu bài viết."),
+            redirectUrl: window.location.pathname + window.location.search
+          });
+          return;
+        }
         const currentlySaved = icon.textContent === "bookmark";
         icon.textContent = currentlySaved ? "bookmark_border" : "bookmark";
         icon.classList.toggle("bookmarked", !currentlySaved);
@@ -1226,7 +1198,12 @@ function initDiscussionDetail() {
         if (navigator.share) {
           try { await navigator.share({ title: "Check this discussion", url }); } catch {}
         } else {
-          try { await navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); } catch {}
+          try {
+            await navigator.clipboard.writeText(url);
+            showToast(t("community.link_copied", "Link copied to clipboard!"));
+          } catch {
+            showToast(t("common.copy_failed", "Failed to copy link"), true);
+          }
         }
       }
       return;
@@ -1527,7 +1504,7 @@ async function openDiscussionDetail(id, targetCommentId = null) {
 async function postCommentOrReply({ discussionId, text, replyToId, container, inputEl, submitBtn, inlineBox }) {
   const sanitized = sanitizeHtml(text.trim());
   if (!sanitized) {
-    showToast("Please enter a comment before submitting.", true);
+    showToast(t("community.comment_required", "Please enter a comment before submitting."), true);
     inputEl?.focus();
     return;
   }
@@ -1536,7 +1513,7 @@ async function postCommentOrReply({ discussionId, text, replyToId, container, in
 
   const check = canPerformAction('addComment');
   if (!check.allowed) {
-    showToast(`Please wait ${check.remaining} seconds before posting another comment.`, true);
+    showToast(t("community.wait_before_comment", { seconds: check.remaining }, `Please wait ${check.remaining} seconds before posting another comment.`), true);
     return;
   }
 
@@ -1730,7 +1707,7 @@ function wireDiscussionEvents(id, container) {
   }, { signal });
 
   // Click delegation
-  container.addEventListener("click", (e) => {
+  container.addEventListener("click", async (e) => {
     const currentDiscussionId = container.dataset.activeDiscussionId || id;
 
     // 1. Reply button clicked on a comment
@@ -1751,8 +1728,8 @@ function wireDiscussionEvents(id, container) {
         inline.style.display = "flex";
         const input = inline.querySelector(".forum-comment-inline-input");
         if (input) {
+          input.value = `@${author} `;
           input.dataset.replyToId = commentId;
-          input.placeholder = `Reply to @${author}... (Press Enter to post)`;
           input.focus();
         }
       }
@@ -1782,9 +1759,10 @@ function wireDiscussionEvents(id, container) {
       const inline = submitInlineBtn.closest(".forum-comment-inline-reply");
       if (!inline) return;
       const input = inline.querySelector(".forum-comment-inline-input");
-      const text = input?.value || "";
-      const replyToId = input?.dataset.replyToId || inline.dataset.parentId;
-      postCommentOrReply({
+      if (!input) return;
+      const text = input.value.trim();
+      const replyToId = input.dataset.replyToId;
+      await postCommentOrReply({
         discussionId: currentDiscussionId,
         text,
         replyToId,
@@ -1796,42 +1774,62 @@ function wireDiscussionEvents(id, container) {
       return;
     }
 
-    // 4. Expand hidden replies button
-    const expandBtn = e.target.closest(".forum-comment-expand-btn");
-    if (expandBtn) {
-      e.stopPropagation();
-      const parentEl = expandBtn.closest(".discussion-detail-comment");
-      if (!parentEl) return;
-      const extraContainer = parentEl.querySelector(".forum-comment-extra-replies");
-      if (!extraContainer) return;
-      const isExpanded = expandBtn.classList.contains("expanded");
-      if (isExpanded) {
-        extraContainer.style.maxHeight = "0";
-        expandBtn.classList.remove("expanded");
-      } else {
-        extraContainer.style.maxHeight = "2000px";
-        expandBtn.classList.add("expanded");
-      }
-      return;
-    }
-
-    // 5. Like comment button
+    // 4. Like comment button
     const likeBtn = e.target.closest(".forum-comment-like-btn");
     if (likeBtn) {
       e.stopPropagation();
       const commentId = likeBtn.dataset.commentId;
       if (!commentId) return;
-      const likeSpan = likeBtn.querySelector(".like-count");
-      const currentLikes = parseInt(likeSpan?.textContent || "0");
-      const wasLiked = likeBtn.classList.contains("liked");
-      if (likeSpan) likeSpan.textContent = wasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1;
-      likeBtn.classList.toggle("liked", !wasLiked);
-      likeComment(currentDiscussionId, commentId).then(result => {
-        if (!result) {
-          if (likeSpan) likeSpan.textContent = currentLikes;
-          likeBtn.classList.toggle("liked", wasLiked);
+      likeComment(currentDiscussionId, commentId).then(res => {
+        if (res && res.comment) {
+          const countEl = likeBtn.querySelector(".forum-comment-like-count");
+          if (countEl) countEl.textContent = res.comment.likes || 0;
+          if (res.hasLiked) {
+            likeBtn.classList.add("text-primary-600");
+          } else {
+            likeBtn.classList.remove("text-primary-600");
+          }
         }
       });
+      return;
+    }
+
+    // 5. Bookmark button inside discussion
+    const bookmarkBtn = e.target.closest(".forum-discussion-bookmark-btn");
+    if (bookmarkBtn) {
+      e.stopPropagation();
+      if (!isAuthenticated()) {
+        showLoginPrompt({
+          message: t("auth_modal.desc_bookmark", "Please log in to bookmark discussions."),
+          redirectUrl: window.location.href
+        });
+        return;
+      }
+      const isSaved = bookmarkBtn.classList.contains("saved");
+      const icon = bookmarkBtn.querySelector(".material-symbols-outlined");
+      if (isSaved) {
+        unsaveDiscussion(currentDiscussionId).then(ok => {
+          if (ok) {
+            bookmarkBtn.classList.remove("saved");
+            if (icon) {
+              icon.textContent = "bookmark_border";
+              icon.style.fontVariationSettings = "'FILL' 0";
+            }
+            updateFeedDiscussionSavedState(currentDiscussionId, false);
+          }
+        });
+      } else {
+        saveDiscussion(currentDiscussionId).then(ok => {
+          if (ok) {
+            bookmarkBtn.classList.add("saved");
+            if (icon) {
+              icon.textContent = "bookmark";
+              icon.style.fontVariationSettings = "'FILL' 1";
+            }
+            updateFeedDiscussionSavedState(currentDiscussionId, true);
+          }
+        });
+      }
       return;
     }
 
@@ -1841,7 +1839,13 @@ function wireDiscussionEvents(id, container) {
       e.stopPropagation();
       const commentId = deleteBtn.dataset.commentId;
       if (!commentId) return;
-      if (!confirm("Delete this comment?")) return;
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.delete_confirm_title",
+        messageKey: "community.delete_comment_confirm",
+        confirmTextKey: "common.delete_btn",
+        type: "danger"
+      });
+      if (!confirmed) return;
       const commentEl = container.querySelector(`.discussion-detail-comment[data-comment-id="${commentId}"]`);
       deleteDiscussionComment(currentDiscussionId, commentId).then(success => {
         if (success) {
@@ -1877,13 +1881,19 @@ function wireDiscussionEvents(id, container) {
     // 8. Share & Delete discussion
     const deleteDiscBtn = e.target.closest("#discussion-delete-btn");
     if (deleteDiscBtn) {
-      if (!confirm("Are you sure you want to delete this discussion?")) return;
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.delete_confirm_title",
+        messageKey: "community.delete_post_confirm",
+        confirmTextKey: "common.delete_btn",
+        type: "danger"
+      });
+      if (!confirmed) return;
       deleteDiscussion(currentDiscussionId).then(ok => {
         if (ok) {
           closeDiscussionDetail();
           window.location.reload();
         } else {
-          alert("Failed to delete discussion");
+          showToast(t("community.delete_failed", "Failed to delete discussion"), true);
         }
       });
       return;
@@ -1895,7 +1905,12 @@ function wireDiscussionEvents(id, container) {
       if (navigator.share) {
         try { navigator.share({ title: "Check this discussion", url }); } catch {}
       } else {
-        try { navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); } catch {}
+        try {
+          navigator.clipboard.writeText(url);
+          showToast(t("community.link_copied", "Link copied to clipboard!"));
+        } catch {
+          showToast(t("common.copy_failed", "Failed to copy link"), true);
+        }
       }
       return;
     }
@@ -2320,6 +2335,13 @@ async function renderUniGrid() {
   container.querySelectorAll(".forum-uni-join-btn").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
+      if (!isAuthenticated()) {
+        showLoginPrompt({
+          message: t("auth_modal.desc_default", "Vui lòng đăng nhập để tham gia cộng đồng trường."),
+          redirectUrl: window.location.pathname + window.location.search
+        });
+        return;
+      }
       const card = btn.closest(".forum-uni-card");
       const id = card?.dataset.uniId;
       if (!id) return;
@@ -2389,7 +2411,13 @@ async function renderUniGrid() {
       const card = btn.closest(".forum-uni-card");
       const id = card?.dataset.uniId;
       if (!id) return;
-      if (!confirm("Delete this university? This action cannot be undone.")) return;
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.delete_confirm_title",
+        messageKey: "community.delete_uni_confirm",
+        confirmTextKey: "common.delete_btn",
+        type: "danger"
+      });
+      if (!confirmed) return;
       const ok = await deleteUni(id);
       if (ok) window.location.reload();
     });
@@ -2571,37 +2599,7 @@ function openUniDialog(editData, callback) {
    ============================= */
 
 function showToast(message, isError = false) {
-  const existing = document.querySelectorAll(".success-toast");
-  const offset = existing.length * 80;
-
-  const toast = document.createElement("div");
-  toast.className = "success-toast" + (isError ? " error" : "");
-  toast.style.bottom = `${24 + offset}px`;
-  toast.innerHTML = `
-    <div class="success-toast-icon">
-      <span class="material-symbols-outlined">${isError ? "error" : "check_circle"}</span>
-    </div>
-    <div class="success-toast-body">
-      <span class="success-toast-heading">${isError ? "Error" : "Success!"}</span>
-      <span class="success-toast-message">${message}</span>
-    </div>
-    <button class="success-toast-close">
-      <span class="material-symbols-outlined">close</span>
-    </button>
-  `;
-  document.body.appendChild(toast);
-  requestAnimationFrame(() => toast.classList.add("show"));
-
-  toast.querySelector(".success-toast-close")?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 400);
-  });
-
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 400);
-  }, 6000);
+  return globalShowToast(message, isError);
 }
 
 function showSuccessToast(message, linkUrl, linkText = "View Discussion Detail") {
@@ -2736,15 +2734,15 @@ function initPostModal() {
     const incoming = Array.from(postImagesInput.files || []);
     const imageFiles = incoming.filter(file => file.type.startsWith("image/"));
     if (imageFiles.length !== incoming.length) {
-      showToast("Only image files can be attached to a discussion.", true);
+      showToast(t("community.image_only", "Only image files can be attached to a discussion."), true);
     }
     const oversized = imageFiles.find(file => file.size > 10 * 1024 * 1024);
     if (oversized) {
-      showToast("Each image must be 10 MB or smaller.", true);
+      showToast(t("community.image_size_limit", "Each image must be 10 MB or smaller."), true);
     }
     selectedDiscussionImages = [...selectedDiscussionImages, ...imageFiles.filter(file => file.size <= 10 * 1024 * 1024)].slice(0, 4);
     if (incoming.length + selectedDiscussionImages.length > 4) {
-      showToast("You can attach up to 4 images.", true);
+      showToast(t("community.image_count_limit", "You can attach up to 4 images."), true);
     }
     postImagesInput.value = "";
     renderDiscussionImagePreview();
@@ -2899,6 +2897,13 @@ function initPostModal() {
   }
 
   function open(config) {
+    if (!isAuthenticated()) {
+      showLoginPrompt({
+        message: t("auth_modal.desc_post", "Vui lòng đăng nhập để đăng bài và thảo luận cùng cộng đồng."),
+        redirectUrl: window.location.pathname + window.location.search
+      });
+      return;
+    }
     const user = getUser();
     if (user && !isProfileComplete(user)) {
       showProfileModal();
@@ -2997,7 +3002,7 @@ function initPostModal() {
     publishBtn.addEventListener("click", async () => {
       const user = getUser();
       if (user && user.emailVerified === false) {
-        showToast("Please verify your email before posting. Check your inbox or resend the verification.", true);
+        showToast(t("community.verify_email_post", "Please verify your email before posting. Check your inbox or resend the verification."), true);
         return;
       }
       if (!requireVerifiedOrRedirect()) return;
@@ -3008,26 +3013,26 @@ function initPostModal() {
       const content = sanitizeHtml(contentInput?.value.trim() || "");
 
       if (!title && !content) {
-        showToast("Please enter both a title and content for your discussion.", true);
+        showToast(t("community.title_content_required", "Please enter both a title and content for your discussion."), true);
         titleInput?.focus();
         return;
       }
 
       if (!title) {
-        showToast("Please enter a title for your discussion.", true);
+        showToast(t("community.title_required", "Please enter a title for your discussion."), true);
         titleInput?.focus();
         return;
       }
 
       if (!content) {
-        showToast("Please enter the content for your discussion.", true);
+        showToast(t("community.content_required", "Please enter the content for your discussion."), true);
         contentInput?.focus();
         return;
       }
 
       const check = canPerformAction('createDiscussion');
       if (!check.allowed) {
-        showToast(`Please wait ${check.remaining} seconds before posting another discussion.`, true);
+        showToast(t("community.wait_before_post", { seconds: check.remaining }, `Please wait ${check.remaining} seconds before posting another discussion.`), true);
         return;
       }
 
@@ -3328,7 +3333,10 @@ async function renderOrgGrid() {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       if (!isAuthenticated()) {
-        window.location.href = "/login.html";
+        showLoginPrompt({
+          message: t("auth_modal.desc_follow", "Vui lòng đăng nhập để theo dõi tổ chức."),
+          redirectUrl: window.location.pathname + window.location.search
+        });
         return;
       }
       const orgId = btn.dataset.orgId;
@@ -3354,7 +3362,7 @@ async function renderOrgGrid() {
           if (counter) counter.textContent = result.followerCount;
         }
       } catch (err) {
-        alert(err.message || "Failed to update follow status.");
+        showToast(err.message || t("community.failed_update_follow", "Failed to update follow status."), true);
       } finally {
         btn.disabled = false;
       }

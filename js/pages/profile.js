@@ -1,13 +1,25 @@
 import "../../src/style.css";
 import { isAuthenticated, getUser, setUser, isStudentVerified } from "../lib/session.js";
-import { changeInfo, getFavourites, getUserContribution, uploadAvatar, getParticipatedActivities, getMyTickets, requestEmailChange, confirmEmailChange } from "../api/user.js";
+import {
+  changeInfo,
+  getFavourites,
+  getUserContribution,
+  uploadAvatar,
+  getParticipatedActivities,
+  getMyTickets,
+  requestEmailChange,
+  confirmEmailChange,
+  addFavourite,
+  removeFavourite,
+  checkFavourite,
+} from "../api/user.js";
 import { getCurrentUser, changePassword } from "../api/auth.js";
 import { getMyProfile } from "../api/profile.js";
 import {
     getActivityById, participateActivity,
     unparticipateActivity, checkParticipation
 } from "../api/activities.js";
-import { addFavourite, removeFavourite, checkFavourite } from "../api/user.js";
+import { showToast } from "../components/toast.js";
 import { getMyRoadmaps } from "../api/roadmap.js";
 import { getMyOrganizations, getAllOrganizations, getOrgActivities } from "../api/organizations.js";
 import { CDN_DOMAIN } from "../config.js";
@@ -581,7 +593,10 @@ async function showFavPopup() {
                 openEventPopup(el.dataset.id, { activityData: actData });
             });
         });
-    } catch {}
+    } catch (err) {
+        console.error("Failed to load favourites:", err);
+        showToast(t("common.error", "Failed to load favourites"), "error");
+    }
 }
 
 /* =========================
@@ -855,12 +870,32 @@ async function renderAIProfile() {
     if (personaKey && !localStorage.getItem("springwave_persona_key")) {
       localStorage.setItem("springwave_persona_key", personaKey);
     }
+
+    const TEMPERAMENTS = {
+      analysts: { keys: ['INTJ', 'INTP', 'ENTJ', 'ENTP'], color: '#7c3aed', icon: 'psychology' },
+      diplomats: { keys: ['INFJ', 'INFP', 'ENFJ', 'ENFP'], color: '#059669', icon: 'favorite' },
+      sentinels: { keys: ['ISTJ', 'ISFJ', 'ESTJ', 'ESFJ'], color: '#2563eb', icon: 'verified_user' },
+      explorers: { keys: ['ISTP', 'ISFP', 'ESTP', 'ESFP'], color: '#ea580c', icon: 'explore' },
+    };
+
+    function getPersonaTheme(key) {
+      if (!key) return { color: '#8B5CF6', icon: 'auto_awesome' };
+      const upper = key.toUpperCase();
+      for (const group of Object.values(TEMPERAMENTS)) {
+        if (group.keys.includes(upper)) {
+          return { color: group.color, icon: group.icon };
+        }
+      }
+      return { color: '#8B5CF6', icon: 'auto_awesome' };
+    }
+
+    const pTheme = getPersonaTheme(personaKey);
     const rawPersonaTitle = personaKey ? t(`quiz.personas.${personaKey}.title`) : null;
     const fallbackTitle = (rawPersonaTitle && rawPersonaTitle !== `quiz.personas.${personaKey}.title`) ? rawPersonaTitle : personaKey;
     const displayTitle = localized.archetypeTitle || fallbackTitle;
     const personaBadge = displayTitle ? `
-      <div class="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 text-[#8B5CF6] text-xs font-semibold">
-        <span class="material-symbols-outlined !text-[14px]">auto_awesome</span>
+      <div class="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold" style="background-color: ${pTheme.color}15; border: 1px solid ${pTheme.color}30; color: ${pTheme.color};">
+        <span class="material-symbols-outlined !text-[14px]">${pTheme.icon}</span>
         <span>${escapeHtml(displayTitle)}</span>
       </div>
     ` : '';
@@ -1438,6 +1473,12 @@ function initChangePasswordModal() {
   if (backdrop) backdrop.addEventListener("click", closeModal);
   if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.classList.contains("active")) {
+      closeModal();
+    }
+  });
+
   // Password reveal toggles
   modal.querySelectorAll(".pass-toggle-btn").forEach(toggle => {
     toggle.addEventListener("click", () => {
@@ -1467,7 +1508,7 @@ function initChangePasswordModal() {
 
       if (!isCreateMode && !currPass) {
         if (statusEl) {
-          statusEl.textContent = "Vui lòng nhập mật khẩu hiện tại.";
+          statusEl.textContent = t("profile.enter_current_pass", "Vui lòng nhập mật khẩu hiện tại.");
           statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
         }
         return;
@@ -1475,7 +1516,7 @@ function initChangePasswordModal() {
 
       if (!newPass || !confirmPass) {
         if (statusEl) {
-          statusEl.textContent = "Vui lòng nhập đầy đủ mật khẩu mới và xác nhận.";
+          statusEl.textContent = t("profile.enter_both_passwords", "Vui lòng nhập đầy đủ mật khẩu mới và xác nhận.");
           statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
         }
         return;
@@ -1483,7 +1524,7 @@ function initChangePasswordModal() {
 
       if (newPass !== confirmPass) {
         if (statusEl) {
-          statusEl.textContent = "Mật khẩu mới và mật khẩu xác nhận không trùng khớp.";
+          statusEl.textContent = t("profile.passwords_dont_match", "Mật khẩu mới và mật khẩu xác nhận không trùng khớp.");
           statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
         }
         return;
@@ -1492,7 +1533,7 @@ function initChangePasswordModal() {
       const passRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
       if (!passRegex.test(newPass)) {
         if (statusEl) {
-          statusEl.textContent = "Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm cả chữ cái và chữ số.";
+          statusEl.textContent = t("profile.pass_min_length", "Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm cả chữ cái và chữ số.");
           statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
         }
         return;
@@ -1500,7 +1541,7 @@ function initChangePasswordModal() {
 
       if (submitBtn) submitBtn.disabled = true;
       if (statusEl) {
-        statusEl.textContent = isCreateMode ? "Đang tạo mật khẩu..." : "Đang xử lý đổi mật khẩu...";
+        statusEl.textContent = isCreateMode ? t("profile.password_creating", "Đang tạo mật khẩu...") : t("profile.password_updating", "Đang xử lý đổi mật khẩu...");
         statusEl.className = "text-xs rounded-xl p-3 bg-blue-50 text-blue-700 block";
       }
 
@@ -1514,7 +1555,7 @@ function initChangePasswordModal() {
           if (btn) btn.innerHTML = `<i class="fa-solid fa-key text-[#1755ba]"></i> ${t("profile.change_password", "Change Password")}`;
         }
         if (statusEl) {
-          statusEl.textContent = res.message || (isCreateMode ? "Tạo mật khẩu thành công!" : "Đổi mật khẩu thành công!");
+          statusEl.textContent = res.message || (isCreateMode ? t("profile.password_create_success", "Tạo mật khẩu thành công!") : t("profile.password_success", "Đổi mật khẩu thành công!"));
           statusEl.className = "text-xs rounded-xl p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 block";
         }
         setTimeout(() => {
@@ -1522,7 +1563,7 @@ function initChangePasswordModal() {
         }, 1800);
       } catch (err) {
         if (statusEl) {
-          statusEl.textContent = err.message || "Thao tác thất bại. Vui lòng thử lại.";
+          statusEl.textContent = err.message || t("profile.password_failed", "Thao tác thất bại. Vui lòng thử lại.");
           statusEl.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
         }
       } finally {
@@ -1574,7 +1615,7 @@ function initChangeEmailModal() {
       if (countdownSeconds <= 0) {
         clearInterval(timerInterval);
         if (resendBtn) resendBtn.disabled = false;
-        if (timerEl) timerEl.textContent = "00:00 (Hết hạn)";
+        if (timerEl) timerEl.textContent = `00:00 (${t("profile.timer_expired", "Hết hạn")})`;
       }
       countdownSeconds--;
     };
@@ -1625,6 +1666,12 @@ function initChangeEmailModal() {
   if (closeBtn) closeBtn.addEventListener("click", closeModal);
   if (backdrop) backdrop.addEventListener("click", closeModal);
   if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.classList.contains("active")) {
+      closeModal();
+    }
+  });
 
   if (backBtn) {
     backBtn.addEventListener("click", () => {

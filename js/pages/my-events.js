@@ -8,6 +8,7 @@ import { formatDate } from "../lib/utils.js";
 import { API_BASE_URL } from "../config.js";
 import { openEventPopup } from "../components/eventPopup.js";
 import { t, applyTranslation } from "../lib/i18n.js";
+import { showToast } from "../components/toast.js";
 
 let allTickets = [];
 let showPast = false;
@@ -194,8 +195,16 @@ function renderEvents() {
         <div class="w-full md:w-44 p-5 flex flex-col items-center justify-center bg-slate-50/50 md:bg-transparent flex-shrink-0">
           ${tkt.qrImageUrl && status === 'active'
             ? `
-            <img src="${tkt.qrImageUrl}" alt="QR Code" class="w-24 h-24 rounded-xl border border-slate-200 bg-white p-1" />
+            <div class="relative group/qr cursor-zoom-in qr-zoom-btn" data-qr-url="${tkt.qrImageUrl}" data-event-title="${(event.title || 'Event').replace(/"/g, '&quot;')}" data-qr-code="${tkt.qrCode || ''}">
+              <img src="${tkt.qrImageUrl}" alt="QR Code" class="w-24 h-24 rounded-xl border border-slate-200 bg-white p-1 hover:shadow-md transition-all duration-300" />
+              <div class="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover/qr:opacity-100 flex items-center justify-center transition-opacity duration-200">
+                <span class="material-symbols-outlined text-white text-xl">zoom_in</span>
+              </div>
+            </div>
             <span class="mt-2 text-[10px] font-mono text-slate-400 uppercase">${tkt.qrCode ? tkt.qrCode.slice(0, 8) : 'N/A'}</span>
+            <a href="${tkt.qrImageUrl}" download="ticket_${tkt.qrCode || 'qr'}.png" target="_blank" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1755ba] hover:underline">
+              <span class="material-symbols-outlined text-[14px]">download</span> ${t('my_events.download_qr', 'Download QR')}
+            </a>
             `
             : `
             <div class="w-24 h-24 rounded-xl bg-slate-100 border border-slate-200 flex flex-col items-center justify-center text-slate-400 gap-1 select-none">
@@ -208,6 +217,13 @@ function renderEvents() {
       </div>
     `;
   }).join("");
+
+  // QR zoom clicks
+  document.querySelectorAll(".qr-zoom-btn").forEach(el => {
+    el.addEventListener("click", () => {
+      openQrModal(el.dataset.qrUrl, el.dataset.eventTitle, el.dataset.qrCode);
+    });
+  });
 
   // Event preview clicks
   document.querySelectorAll(".event-card-preview").forEach(el => {
@@ -303,6 +319,48 @@ function closeCertModal() {
   }, 300);
 }
 
+// ─── QR Zoom Modal ───
+
+function openQrModal(imageUrl, eventTitle, qrCodeText) {
+  const modal = document.getElementById("qr-modal");
+  const content = document.getElementById("qr-modal-content");
+  const titleEl = document.getElementById("modal-event-title");
+  const imgEl = document.getElementById("modal-qr-img");
+  const codeEl = document.getElementById("modal-qr-code");
+  const downloadEl = document.getElementById("modal-download-btn");
+
+  if (!modal || !content) return;
+
+  if (titleEl) titleEl.textContent = eventTitle || "Event";
+  if (imgEl) imgEl.src = imageUrl;
+  if (codeEl) codeEl.textContent = qrCodeText ? qrCodeText.toUpperCase() : "N/A";
+  if (downloadEl) {
+    downloadEl.href = imageUrl;
+    downloadEl.download = `ticket_${qrCodeText || 'qr'}.png`;
+  }
+
+  modal.hidden = false;
+  requestAnimationFrame(() => {
+    modal.classList.remove("opacity-0", "pointer-events-none");
+    content.classList.remove("scale-95");
+    content.classList.add("scale-100");
+  });
+}
+
+function closeQrModal() {
+  const modal = document.getElementById("qr-modal");
+  const content = document.getElementById("qr-modal-content");
+  if (!modal || !content) return;
+  modal.classList.add("opacity-0", "pointer-events-none");
+  content.classList.remove("scale-100");
+  content.classList.add("scale-95");
+  setTimeout(() => {
+    if (modal.classList.contains("opacity-0")) {
+      modal.hidden = true;
+    }
+  }, 300);
+}
+
 // ─── Init Modals ───
 
 function initModals() {
@@ -346,9 +404,10 @@ function initModals() {
       if (tkt) {
         tkt.review = { rating: selectedRating, content };
       }
+      showToast(t("my_events.rate_success", "Cảm ơn bạn đã gửi đánh giá!"), "success");
       renderEvents();
     } catch (err) {
-      alert(err.message || t("my_events.rate_modal_failed", "Failed to submit review"));
+      showToast(err.message || t("my_events.rate_modal_failed", "Failed to submit review"), "error");
     } finally {
       btn.disabled = false;
       btn.textContent = t("my_events.rate_modal_submit", "Submit Review");
@@ -360,6 +419,22 @@ function initModals() {
   document.getElementById("close-cert-modal").addEventListener("click", closeCertModal);
   certModal.addEventListener("click", (e) => {
     if (e.target === certModal) closeCertModal();
+  });
+
+  // QR zoom modal
+  const qrModal = document.getElementById("qr-modal");
+  document.getElementById("close-qr-modal")?.addEventListener("click", closeQrModal);
+  qrModal?.addEventListener("click", (e) => {
+    if (e.target === qrModal) closeQrModal();
+  });
+
+  // Global Escape key listener
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeRateModal();
+      closeCertModal();
+      closeQrModal();
+    }
   });
 }
 

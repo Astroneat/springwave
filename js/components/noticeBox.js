@@ -68,7 +68,9 @@ export function showNoticeBox(options) {
     };
 
     const style = typeStyles[type] || typeStyles.info;
-    const translatedMsg = message.includes('.') ? t(message, message) : message;
+    const isKey = message.includes('.');
+    const messageKey = isKey ? message : '';
+    const translatedMsg = isKey ? t(message, message) : message;
 
     const noticeEl = document.createElement('div');
     noticeEl.id = `notice-box-${id}`;
@@ -77,7 +79,7 @@ export function showNoticeBox(options) {
     noticeEl.innerHTML = `
         <div class="flex items-center gap-3">
             <span class="material-symbols-outlined ${style.iconColor} text-[24px] shrink-0">${style.icon}</span>
-            <p class="text-sm font-medium leading-relaxed">${translatedMsg}</p>
+            <p class="notice-box-text text-sm font-medium leading-relaxed" ${messageKey ? `data-i18n="${messageKey}"` : ''}>${translatedMsg}</p>
         </div>
         <button type="button" class="notice-dismiss-btn ml-4 p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-black/5 transition-colors cursor-pointer shrink-0" aria-label="Dismiss">
             <span class="material-symbols-outlined text-[20px]">close</span>
@@ -102,4 +104,14 @@ export function showNoticeBox(options) {
     if (once) {
         localStorage.setItem(STORAGE_PREFIX + id, 'true');
     }
+}
+
+if (typeof window !== "undefined") {
+    window.addEventListener("language-changed", () => {
+        document.querySelectorAll(".notice-box-text[data-i18n]").forEach(p => {
+            if (p.dataset.i18n) {
+                p.textContent = t(p.dataset.i18n, p.textContent);
+            }
+        });
+    });
 }

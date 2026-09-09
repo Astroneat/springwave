@@ -1,3 +1,5 @@
+import { getLang } from './i18n.js';
+
 const contentCache = new Map();
 
 export async function fetchContent(url) {
@@ -63,7 +65,9 @@ export function toLocalISODate(date) {
     return `${y}-${m}-${d}`;
 }
 export function timeAgo(dateString) {
-    if (!dateString) return "just now";
+    const isVi = getLang() === 'vi';
+    const justNowStr = isVi ? "vừa xong" : "just now";
+    if (!dateString) return justNowStr;
     if (typeof dateString === "string") {
         const trimmed = dateString.trim();
         if (/^\d+[smhdwMy]\s*ago$/i.test(trimmed) || /^\d+[smhdwMy]$/i.test(trimmed)) {
@@ -71,24 +75,24 @@ export function timeAgo(dateString) {
         }
     }
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "just now";
+    if (isNaN(date.getTime())) return justNowStr;
 
     const now = new Date();
     const diffInSeconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
 
-    if (diffInSeconds < 60) return "just now";
+    if (diffInSeconds < 60) return justNowStr;
     const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 60) return isVi ? `${diffInMinutes} phút trước` : `${diffInMinutes}m ago`;
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 24) return isVi ? `${diffInHours} giờ trước` : `${diffInHours}h ago`;
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d ago`;
+    if (diffInDays < 7) return isVi ? `${diffInDays} ngày trước` : `${diffInDays}d ago`;
     const diffInWeeks = Math.floor(diffInDays / 7);
-    if (diffInWeeks < 4) return `${diffInWeeks}w ago`;
+    if (diffInWeeks < 4) return isVi ? `${diffInWeeks} tuần trước` : `${diffInWeeks}w ago`;
     const diffInMonths = Math.floor(diffInDays / 30);
-    if (diffInMonths < 12) return `${diffInMonths}mo ago`;
+    if (diffInMonths < 12) return isVi ? `${diffInMonths} tháng trước` : `${diffInMonths}mo ago`;
     const diffInYears = Math.floor(diffInDays / 365);
-    return `${diffInYears}y ago`;
+    return isVi ? `${diffInYears} năm trước` : `${diffInYears}y ago`;
 }
 
 import { checkSchoolEmail } from '../api/universities.js';

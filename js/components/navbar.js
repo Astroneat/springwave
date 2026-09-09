@@ -4,6 +4,7 @@ import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t, applyTranslation } from "../lib/i18n.js";
 import { initPageTransition } from "./pageLoader.js";
 import { initBadgeCelebration } from "./badgeCelebration.js";
+import { showToast } from "./toast.js";
 
 export function populateUserChip(user, activeSection) {
     if (!user) return;
@@ -303,47 +304,7 @@ function escapeHtml(str) {
 }
 
 function showNavbarToast({ message, tone = "info", durationMs = 4000 }) {
-    let host = document.getElementById("navbar-toast-host");
-    if (!host) {
-        host = document.createElement("div");
-        host.id = "navbar-toast-host";
-        host.className = "fixed top-[88px] left-1/2 -translate-x-1/2 z-[1300] flex flex-col items-center gap-2 pointer-events-none max-w-[calc(100vw-32px)]";
-        document.body.appendChild(host);
-        const mq = window.matchMedia("(max-width: 768px)");
-        const updateTop = () => {
-            host.style.top = mq.matches ? "62px" : "88px";
-        };
-        mq.addEventListener("change", updateTop);
-        updateTop();
-    }
-    const tones = {
-        info: "bg-white text-[#191b22] border border-[#e2e8f0]",
-        warning: "bg-amber-50 text-amber-900 border border-amber-200",
-        error: "bg-red-50 text-red-700 border border-red-200",
-        success: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    };
-    const toast = document.createElement("div");
-    toast.setAttribute("role", "status");
-    toast.setAttribute("aria-live", "polite");
-    toast.className = `pointer-events-auto px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold flex items-center gap-2 spring-ease opacity-0 translate-y-[-8px] ${tones[tone] || tones.info}`;
-    const icon = {
-        info: "info", warning: "warning", error: "error", success: "check_circle"
-    }[tone] || "info";
-    // Escape message to avoid injecting HTML if it ever surfaces API/user content
-    const safeMessage = escapeHtml(message);
-    toast.innerHTML = `<span class="material-symbols-outlined text-base shrink-0" aria-hidden="true">${icon}</span><span>${safeMessage}</span>`;
-    host.appendChild(toast);
-    requestAnimationFrame(() => {
-        toast.classList.remove("opacity-0", "translate-y-[-8px]");
-        toast.classList.add("opacity-100", "translate-y-0");
-    });
-    const dismiss = () => {
-        toast.classList.remove("opacity-100", "translate-y-0");
-        toast.classList.add("opacity-0", "translate-y-[-8px]");
-        setTimeout(() => toast.remove(), 300);
-    };
-    toast.addEventListener("click", dismiss);
-    setTimeout(dismiss, durationMs);
+    showToast(message, tone, durationMs);
 }
 
 /* =========================
@@ -495,6 +456,14 @@ function initUserDropdown() {
     if (desktopHostBtn) {
         desktopHostBtn.addEventListener("click", async (e) => {
             e.preventDefault();
+            if (!isAuthenticated()) {
+                const { showLoginPrompt } = await import("./authModal.js");
+                showLoginPrompt({
+                    message: t("auth_modal.desc_default", "Vui lòng đăng nhập để đăng ký làm Host sự kiện."),
+                    redirectUrl: "/register-host.html"
+                });
+                return;
+            }
             const u = getUser();
             // Hosts and admins use the dedicated Host Dashboard link instead
             if (u?.role === 'host' || u?.role === 'admin') return;

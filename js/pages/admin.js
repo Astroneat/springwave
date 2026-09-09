@@ -5,6 +5,7 @@ import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate } from "../lib/utils.js";
 import { t, applyTranslation } from "../lib/i18n.js";
+import { showToast } from "../components/toast.js";
 import { 
     initThumbnailPreview, 
     initFileUpload, 
@@ -345,7 +346,7 @@ document.getElementById("popup-actions")?.addEventListener("click", async e => {
         if (ev?.heldDate) {
             const diffMs = new Date(ev.heldDate).getTime() - Date.now();
             if (diffMs > 0 && diffMs < 30 * 60 * 1000) {
-                alert(t('admin.cannot_edit_30min', 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút'));
+                showToast(t('admin.cannot_edit_30min', 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút'), "warning");
                 return;
             }
         }
@@ -383,7 +384,7 @@ function initRowActions() {
             if (ev?.heldDate) {
                 const diffMs = new Date(ev.heldDate).getTime() - Date.now();
                 if (diffMs > 0 && diffMs < 30 * 60 * 1000) {
-                    alert(t('admin.cannot_edit_30min', 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút'));
+                    showToast(t('admin.cannot_edit_30min', 'Không thể chỉnh sửa sự kiện trước thời gian diễn ra 30 phút'), "warning");
                     return;
                 }
             }
@@ -422,8 +423,19 @@ function initRowActions() {
 function initBulkActions() {
     document.getElementById("bulk-approve").addEventListener("click", async () => {
         const ids = [...selectedIds];
+        let failCount = 0;
         for (const id of ids) {
-            try { await approveEvent(id); } catch {}
+            try {
+                await approveEvent(id);
+            } catch (err) {
+                console.error(`Failed to approve event ${id}:`, err);
+                failCount++;
+            }
+        }
+        if (failCount > 0) {
+            showToast(t("admin.bulk_fail", `Failed to process ${failCount} event(s)`).replace("{{n}}", failCount), "error");
+        } else if (ids.length > 0) {
+            showToast(t("admin.bulk_approve_success", "Selected events approved successfully"), "success");
         }
         selectedIds.clear();
         await loadData();
@@ -431,8 +443,19 @@ function initBulkActions() {
 
     document.getElementById("bulk-delete").addEventListener("click", async () => {
         const ids = [...selectedIds];
+        let failCount = 0;
         for (const id of ids) {
-            try { await deleteEvent(id); } catch {}
+            try {
+                await deleteEvent(id);
+            } catch (err) {
+                console.error(`Failed to delete event ${id}:`, err);
+                failCount++;
+            }
+        }
+        if (failCount > 0) {
+            showToast(t("admin.bulk_fail", `Failed to process ${failCount} event(s)`).replace("{{n}}", failCount), "error");
+        } else if (ids.length > 0) {
+            showToast(t("admin.bulk_delete_success", "Selected events deleted successfully"), "success");
         }
         selectedIds.clear();
         await loadData();
@@ -628,7 +651,9 @@ function initPopup(name, onConfirm) {
         try {
             await onConfirm(actionTarget);
             close();
-        } catch {
+        } catch (err) {
+            console.error(`Error performing action for ${actionTarget}:`, err);
+            showToast(t("admin.action_failed", "Action could not be completed"), "error");
             close();
         }
     });

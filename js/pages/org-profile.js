@@ -12,33 +12,16 @@ import {
 } from "../api/organizations.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { t, applyTranslation } from "../lib/i18n.js";
+import { showToast as globalShowToast } from "../components/toast.js";
+import { showLoginPrompt } from "../components/authModal.js";
 
 // --- State ---
 let allEvents = [];
 let currentTab = "all";
-let toastTimeout = null;
 
 // --- Toast Helper ---
 function showToast(message, isError = false) {
-  const toast = document.getElementById("org-toast");
-  const msgEl = document.getElementById("org-toast-msg");
-  const iconEl = document.getElementById("org-toast-icon");
-  if (!toast || !msgEl) return;
-
-  clearTimeout(toastTimeout);
-  msgEl.textContent = message;
-
-  if (isError) {
-    toast.className = "org-toast show toast-error";
-    if (iconEl) iconEl.textContent = "error";
-  } else {
-    toast.className = "org-toast show toast-success";
-    if (iconEl) iconEl.textContent = "check_circle";
-  }
-
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove("show");
-  }, 3500);
+  return globalShowToast(message, isError);
 }
 
 // --- Event delegation for cards ---
@@ -458,10 +441,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     followBtn.addEventListener("click", async () => {
       if (!isAuthenticated()) {
-        showToast(t("org_profile.login_required_follow", "Please log in to follow organizations."), true);
-        setTimeout(() => {
-          window.location.href = `/login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-        }, 1200);
+        showLoginPrompt({
+          message: t("auth_modal.desc_follow", "Vui lòng đăng nhập để theo dõi tổ chức."),
+          redirectUrl: window.location.pathname + window.location.search
+        });
         return;
       }
 

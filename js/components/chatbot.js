@@ -882,7 +882,9 @@ async function sendMessage() {
   saveHistoryToStorage();
 
   if (!isAuthenticated()) {
-    addMessage("assistant", t("chatbot.login_required", {}, "Bạn cần đăng nhập tài khoản SpringWave để sử dụng đầy đủ các tính năng tự hành và tương tác này nhé!"));
+    const loginText = t("auth_modal.login_btn", "Đăng nhập ngay");
+    const loginUrl = `/login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+    addMessage("assistant", `${t("chatbot.login_required", {}, "Bạn cần đăng nhập tài khoản SpringWave để sử dụng đầy đủ các tính năng tự hành và tương tác này nhé!")}<br><br><a href="${loginUrl}" class="inline-flex items-center gap-1.5 px-4 py-2 mt-1 rounded-xl bg-[#1755ba] text-white text-xs font-semibold hover:bg-[#134699] transition-all shadow-sm"><span class="material-symbols-outlined text-[16px]">login</span> ${loginText}</a>`);
     saveHistoryToStorage();
     isSending = false;
     if (sendBtn) sendBtn.disabled = false;

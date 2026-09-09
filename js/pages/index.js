@@ -381,7 +381,7 @@ function renderTickerItems(track, items) {
     link.href = `/explore.html?event=${item.activityID || item._id}`;
 
     const icon = document.createElement("span");
-    icon.className = "material-symbols-outlined text-xs text-blue-400";
+    icon.className = "material-symbols-outlined text-xs text-[#1755ba]";
     icon.textContent = "event";
 
     const titleStrong = document.createElement("strong");
