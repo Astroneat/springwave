@@ -12,7 +12,7 @@ function ensureProgressBar() {
 
   progressEl = document.createElement("div");
   progressEl.id = "top-progress-bar";
-  progressEl.className = "fixed top-0 left-0 h-[3px] bg-gradient-to-r from-teal-500 via-emerald-400 to-cyan-400 z-[99999] transition-all duration-300 ease-out shadow-[0_0_12px_rgba(20,184,166,0.8)] opacity-0 pointer-events-none";
+  progressEl.className = "fixed top-0 left-0 h-[3px] bg-primary z-[99999] transition-all duration-300 ease-out opacity-0 pointer-events-none";
   progressEl.style.width = "0%";
 
   if (document.body) {

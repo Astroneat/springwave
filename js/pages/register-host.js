@@ -256,7 +256,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> <span>Submission Received!</span>';
-            btn.classList.remove('bg-gradient-to-r', 'from-primary-container', 'to-secondary');
+            btn.classList.remove('bg-primary', 'hover:bg-primary-hover');
             btn.classList.add('bg-green-600');
 
             setTimeout(() => {

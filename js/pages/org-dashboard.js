@@ -139,7 +139,7 @@ function renderOrgDropdown() {
       : `<span class="font-bold text-sm text-primary">${(o.name?.[0] || "?").toUpperCase()}</span>`;
     return `
       <button class="org-option w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#f8f9fc] transition-colors text-left ${o._id === currentOrgId ? "bg-[#ecedfa] ring-1 ring-primary/20" : ""}" data-id="${o._id}">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#dae1ff] to-[#ecedfa] flex items-center justify-center text-primary font-bold text-sm shrink-0 overflow-hidden">
+        <div class="w-9 h-9 rounded-lg bg-[#ecedfa] flex items-center justify-center text-primary font-bold text-sm shrink-0 overflow-hidden">
           ${avatarContent}
         </div>
         <div class="flex-1 min-w-0">
@@ -732,7 +732,7 @@ async function openEventDetailModal(eventId) {
     <div class="relative h-[220px] sm:h-[260px] w-full overflow-hidden bg-slate-900 group">
       ${event.thumbnail
         ? `<img src="${event.thumbnail}" class="w-full h-full object-cover opacity-85 transition-transform duration-700 ease-out group-hover:scale-105" alt="${event.title}" />`
-        : `<div class="w-full h-full bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-800 flex items-center justify-center"><i class="fa-regular fa-image text-6xl text-white/15"></i></div>`
+        : `<div class="w-full h-full bg-slate-900 flex items-center justify-center"><i class="fa-regular fa-image text-6xl text-white/15"></i></div>`
       }
       <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-black/30"></div>
 
@@ -1359,7 +1359,7 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
       const allCard = document.createElement("div");
       allCard.className = `event-select-card ${isAllSelected ? "event-select-card-selected" : ""}`;
       allCard.innerHTML = `
-        <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center text-primary text-2xl shrink-0 border border-blue-200/60 shadow-2xs">
+        <div class="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center text-primary text-2xl shrink-0 border border-blue-200/60 shadow-2xs">
           <i class="fa-solid fa-layer-group"></i>
         </div>
         <div class="min-w-0 flex-1">

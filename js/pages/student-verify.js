@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 if (res?.requiresManualReview) {
                     btn.innerHTML = `<span class="material-symbols-outlined">schedule</span> <span>Pending Review</span>`;
-                    btn.classList.remove('bg-gradient-to-r', 'from-primary-container', 'to-secondary');
+                    btn.classList.remove('bg-primary', 'hover:bg-primary-hover');
                     btn.classList.add('bg-amber-600');
 
                     setTimeout(() => {
@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 btn.innerHTML = `<span class="material-symbols-outlined">verified</span> <span>${t("student_verify.status_approved")}!</span>`;
-                btn.classList.remove('bg-gradient-to-r', 'from-primary-container', 'to-secondary');
+                btn.classList.remove('bg-primary', 'hover:bg-primary-hover');
                 btn.classList.add('bg-emerald-600');
 
                 setTimeout(() => {
@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             await uploadFormData("/student-verification/register", formData);
 
             btn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> <span>${t("common.success")}!</span>`;
-            btn.classList.remove('bg-gradient-to-r', 'from-primary-container', 'to-secondary');
+            btn.classList.remove('bg-primary', 'hover:bg-primary-hover');
             btn.classList.add('bg-green-600');
 
             setTimeout(() => {

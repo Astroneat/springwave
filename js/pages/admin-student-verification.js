@@ -171,7 +171,7 @@ function renderTable(verifications) {
       </td>
       <td class="py-3.5 px-4 hidden md:table-cell">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 shadow-sm">
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 shadow-sm">
             ${(v.submittedBy?.fullname || '?').charAt(0).toUpperCase()}
           </div>
           <div>
@@ -591,7 +591,7 @@ async function openDetail(id) {
         <!-- Info column -->
         <div class="lg:col-span-3 space-y-4">
           <div class="flex items-center gap-3.5 pb-4 border-b border-[#e2e8f0]">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1755ba] to-blue-400 flex items-center justify-center text-white font-bold text-xl shadow-md shrink-0">
+            <div class="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-white font-bold text-xl shadow-md shrink-0">
               ${(user.fullname || '?').charAt(0).toUpperCase()}
             </div>
             <div class="min-w-0 flex-1">
@@ -638,7 +638,7 @@ async function openDetail(id) {
       </div>
 
       ${v.status === 'pending' ? `
-        <div class="flex gap-3 mt-6 pt-5 border-t border-[#e2e8f0] bg-gradient-to-r from-transparent via-blue-50/30 to-transparent -mx-6 -mb-6 px-6 pb-6">
+        <div class="flex gap-3 mt-6 pt-5 border-t border-[#e2e8f0] bg-blue-50/30 -mx-6 -mb-6 px-6 pb-6">
           <button class="btn btn-success flex-1 py-3 text-sm font-bold shadow-sm" id="detail-approve-btn" data-id="${v._id}" data-name="${user.fullname || ''}" data-sid="${v.studentId}">
             <i class="fa-solid fa-check mr-1.5"></i> ${t("admin_student_verify.btn_approve", "Approve")}
           </button>

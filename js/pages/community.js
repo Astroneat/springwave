@@ -1013,7 +1013,7 @@ function buildDiscussionCardHTML(d) {
   return `
       <div class="forum-discussion-card" data-discussion-id="${d.id || d._id}">
       <div class="forum-discussion-card-header">
-        <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+        <div class="forum-discussion-author-avatar" style="background: #23499b;">
           ${renderAvatar(d.avatar, d.author)}
         </div>
         <div class="forum-discussion-author-info">
@@ -2099,7 +2099,7 @@ function buildDiscussionDetailHTML(d, comments) {
       <div class="discussion-detail-scroll-area">
         <div class="discussion-detail-card">
           <div class="forum-discussion-card-header">
-            <div class="forum-discussion-author-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+            <div class="forum-discussion-author-avatar" style="background: #23499b;">
               ${renderAvatar(d.avatar, d.author)}
             </div>
             <div class="forum-discussion-author-info">
@@ -2156,7 +2156,7 @@ function buildDiscussionDetailHTML(d, comments) {
           </button>
         </div>
         <div class="discussion-detail-form">
-          <div class="forum-comment-avatar forum-my-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+          <div class="forum-comment-avatar forum-my-avatar" style="background: #23499b;">
             ${renderAvatar(user?.avatar, user?.fullname || user?.username)}
           </div>
           <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment... (Press Enter to post)" data-reply-to-id="" />
@@ -2189,7 +2189,7 @@ function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtm
 
   return `
     <div class="discussion-detail-comment ${isNested ? 'forum-comment-nested' : ''}" data-comment-id="${cId}">
-      <div class="forum-comment-avatar ${isNested ? 'forum-comment-nested-avatar' : ''}" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+      <div class="forum-comment-avatar ${isNested ? 'forum-comment-nested-avatar' : ''}" style="background: #23499b;">
         ${renderAvatar(c.avatar, authorName)}
       </div>
       <div class="forum-comment-body">
@@ -2217,7 +2217,7 @@ function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtm
         </div>
 
         <div class="forum-comment-inline-reply" data-parent-id="${cId}" style="display:none;">
-          <div class="forum-comment-avatar forum-comment-nested-avatar" style="background: linear-gradient(135deg, #23499b, #3B6FD4);">
+          <div class="forum-comment-avatar forum-comment-nested-avatar" style="background: #23499b;">
             ${renderAvatar(user?.avatar, user?.fullname || user?.username)}
           </div>
           <div class="forum-comment-inline-body">
@@ -2293,7 +2293,7 @@ async function renderUniGrid() {
       const isJoined = myUniId && (String(u.id) === String(myUniId));
       return `
     <div class="forum-uni-card" data-uni-id="${u.id}">
-      <div class="forum-uni-card-top" style="background: linear-gradient(135deg, ${u.color}22, ${u.color}11);">
+      <div class="forum-uni-card-top" style="background: ${u.color}15;">
         <div class="forum-uni-icon" style="background: ${u.color};">
           <span class="material-symbols-outlined text-white text-2xl">account_balance</span>
         </div>
@@ -3184,7 +3184,7 @@ function showUniMembersModal(uniName, members) {
           ? '<p class="text-slate-500 text-center py-8">No members yet</p>'
           : members.map(m => `
             <div class="flex items-center gap-3 py-3 px-2 hover:bg-slate-50 rounded-lg">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+              <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                 ${(m.fullname || m.username || '?').charAt(0).toUpperCase()}
               </div>
               <div class="flex-1 min-w-0">

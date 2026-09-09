@@ -40,10 +40,6 @@ function ensureQuizModal() {
 
   overlay.innerHTML = `
     <div class="quiz-modal-card bg-white border border-slate-200/80 rounded-3xl shadow-2xl p-6 sm:p-7 max-w-md w-full text-center relative overflow-hidden transform scale-95 transition-transform duration-300">
-      <!-- Decorative background glow -->
-      <div class="absolute -top-12 -right-12 w-32 h-32 bg-blue-100/60 rounded-full blur-2xl pointer-events-none"></div>
-      <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-indigo-100/60 rounded-full blur-2xl pointer-events-none"></div>
-
       <!-- Close button -->
       <button type="button" class="quiz-modal-close-icon absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-all cursor-pointer z-10" aria-label="Close dialog">
         <span class="material-symbols-outlined text-lg">close</span>
@@ -79,7 +75,7 @@ function ensureQuizModal() {
 
       <!-- Actions -->
       <div class="flex flex-col gap-2.5">
-        <a id="quiz-modal-start-btn" href="/quiz.html" class="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-[#1755ba] to-[#134699] hover:from-[#134699] hover:to-[#0f387a] text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer">
+        <a id="quiz-modal-start-btn" href="/quiz.html" class="w-full py-3.5 px-5 rounded-2xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm shadow-md transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer">
           <span class="material-symbols-outlined text-[20px]">play_arrow</span>
           <span class="quiz-modal-start-text" data-i18n="quiz_modal.start_btn">${t("quiz_modal.start_btn", "Làm AI Quiz ngay (2 phút)")}</span>
         </a>
