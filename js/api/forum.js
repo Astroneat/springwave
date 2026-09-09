@@ -1,4 +1,4 @@
-import { get, post, put, del } from "./client.js";
+import { get, post, put, del, uploadFormData } from "./client.js";
 import { getToken, getUser } from "../lib/session.js";
 import { formatDate, getEventStatus } from "../lib/utils.js";
 
@@ -391,8 +391,9 @@ export async function getMyUniversity() {
   return null;
 }
 
-export async function createDiscussionWithScope({ title, content, category, tags, relatedEvent, certificateCode, scope, communityId, cfTurnstileResponse, postAsOrg, orgId }) {
-  const data = await post("/community/discussions", {
+export async function createDiscussionWithScope({ title, content, category, tags, relatedEvent, certificateCode, images = [], scope, communityId, cfTurnstileResponse, postAsOrg, orgId }) {
+  const validImages = Array.from(images).filter(file => file instanceof File);
+  const payload = {
     title, content, category, tags: tags || [],
     relatedEvent: relatedEvent || undefined,
     certificateCode: certificateCode || undefined,
@@ -401,7 +402,10 @@ export async function createDiscussionWithScope({ title, content, category, tags
     cfTurnstileResponse: cfTurnstileResponse || undefined,
     postAsOrg: postAsOrg || undefined,
     orgId: orgId || undefined,
-  });
+  };
+  const data = validImages.length > 0
+    ? await uploadDiscussionWithImages(payload, validImages)
+    : await post("/community/discussions", payload);
   if (data) {
     const disc = data.discussion || (data._id || data.id ? data : null);
     if (disc) {
@@ -412,6 +416,16 @@ export async function createDiscussionWithScope({ title, content, category, tags
     }
   }
   return null;
+}
+
+async function uploadDiscussionWithImages(payload, images) {
+  const formData = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === false || value === "") return;
+    formData.append(key, key === "tags" ? JSON.stringify(value) : String(value));
+  });
+  images.forEach(file => formData.append("images", file, file.name));
+  return uploadFormData("/community/discussions", formData);
 }
 
 export async function getCommunityDiscussions(communityId) {

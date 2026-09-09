@@ -343,6 +343,18 @@
           <label for="postTags" data-i18n="community.tags">Tags</label>
           <input type="text" id="postTags" placeholder="e.g. AI, Hackathon, Team Building (comma separated)" />
         </div>
+        <div class="forum-post-field">
+          <span class="forum-post-upload-label">Images</span>
+          <div class="forum-post-upload-row">
+            <label class="forum-post-upload-trigger" for="postImages">
+              <span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>
+              <span>Add images</span>
+            </label>
+            <input id="postImages" class="forum-post-file-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" multiple aria-describedby="postImagesHelp" />
+            <span id="postImagesHelp" class="forum-post-upload-help">PNG, JPG, WEBP, GIF or AVIF. Up to 4 images.</span>
+          </div>
+          <div id="postImagePreview" class="forum-post-image-preview" role="status" aria-live="polite"></div>
+        </div>
         <div class="forum-post-field" id="postEventField">
           <label id="postEventLabel" data-i18n="community.related_event">Related Event (optional)</label>
           <div class="forum-post-event-search" id="postEventSearch" style="display:none;">

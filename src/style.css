@@ -21031,13 +21031,21 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: -4px 0 16px;
-  padding: 10px 12px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
   overflow: hidden;
-  border: 1px solid #c9dced;
-  border-radius: 12px;
-  background: #f7fbff;
+  border: 1px solid rgba(52, 147, 250, 0.15);
+  border-radius: 16px;
+  background: rgba(52, 147, 250, 0.06);
   color: #18345b;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.forum-certificate-ref:hover {
+  border-color: #3493fa;
+  background: rgba(52, 147, 250, 0.12);
 }
 
 .forum-certificate-ref::before {
@@ -21059,26 +21067,17 @@ body {
 .forum-certificate-ref-art {
   display: grid;
   place-items: center;
-  flex: 0 0 62px;
-  width: 62px;
-  height: 48px;
-  border: 1px solid #b5d2ec;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: #e7f2fc;
-  color: #1755ba;
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
 }
 
 .forum-certificate-ref-art .material-symbols-outlined {
-  font-size: 23px;
+  font-size: 19px;
   line-height: 1;
-}
-
-.forum-certificate-ref-art span:last-child {
-  margin-top: -7px;
-  font-family: "Aleo", serif;
-  font-size: 7px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
 }
 
 .forum-certificate-ref-copy {
@@ -21112,27 +21111,8 @@ body {
   font-size: 0.7rem;
 }
 
-.forum-certificate-ref-link {
-  flex: 0 0 auto;
-  padding: 6px 9px;
-  border: 1px solid #b8d7f4;
-  border-radius: 8px;
-  background: #fff;
-  color: #1755ba;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.forum-certificate-ref-link:hover,
-.forum-certificate-ref-link:focus-visible {
-  background: #eaf3fb;
-  border-color: #6fa8dc;
-}
-
 .forum-event-ref:focus-visible,
-.forum-certificate-ref-link:focus-visible {
+.forum-certificate-ref:focus-visible {
   outline: 3px solid rgba(52, 137, 225, 0.3);
   outline-offset: 2px;
 }
@@ -21151,9 +21131,162 @@ body {
     white-space: normal;
   }
 
-  .forum-certificate-ref-link {
-    margin-left: 74px;
-  }
 }
 
+.forum-post-upload-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
 
+.forum-post-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.forum-post-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.forum-post-upload-trigger {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #bdd7ef;
+  border-radius: 8px;
+  background: #f7fbff;
+  color: #1755ba;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.forum-post-upload-trigger:hover {
+  border-color: #79aee0;
+  background: #eaf3fb;
+}
+
+.forum-post-upload-trigger:focus-within {
+  outline: 3px solid rgba(52, 137, 225, 0.3);
+  outline-offset: 2px;
+}
+
+.forum-post-upload-trigger .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.forum-post-upload-help {
+  color: #64748b;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.forum-post-image-preview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.forum-post-image-preview-item {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid #c9dced;
+  border-radius: 8px;
+  background: #f1f5f9;
+}
+
+.forum-post-image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.forum-post-image-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  cursor: pointer;
+}
+
+.forum-post-image-remove:hover {
+  background: #b91c1c;
+}
+
+.forum-post-image-remove .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.forum-discussion-images {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.forum-discussion-image-link {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #d6e3ee;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.forum-discussion-image-link:only-child {
+  grid-column: 1 / -1;
+}
+
+.forum-discussion-image-link img {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  transition: transform 180ms ease;
+}
+
+.forum-discussion-image-link:hover img,
+.forum-discussion-image-link:focus-visible img {
+  transform: scale(1.02);
+}
+
+.forum-discussion-image-link:focus-visible {
+  outline: 3px solid rgba(52, 137, 225, 0.3);
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .forum-post-upload-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .forum-post-image-preview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .forum-discussion-images {
+    grid-template-columns: 1fr;
+  }
+}

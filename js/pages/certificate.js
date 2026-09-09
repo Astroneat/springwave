@@ -1214,6 +1214,19 @@ async function renderCertificateToCanvas(certNode) {
   return drawCertificateDirectToCanvas(currentCertData, certNode);
 }
 
+function certificateCanvasToPngFile(canvas, certificateCode) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Unable to create the certificate image"));
+        return;
+      }
+      const safeCode = String(certificateCode || "certificate").replace(/[^a-z0-9_-]/gi, "_");
+      resolve(new File([blob], `certificate-${safeCode}.png`, { type: "image/png" }));
+    }, "image/png", 1);
+  });
+}
+
 function initActionButtons() {
   // Language Switcher Toggle
   document.getElementById("lang-toggle-btn")?.addEventListener("click", () => {
@@ -1538,11 +1551,16 @@ function initActionButtons() {
     publishBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${getLang() === 'vi' ? 'Đang đăng bài...' : 'Posting...'}</span>`;
 
     try {
+      const certNode = document.getElementById("certificate-node");
+      const certificateCanvas = await renderCertificateToCanvas(certNode);
+      const certificateImage = await certificateCanvasToPngFile(certificateCanvas, currentCertData.certificateCode);
       const payload = {
         title,
         content,
         category: "event",
         relatedEvent: currentCertData.event?._id || undefined,
+        certificateCode: currentCertData.certificateCode || undefined,
+        images: [certificateImage],
         tags,
         scope: "general",
         cfTurnstileResponse,
