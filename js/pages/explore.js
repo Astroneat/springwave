@@ -31,6 +31,7 @@ let currentStatus = "upcoming";
 let currentMyUniOnly = false;
 let currentCertificateOnly = false;
 let myUniversity = null;
+let currentRecommendations = [];
 let cachedTemplate = null;
 let participateQueue = [];
 let activeParticipations = 0;
@@ -400,42 +401,44 @@ function createActivityCard(rawActivity, options = {}) {
     return card;
 }
 
-async function loadRecommendations() {
+async function renderRecommendations(recommended) {
     const section = document.getElementById("recommendations-section");
     const container = document.getElementById("recommendations-container");
     if (!section || !container) return;
+    if (recommended.length === 0) {
+        section.style.display = "none";
+        return;
+    }
 
+    await ensureCardTemplate();
+    section.style.display = "block";
+    container.innerHTML = "";
+    const frag = document.createDocumentFragment();
+    recommended.slice(0, 8).forEach(a => {
+        const card = createActivityCard(a, { isRecommended: true });
+        if (card) {
+            if (!allActivities.some(existing => String(existing.activityID || existing._id) === String(a.activityID || a._id))) {
+                allActivities.push(a);
+            }
+            frag.appendChild(card);
+        }
+    });
+    container.appendChild(frag);
+    initCardClickHandlers();
+    await syncCardFavourites();
+}
+
+async function loadRecommendations() {
     if (!isAuthenticated()) return;
-
     try {
         const data = await getRecommendations();
         const rawRecommended = data?.events || data?.recommendations || [];
-        const recommended = rawRecommended.filter(a => getEventStatus(a) === 'registration_open');
-        if (recommended.length === 0) {
-            section.style.display = "none";
-            return;
-        }
-
-        await ensureCardTemplate();
-
-        section.style.display = "block";
-        container.innerHTML = "";
-        const frag = document.createDocumentFragment();
-        recommended.slice(0, 8).forEach(a => {
-            const card = createActivityCard(a, { isRecommended: true });
-            if (card) {
-                if (!allActivities.some(existing => String(existing.activityID || existing._id) === String(a.activityID || a._id))) {
-                    allActivities.push(a);
-                }
-                frag.appendChild(card);
-            }
-        });
-        container.appendChild(frag);
-
-        initCardClickHandlers();
-        await syncCardFavourites();
+        currentRecommendations = rawRecommended.filter(a => getEventStatus(a) === 'registration_open');
+        await renderRecommendations(currentRecommendations);
     } catch {
-        section.style.display = "none";
+        currentRecommendations = [];
+        const section = document.getElementById("recommendations-section");
+        if (section) section.style.display = "none";
     }
 }
 
@@ -1856,10 +1859,9 @@ if (typeof window !== "undefined") {
         } else if (allActivities && allActivities.length > 0) {
             await renderCardsDirect(allActivities);
         }
-        loadRecommendations().catch(() => {});
+        renderRecommendations(currentRecommendations).catch(() => {});
     });
 }
-
 
 
 

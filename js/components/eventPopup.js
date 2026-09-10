@@ -19,6 +19,7 @@ let underlyingModalToRestore = null;
 let currentOpenActivity = null;
 let currentBackText = "";
 const activityCache = new Map();
+const aiMatchSnapshots = new Map();
 
 if (typeof window !== "undefined") {
     window.openEventPopup = openEventPopup;
@@ -1399,7 +1400,16 @@ function initAIMatchButton(container, activityID) {
                 const currentLang = (typeof getLang === 'function' ? getLang() : localStorage.getItem('springwave_lang')) || 'vi';
                 const isVi = currentLang.startsWith('vi');
 
-                const result = await explainRecommendation(activityID, currentLang);
+                const snapshotKey = String(activityID);
+                const cachedResult = aiMatchSnapshots.get(snapshotKey);
+                const result = cachedResult
+                    ? {
+                        ...cachedResult,
+                        explanation: cachedResult.explanations?.[isVi ? 'vi' : 'en'] || cachedResult.explanation,
+                        tags: cachedResult.tagsByLocale?.[isVi ? 'vi' : 'en'] || cachedResult.tags || [],
+                    }
+                    : await explainRecommendation(activityID, currentLang);
+                if (!cachedResult) aiMatchSnapshots.set(snapshotKey, result);
                 const pct = Number.isFinite(result?.percentage) ? result.percentage : (result?.score ? Math.round(result.score * 100) : 75);
                 const fallbackExplanation = isVi 
                     ? "Sự kiện này phù hợp với sở thích và mục tiêu phát triển của bạn."
@@ -1704,6 +1714,9 @@ if (typeof window !== "undefined") {
             initParticipateButton(actId);
             disableParticipationButtons(currentOpenActivity);
             bindPopupInteractiveElements(container, currentOpenActivity, actId);
+            if (aiMatchSnapshots.has(String(actId))) {
+                container.querySelector('.ai-match-btn')?.click();
+            }
         }
         const leaveModal = document.getElementById("leaveEventConfirmModal");
         if (leaveModal && !leaveModal.classList.contains("hidden")) {
@@ -1715,4 +1728,3 @@ if (typeof window !== "undefined") {
         }
     });
 }
-
