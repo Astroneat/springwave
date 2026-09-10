@@ -1,4 +1,4 @@
-import { sanitizeHtml } from "../lib/sanitize.js";
+import { sanitizeHtml, escapeAttr } from "../lib/sanitize.js";
 import { getActivityById, checkParticipation, unparticipateActivity, participateActivity, getEventComments, addEventComment, getSimilarEvents } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getParticipatedActivities, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";

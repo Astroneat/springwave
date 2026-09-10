@@ -513,7 +513,6 @@ async function initExplore() {
     }
 }
 
-<<<<<<< Updated upstream
 async function ensureCardTemplate() {
     if (!cachedTemplate) {
         const templateHTML = await fetchContent("./components/cards.html");
@@ -670,29 +669,6 @@ function createActivityCard(rawActivity, options = {}) {
 }
 
 async function renderRecommendations(recommended) {
-=======
-function buildRecommendationSkeletonCard(i = 0) {
-    const delay = i * 80;
-    return `
-        <div class="explore-skeleton-card" style="animation-delay:${delay}ms">
-            <div class="explore-skeleton-block explore-skeleton-image"></div>
-            <div class="explore-skeleton-body">
-                <div class="explore-skeleton-block explore-skeleton-title"></div>
-                <div class="explore-skeleton-block explore-skeleton-title short"></div>
-                <div class="explore-skeleton-block explore-skeleton-line wide"></div>
-                <div class="explore-skeleton-block explore-skeleton-line"></div>
-                <div class="explore-skeleton-block explore-skeleton-pill"></div>
-                <div class="explore-skeleton-footer">
-                    <div class="explore-skeleton-block explore-skeleton-button"></div>
-                    <div class="explore-skeleton-block explore-skeleton-star"></div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-async function loadRecommendations() {
->>>>>>> Stashed changes
     const section = document.getElementById("recommendations-section");
     const container = document.getElementById("recommendations-container");
     if (!section || !container) return;
@@ -701,7 +677,6 @@ async function loadRecommendations() {
         return;
     }
 
-<<<<<<< Updated upstream
     await ensureCardTemplate();
     section.style.display = "block";
     container.innerHTML = "";
@@ -731,60 +706,6 @@ async function loadRecommendations() {
         currentRecommendations = [];
         const section = document.getElementById("recommendations-section");
         if (section) section.style.display = "none";
-=======
-    if (!isAuthenticated()) {
-        section.style.display = "none";
-        return;
-    }
-
-    // Immediately display section with shimmering skeleton cards
-    section.style.display = "block";
-    container.innerHTML = Array.from({ length: 4 }, (_, i) => buildRecommendationSkeletonCard(i)).join("");
-
-    try {
-        const [data] = await Promise.all([
-            getRecommendations(),
-            getCardTemplate()
-        ]);
-
-        const rawRecommended = data?.events || data?.recommendations || (Array.isArray(data) ? data : []);
-        let recommended = rawRecommended.filter(a => getEventStatus(a) === 'registration_open');
-        if (recommended.length === 0) {
-            recommended = rawRecommended.filter(a => getEventStatus(a) !== 'ended');
-        }
-        if (recommended.length === 0 && rawRecommended.length > 0) {
-            recommended = rawRecommended;
-        }
-
-        if (recommended.length === 0 || !cachedTemplate) {
-            section.style.display = "none";
-            container.innerHTML = "";
-            return;
-        }
-
-        recommendedActivitiesMap.clear();
-        recommended.forEach(a => {
-            const id = String(a.activityID || a._id || "");
-            if (id) recommendedActivitiesMap.set(id, a);
-        });
-
-        container.innerHTML = "";
-        const frag = document.createDocumentFragment();
-        recommended.slice(0, 8).forEach(a => {
-            const card = createCardElement(a, { showMatchBadge: true });
-            if (card) frag.appendChild(card);
-        });
-        container.appendChild(frag);
-
-        if (typeof attachCardContainerListeners === "function") {
-            attachCardContainerListeners(container);
-        }
-        await syncCardFavourites();
-    } catch (e) {
-        console.error("Failed to load recommendations:", e);
-        section.style.display = "none";
-        container.innerHTML = "";
->>>>>>> Stashed changes
     }
 }
 
@@ -793,7 +714,6 @@ window.addEventListener('springwave:ai-match-updated', (e) => {
     const { activityID, percentage } = e.detail || {};
     if (!activityID || !Number.isFinite(percentage)) return;
 
-<<<<<<< Updated upstream
     const cards = document.querySelectorAll(`.card[data-id="${activityID}"]`);
     cards.forEach(card => {
         let pill = card.querySelector('.recommendation-match-pill');
@@ -818,24 +738,6 @@ window.addEventListener('springwave:ai-match-updated', (e) => {
             newPill.className = 'recommendation-match-pill pointer-events-auto';
             newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>${percentage}% ${t("explore.match_pill", "Match")}</span>`;
             topRightBadges.appendChild(newPill);
-=======
-    const cards = document.querySelectorAll(`[data-id="${activityID}"]`);
-    cards.forEach(card => {
-        let pill = card.querySelector('.card-match-badge') || card.querySelector('.recommendation-match-pill');
-        if (pill) {
-            pill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i><span>${percentage}% ${t("explore.match_pill", "Match")}</span>`;
-        } else if (card.closest('#recommendations-container')) {
-            let badges = card.querySelector('.card-top-badges');
-            if (!badges) {
-                badges = document.createElement('div');
-                badges.className = 'card-top-badges absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-col items-start gap-1.5 z-10 pointer-events-none';
-                card.appendChild(badges);
-            }
-            const newPill = document.createElement('div');
-            newPill.className = 'card-match-badge recommendation-match-pill shadow-xs';
-            newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i><span>${percentage}% ${t("explore.match_pill", "Match")}</span>`;
-            badges.prepend(newPill);
->>>>>>> Stashed changes
         }
     });
 });
@@ -1266,11 +1168,7 @@ async function renderCardsDirect(activities) {
     cardsContainer.innerHTML = "";
     const frag = document.createDocumentFragment();
     paginatedActivities.forEach(activity => {
-<<<<<<< Updated upstream
         const card = createActivityCard(activity);
-=======
-        const card = createCardElement(activity);
->>>>>>> Stashed changes
         if (card) frag.appendChild(card);
     });
     cardsContainer.appendChild(frag);
@@ -1519,138 +1417,6 @@ function initializePage() {
 }
 
 
-
-<<<<<<< Updated upstream
-function toggleCardStar(activityID, active) {
-    const cards = document.querySelectorAll(`.card[data-id="${activityID}"]`);
-    cards.forEach(card => {
-        const star = card.querySelector(".star");
-        if (star) star.classList.toggle("active", active);
-    });
-}
-
-const boundCardContainers = new WeakSet();
-let favReqInFlight = null;
-let cachedFavIds = null;
-const favLocks = new Set();
-
-function attachCardContainerEvents(container) {
-    if (!container || boundCardContainers.has(container)) return;
-    boundCardContainers.add(container);
-
-    container.addEventListener("click", async (e) => {
-        const star = e.target.closest(".star");
-        if (star) {
-            e.preventDefault();
-            e.stopPropagation();
-            const card = star.closest(".card");
-            const id = card?.dataset.id;
-            if (!id || favLocks.has(id)) return;
-            if (!isAuthenticated()) {
-                showLoginPrompt({
-                    message: t("auth_modal.desc_favorite", "Vui lòng đăng nhập để lưu hoạt động yêu thích."),
-                    redirectUrl: window.location.pathname + window.location.search
-                });
-                return;
-            }
-
-            const user = getUser();
-            if (!checkVerificationGuard(user, "favourite activities")) {
-                return;
-            }
-            const active = star.classList.contains("active");
-            star.classList.toggle("active");
-            if (cachedFavIds) {
-                if (active) cachedFavIds.delete(id);
-                else cachedFavIds.add(id);
-            }
-            favLocks.add(id);
-            try {
-                if (active) await removeFavourite(id);
-                else {
-                    await addFavourite(id);
-                    const currentUserId = user?._id || user?.id || "guest";
-                    const explorerKey = `springwave_has_earned_explorer_${currentUserId}`;
-
-                    let alreadyHasBadge = false;
-                    try {
-                        const contribRaw = localStorage.getItem(`springwave_contrib_${currentUserId}`);
-                        if (contribRaw) {
-                            const contrib = JSON.parse(contribRaw);
-                            if (contrib?.badges?.includes("active_explorer")) {
-                                alreadyHasBadge = true;
-                            }
-                        }
-                    } catch {}
-
-                    if (cachedFavIds && cachedFavIds.size >= 5 && !localStorage.getItem(explorerKey) && !alreadyHasBadge) {
-                        localStorage.setItem(explorerKey, "true");
-                        setTimeout(() => {
-                            triggerBadgeCelebration("active_explorer");
-                        }, 500);
-                    }
-                }
-            } catch (err) {
-                star.classList.toggle("active");
-                if (cachedFavIds) {
-                    if (active) cachedFavIds.add(id);
-                    else cachedFavIds.delete(id);
-                }
-                console.error("Failed to toggle favourite:", err);
-            } finally {
-                favLocks.delete(id);
-            }
-            return;
-        }
-
-        const detailsBtn = e.target.closest(".details-btn");
-        if (detailsBtn) {
-            e.stopPropagation();
-            const card = detailsBtn.closest(".card");
-            if (card?.dataset.id) {
-                const actData = allActivities.find(a => String(a.activityID || a._id) === card.dataset.id);
-                await openEventPopup(card.dataset.id, { activityData: actData });
-            }
-            return;
-        }
-
-        const card = e.target.closest(".card");
-        if (card?.dataset.id) {
-            const actData = allActivities.find(a => String(a.activityID || a._id) === card.dataset.id);
-            await openEventPopup(card.dataset.id, { activityData: actData });
-        }
-    });
-}
-
-function initCardClickHandlers() {
-    const cardsContainer = document.getElementById("cards-container");
-    const recContainer = document.getElementById("recommendations-container");
-    if (cardsContainer) attachCardContainerEvents(cardsContainer);
-    if (recContainer) attachCardContainerEvents(recContainer);
-}
-
-async function syncCardFavourites() {
-    if (!isAuthenticated()) return;
-    try {
-        let activities;
-        if (favReqInFlight) {
-            const res = await favReqInFlight;
-            activities = res.activities || [];
-        } else {
-            favReqInFlight = getFavourites();
-            const res = await favReqInFlight;
-            favReqInFlight = null;
-            activities = res.activities || [];
-        }
-        cachedFavIds = new Set(activities.map(a => a.activityID));
-        cachedFavIds.forEach(id => toggleCardStar(id, true));
-    } catch (err) {
-        console.error("Failed to sync favourites:", err);
-    }
-}
-=======
-
->>>>>>> Stashed changes
 
 function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
@@ -2212,7 +1978,4 @@ if (typeof window !== "undefined") {
         renderRecommendations(currentRecommendations).catch(() => {});
     });
 }
-
-
-
 
