@@ -19,6 +19,7 @@ import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
 import { showExploreLoading, hideExploreLoading, bindLoadingLanguage, EXPLORE_SKELETON_OPTIONS } from "../lib/exploreLoading.js";
 import { getMyUniversity, getUniversities } from "../api/universities.js";
 import { showLoginPrompt } from "../components/authModal.js";
+import { showEventRegisteredToast } from "../components/toast.js";
 
 let allActivities = [];
 let masterActivitiesList = [];
@@ -677,10 +678,14 @@ function initSearchButton() {
             const catChip = document.querySelector(".category-chip.active");
             const catValue = catChip && catChip.dataset.category !== "all" ? catChip.dataset.category : undefined;
 
-            const fromDateStr = dates.startDate ? `${toLocalISODate(dates.startDate)}T00:00:00.000Z` : undefined;
-            const toDateStr = dates.endDate 
-                ? `${toLocalISODate(dates.endDate)}T23:59:59.999Z` 
-                : (dates.startDate ? `${toLocalISODate(dates.startDate)}T23:59:59.999Z` : undefined);
+            const s = dates.startDate ? new Date(dates.startDate) : null;
+            if (s) s.setHours(0, 0, 0, 0);
+
+            const e = dates.endDate ? new Date(dates.endDate) : (s ? new Date(s) : null);
+            if (e) e.setHours(23, 59, 59, 999);
+
+            const fromDateStr = s ? s.toISOString() : undefined;
+            const toDateStr = e ? e.toISOString() : undefined;
 
             const params = {
                 location: location || undefined,
@@ -701,21 +706,7 @@ function initSearchButton() {
                     (a.location || "").toLowerCase().includes(location.toLowerCase())
                 );
             }
-            if (dates.startDate && dates.endDate) {
-                const s = new Date(dates.startDate);
-                s.setHours(0, 0, 0, 0);
-                const e = new Date(dates.endDate);
-                e.setHours(23, 59, 59, 999);
-                activities = activities.filter(a => {
-                    if (!a.heldDate) return false;
-                    const held = new Date(a.heldDate);
-                    return held >= s && held <= e;
-                });
-            } else if (dates.startDate) {
-                const s = new Date(dates.startDate);
-                s.setHours(0, 0, 0, 0);
-                const e = new Date(dates.startDate);
-                e.setHours(23, 59, 59, 999);
+            if (s && e) {
                 activities = activities.filter(a => {
                     if (!a.heldDate) return false;
                     const held = new Date(a.heldDate);
@@ -1532,6 +1523,7 @@ function initParticipateButton(activityID) {
                 button.classList.add("active");
                 button.querySelector(".participate-header").textContent = t("explore.participated");
                 button.querySelector(".participate-text").textContent = t("explore.joined_activity");
+                showEventRegisteredToast({ activityID });
             }
         } catch (err) {
             console.error("Participate error:", err);
@@ -1563,16 +1555,23 @@ function initSearchDatePicker() {
     let endDate = null;
     window.__searchDates = { startDate: null, endDate: null };
 
-    function syncSearchDates() { window.__searchDates.startDate = startDate; window.__searchDates.endDate = endDate; }
+    function syncSearchDates() {
+        window.__searchDates.startDate = startDate;
+        window.__searchDates.endDate = endDate;
+        if (typeof updateFilterBadge === "function") updateFilterBadge();
+    }
     function pad(n) { return String(n).padStart(2, "0"); }
 
     function formatDisplay() {
-        if (startDate && endDate) {
+        const isRange = startDate && endDate && startDate.getTime() !== endDate.getTime();
+        const isSingle = startDate && (!endDate || startDate.getTime() === endDate.getTime());
+
+        if (isRange) {
             value.textContent = `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)} - ${pad(endDate.getDate())}/${pad(endDate.getMonth() + 1)}`;
             value.classList.add("visible");
             placeholder.classList.add("hidden");
-        } else if (startDate) {
-            value.textContent = `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)} - dd/mm`;
+        } else if (isSingle) {
+            value.textContent = `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}`;
             value.classList.add("visible");
             placeholder.classList.add("hidden");
         } else {
@@ -1630,16 +1629,54 @@ function initSearchDatePicker() {
 
             if (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) el.classList.add("today");
             el.dataset.date = date.toISOString();
-            if (startDate && endDate && date > startDate && date < endDate) el.classList.add("in-range");
-            if (startDate && date.getTime() === startDate.getTime()) { el.classList.add("range-start"); el.classList.add("in-range"); }
-            if (endDate && date.getTime() === endDate.getTime()) { el.classList.add("range-end"); el.classList.add("in-range"); }
-            if (startDate && endDate && startDate.getTime() === endDate.getTime() && date.getTime() === startDate.getTime()) el.classList.add("selected");
+
+            const isRange = startDate && endDate && startDate.getTime() !== endDate.getTime();
+            const isSingle = startDate && (!endDate || startDate.getTime() === endDate.getTime());
+
+            if (isRange) {
+                if (date > startDate && date < endDate) el.classList.add("in-range");
+                if (date.getTime() === startDate.getTime()) { el.classList.add("range-start"); el.classList.add("in-range"); }
+                if (date.getTime() === endDate.getTime()) { el.classList.add("range-end"); el.classList.add("in-range"); }
+            } else if (isSingle && date.getTime() === startDate.getTime()) {
+                el.classList.add("range-start");
+                el.classList.add("selected");
+            }
+
             el.addEventListener("click", () => {
                 const clicked = new Date(currentYear, currentMonth, d);
-                if (!startDate || (startDate && endDate)) { startDate = clicked; endDate = null; }
-                else if (clicked < startDate) { startDate = clicked; }
-                else { endDate = clicked; }
-                syncSearchDates(); renderCalendar(); formatDisplay();
+
+                // Single date already selected on this exact day -> unselect it
+                if (startDate && !endDate && clicked.getTime() === startDate.getTime()) {
+                    startDate = null;
+                    endDate = null;
+                }
+                // Range selected, clicked end date again -> unselect end date
+                else if (startDate && endDate && clicked.getTime() === endDate.getTime()) {
+                    endDate = null;
+                }
+                // Range selected, clicked start date again -> unselect all
+                else if (startDate && endDate && clicked.getTime() === startDate.getTime()) {
+                    startDate = null;
+                    endDate = null;
+                }
+                // No date selected, or range already selected -> start new single selection
+                else if (!startDate || (startDate && endDate)) {
+                    startDate = clicked;
+                    endDate = null;
+                }
+                // Single date selected, clicked an earlier date -> update start date
+                else if (clicked < startDate) {
+                    startDate = clicked;
+                    endDate = null;
+                }
+                // Single date selected, clicked a later date -> select range
+                else {
+                    endDate = clicked;
+                }
+
+                syncSearchDates();
+                renderCalendar();
+                formatDisplay();
             });
             grid.appendChild(el);
         }

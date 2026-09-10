@@ -204,12 +204,13 @@ export function showCertToast(msg, isError = false) {
     }
   }
 
-  toast.classList.remove("opacity-0", "translate-y-10", "pointer-events-none");
-  toast.classList.add("opacity-100", "translate-y-0");
+  void toast.offsetWidth;
+  toast.classList.remove("opacity-0", "translate-x-[calc(100%+32px)]", "pointer-events-none");
+  toast.classList.add("opacity-100", "translate-x-0");
 
   certToastTimer = setTimeout(() => {
-    toast.classList.remove("opacity-100", "translate-y-0");
-    toast.classList.add("opacity-0", "translate-y-10", "pointer-events-none");
+    toast.classList.remove("opacity-100", "translate-x-0");
+    toast.classList.add("opacity-0", "translate-x-[calc(100%+32px)]", "pointer-events-none");
   }, 3500);
 }
 

@@ -3,7 +3,8 @@
  * Supports unified styling, accessible live regions, auto-dismiss, and flexible argument signatures.
  */
 
-import { t } from "../lib/i18n.js";
+import { t, getLang } from "../lib/i18n.js";
+import { escapeHtml } from "../lib/sanitize.js";
 
 let toastContainer = null;
 
@@ -24,7 +25,7 @@ function ensureToastContainer() {
     document.body.appendChild(toastContainer);
   }
   toastContainer.className =
-    "fixed top-5 right-5 flex flex-col gap-2.5 max-w-sm w-[calc(100vw-40px)] sm:w-full pointer-events-none transition-all";
+    "fixed bottom-5 right-5 flex flex-col-reverse gap-2.5 max-w-sm w-[calc(100vw-40px)] sm:w-full pointer-events-none transition-all";
   toastContainer.style.setProperty("z-index", "999999", "important");
   return toastContainer;
 }
@@ -103,7 +104,7 @@ export function showToast(options, typeOrIsError = "info", duration = 3500) {
 
   const toast = document.createElement("div");
   toast.style.setProperty("z-index", "999999", "important");
-  toast.className = `pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl border ${config.border} ${config.bg} shadow-lg shadow-black/5 transform translate-y-2 opacity-0 transition-all duration-300 backdrop-blur-md`;
+  toast.className = `pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl border ${config.border} ${config.bg} shadow-lg shadow-black/5 transform translate-x-[calc(100%+32px)] opacity-0 transition-all duration-500 ease-out backdrop-blur-md will-change-transform`;
   toast.setAttribute("role", type === "error" ? "alert" : "status");
 
   // Escape HTML in message
@@ -120,12 +121,13 @@ export function showToast(options, typeOrIsError = "info", duration = 3500) {
   `;
 
   const dismiss = () => {
-    toast.classList.add("opacity-0", "-translate-y-2");
+    toast.classList.remove("translate-x-0", "opacity-100");
+    toast.classList.add("opacity-0", "translate-x-[calc(100%+32px)]");
     setTimeout(() => {
       if (toast.parentElement) {
         toast.parentElement.removeChild(toast);
       }
-    }, 300);
+    }, 500);
   };
 
   const closeBtn = toast.querySelector(".toast-close-btn");
@@ -134,10 +136,12 @@ export function showToast(options, typeOrIsError = "info", duration = 3500) {
   }
 
   container.appendChild(toast);
+  void toast.offsetWidth;
 
   // Animate in
   requestAnimationFrame(() => {
-    toast.classList.remove("translate-y-2", "opacity-0");
+    toast.classList.remove("translate-x-[calc(100%+32px)]", "opacity-0");
+    toast.classList.add("translate-x-0", "opacity-100");
   });
 
   if (timeout > 0) {
@@ -147,9 +151,143 @@ export function showToast(options, typeOrIsError = "info", duration = 3500) {
   return toast;
 }
 
+/**
+ * Displays a bottom-right toast notification when user successfully registers for an event.
+ * Contains direct link to /my-events.html with an action button.
+ * @param {object|string} activityOrTitle - Activity object or string title.
+ */
+export function showEventRegisteredToast(activityOrTitle = {}) {
+  const existing = document.querySelectorAll(".event-reg-toast");
+  existing.forEach((t) => {
+    t.classList.remove("show");
+    setTimeout(() => t.remove(), 300);
+  });
+
+  const eventTitle =
+    typeof activityOrTitle === "string"
+      ? activityOrTitle
+      : activityOrTitle?.title || activityOrTitle?.activityName || "";
+
+  const eventId =
+    typeof activityOrTitle === "object" && activityOrTitle !== null
+      ? (activityOrTitle._id || activityOrTitle.id || activityOrTitle.activityID || "")
+      : "";
+
+  if (eventId) {
+    try {
+      sessionStorage.setItem("lastRegisteredEventId", String(eventId));
+    } catch {}
+  }
+
+  const targetUrl = eventId
+    ? `/my-events.html?event=${encodeURIComponent(eventId)}`
+    : `/my-events.html`;
+
+  const isVi = getLang() === "vi";
+  const titleText = t(
+    "explore.event_registered_toast_title",
+    isVi ? "Đăng ký sự kiện thành công!" : "Event Registration Successful!"
+  );
+
+  let msgText = "";
+  if (eventTitle) {
+    msgText = isVi
+      ? `Bạn đã đăng ký tham gia "${escapeHtml(eventTitle)}" thành công. Xem ticket tại mục My Events.`
+      : `You have successfully registered for "${escapeHtml(eventTitle)}". View your ticket in My Events.`;
+  } else {
+    msgText = t(
+      "explore.event_registered_toast_msg",
+      isVi
+        ? "Bạn đã đăng ký tham gia sự kiện thành công. Xem ticket tại mục My Events."
+        : "You have successfully registered for this event. View your ticket in My Events."
+    );
+  }
+
+  const btnText = t(
+    "explore.event_registered_toast_btn",
+    isVi ? "Xem ticket ở My Events" : "View Ticket in My Events"
+  );
+
+  const toast = document.createElement("div");
+  toast.className = "event-reg-toast";
+  toast.setAttribute("role", "status");
+  toast.setAttribute("aria-live", "polite");
+
+  toast.innerHTML = `
+    <div class="event-reg-toast-icon">
+      <span class="material-symbols-outlined">confirmation_number</span>
+    </div>
+    <div class="event-reg-toast-body">
+      <span class="event-reg-toast-title">${escapeHtml(titleText)}</span>
+      <span class="event-reg-toast-desc">${msgText}</span>
+      <a href="${targetUrl}" class="event-reg-toast-btn" id="eventRegToastBtn">
+        <span class="material-symbols-outlined">local_activity</span>
+        <span>${escapeHtml(btnText)}</span>
+        <span class="material-symbols-outlined">arrow_forward</span>
+      </a>
+    </div>
+    <button class="event-reg-toast-close" type="button" aria-label="Close notification">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  `;
+
+  document.body.appendChild(toast);
+
+  // Force reflow so browser registers the initial offscreen position before sliding in
+  void toast.offsetWidth;
+
+  requestAnimationFrame(() => {
+    toast.classList.add("show");
+  });
+
+  let dismissTimer = null;
+  const dismiss = () => {
+    toast.classList.remove("show");
+    setTimeout(() => {
+      if (toast.parentElement) toast.parentElement.removeChild(toast);
+    }, 750);
+  };
+
+  const startDismissTimer = () => {
+    dismissTimer = setTimeout(dismiss, 8000);
+  };
+
+  const clearDismissTimer = () => {
+    if (dismissTimer) clearTimeout(dismissTimer);
+  };
+
+  startDismissTimer();
+
+  toast.addEventListener("mouseenter", clearDismissTimer);
+  toast.addEventListener("mouseleave", startDismissTimer);
+
+  toast.querySelector(".event-reg-toast-close")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    clearDismissTimer();
+    dismiss();
+  });
+
+  const btn = toast.querySelector("#eventRegToastBtn");
+  if (btn && (window.location.pathname.includes("my-events") || window.location.pathname.endsWith("/my-events"))) {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      dismiss();
+      if (typeof window.highlightTicket === "function" && eventId) {
+        window.history.pushState({}, "", targetUrl);
+        window.highlightTicket(eventId);
+      } else {
+        window.location.href = targetUrl;
+      }
+    });
+  }
+
+  return toast;
+}
+
 // Expose globally for pages using vanilla inline scripts
 if (typeof window !== "undefined") {
   window.showToast = showToast;
+  window.showEventRegisteredToast = showEventRegisteredToast;
 
   window.addEventListener("language-changed", () => {
     document.querySelectorAll(".toast-message-text[data-i18n]").forEach((el) => {

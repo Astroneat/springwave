@@ -3194,13 +3194,14 @@ function updateQueueBadgeUI() {
   if (!badge || !text) return;
 
   if (totalQueueEnqueued === 0) {
-    badge.classList.add("opacity-0", "translate-y-4", "pointer-events-none");
-    badge.classList.remove("opacity-100", "translate-y-0");
+    badge.classList.add("opacity-0", "translate-x-[calc(100%+24px)]", "pointer-events-none");
+    badge.classList.remove("opacity-100", "translate-x-0");
     return;
   }
 
-  badge.classList.remove("opacity-0", "translate-y-4", "pointer-events-none");
-  badge.classList.add("opacity-100", "translate-y-0");
+  void badge.offsetWidth;
+  badge.classList.remove("opacity-0", "translate-x-[calc(100%+24px)]", "pointer-events-none");
+  badge.classList.add("opacity-100", "translate-x-0");
 
   const pending = backgroundQueue.length;
   if (pending > 0) {

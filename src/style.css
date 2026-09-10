@@ -4019,12 +4019,16 @@ textarea {
   @apply rounded-none;
 }
 
-.dr-day.range-start {
+.dr-day.range-start,
+.dr-day.range-end,
+.dr-day.selected {
   @apply bg-accent text-white rounded-full;
 }
 
-.dr-day.range-end {
-  @apply bg-accent text-white rounded-full;
+.dr-day.selected,
+.dr-day.range-start:not(.in-range),
+.dr-day.range-end:not(.in-range) {
+  border-radius: 9999px !important;
 }
 
 .dr-day.range-start.in-range {
@@ -4033,6 +4037,19 @@ textarea {
 
 .dr-day.range-end.in-range {
   @apply rounded-r-full rounded-l-none;
+}
+
+.dr-day.range-start:hover,
+.dr-day.range-end:hover,
+.dr-day.selected:hover {
+  background-color: var(--accent, #1d4ed8);
+  color: #ffffff;
+}
+
+.dr-day.today.range-start .dr-day-num,
+.dr-day.today.range-end .dr-day-num,
+.dr-day.today.selected .dr-day-num {
+  color: #ffffff !important;
 }
 
 .dr-day.range-start .dr-day-num,
@@ -5991,7 +6008,7 @@ textarea {
    ========================= */
 .toast-notification {
   position: fixed !important;
-  top: 24px !important;
+  bottom: 24px !important;
   right: 24px !important;
   z-index: var(--z-toast, 200) !important;
   padding: 12px 20px !important;
@@ -5999,7 +6016,16 @@ textarea {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
   font-size: 14px !important;
   font-weight: 600 !important;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  transform: translateX(calc(100% + 36px)) !important;
+  opacity: 0 !important;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease !important;
+  pointer-events: none !important;
+  will-change: transform, opacity;
+}
+
+.toast-notification.show {
+  transform: translateX(0) !important;
+  opacity: 1 !important;
   pointer-events: auto !important;
 }
 
@@ -9456,6 +9482,7 @@ textarea {
 
 .badge-toast {
   position: fixed !important;
+  bottom: 24px !important;
   right: 24px !important;
   background: #ffffff !important;
   border-radius: 14px !important;
@@ -9465,17 +9492,17 @@ textarea {
   align-items: center !important;
   gap: 12px !important;
   z-index: var(--z-toast, 200) !important;
-  transform: translateX(120%) !important;
+  transform: translateX(calc(100% + 36px)) !important;
   opacity: 0 !important;
   transition:
-    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.45s ease !important;
-  border-left: 4px solid #23499b !important;
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s ease !important;
   border: 1px solid rgba(226, 232, 240, 0.8) !important;
   border-left: 4px solid #23499b !important;
   min-width: 260px !important;
   max-width: min(420px, calc(100vw - 32px)) !important;
   pointer-events: auto !important;
+  will-change: transform, opacity;
 }
 
 .badge-toast.show {
@@ -9522,16 +9549,17 @@ textarea {
   align-items: center !important;
   gap: 12px !important;
   z-index: var(--z-toast, 200) !important;
-  transform: translateX(120%) !important;
+  transform: translateX(calc(100% + 36px)) !important;
   opacity: 0 !important;
   transition:
-    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.45s ease !important;
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s ease !important;
   border: 1px solid rgba(226, 232, 240, 0.8) !important;
   border-left: 4px solid #10b981 !important;
   min-width: 300px !important;
   max-width: min(420px, calc(100vw - 32px)) !important;
   pointer-events: auto !important;
+  will-change: transform, opacity;
 }
 
 .success-toast.show {
@@ -9601,6 +9629,155 @@ textarea {
   color: #ef4444 !important;
 }
 
+/* Event Registration Success Toast (Bottom Right - Slides in from right) */
+.event-reg-toast {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  background: #ffffff !important;
+  border-radius: 18px !important;
+  padding: 16px 20px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16), 0 2px 10px rgba(0, 0, 0, 0.06) !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  z-index: 999999 !important;
+  transform: translateX(calc(100% + 40px)) !important;
+  opacity: 0 !important;
+  transition:
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s ease !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  border-left: 5px solid #10b981 !important;
+  min-width: 320px !important;
+  max-width: min(440px, calc(100vw - 32px)) !important;
+  pointer-events: auto !important;
+  will-change: transform, opacity;
+}
+
+.event-reg-toast.show {
+  transform: translateX(0) !important;
+  opacity: 1 !important;
+}
+
+.event-reg-toast-icon {
+  @apply w-10 h-10 rounded-xl flex items-center justify-center shrink-0;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.event-reg-toast-icon .material-symbols-outlined {
+  font-size: 22px;
+}
+
+.event-reg-toast-body {
+  @apply flex flex-col flex-1 min-w-0;
+}
+
+.event-reg-toast-title {
+  @apply text-[14px] font-bold text-slate-900 leading-snug;
+}
+
+.event-reg-toast-desc {
+  @apply text-[12px] text-slate-600 mt-1 leading-relaxed;
+}
+
+.event-reg-toast-btn {
+  @apply inline-flex items-center gap-1.5 mt-2.5 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-[#1755ba] hover:bg-[#134496] active:scale-[0.98] transition-all shadow-xs cursor-pointer self-start no-underline;
+}
+
+.event-reg-toast-btn .material-symbols-outlined {
+  font-size: 15px;
+}
+
+.event-reg-toast-close {
+  @apply w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0 -mr-1 -mt-1 cursor-pointer border-none bg-transparent;
+}
+
+.event-reg-toast-close .material-symbols-outlined {
+  font-size: 18px;
+}
+
+@media (max-width: 640px) {
+  .event-reg-toast {
+    right: 16px !important;
+    bottom: 16px !important;
+    min-width: 0 !important;
+    width: calc(100vw - 32px) !important;
+    padding: 14px 16px !important;
+  }
+}
+
+/* ==========================================================================
+   TICKET FOCUS & MONOCHROMATIC AURA HIGHLIGHT
+   ========================================================================== */
+
+/* Base transition for ticket cards so entering & leaving focus is butter-smooth */
+.ticket-card-item {
+  transition:
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.65s ease,
+    filter 0.65s ease,
+    box-shadow 0.65s ease,
+    border-color 0.65s ease !important;
+  transform-origin: center center;
+}
+
+/* Container state when a ticket has aura focus */
+#events-list.ticket-aura-focus .ticket-card-item {
+  transition:
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.65s ease,
+    filter 0.65s ease,
+    box-shadow 0.65s ease,
+    border-color 0.65s ease !important;
+}
+
+/* Dim, shrink, and grayscale all other tickets */
+#events-list.ticket-aura-focus .ticket-card-item:not(.ticket-highlight-aura) {
+  transform: scale(0.95) !important;
+  opacity: 0.3 !important;
+  filter: grayscale(85%) contrast(85%) !important;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Monochromatic aura pulse keyframes (pure SpringWave blue #1755ba) */
+@keyframes monochromaticAuraPulse {
+  0% {
+    box-shadow:
+      0 0 0 2.5px #1755ba,
+      0 0 16px 2px rgba(23, 85, 186, 0.55),
+      0 0 35px 6px rgba(23, 85, 186, 0.35),
+      0 0 65px 12px rgba(23, 85, 186, 0.18);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px #1755ba,
+      0 0 28px 4px rgba(23, 85, 186, 0.75),
+      0 0 55px 10px rgba(23, 85, 186, 0.45),
+      0 0 90px 18px rgba(23, 85, 186, 0.25);
+  }
+  100% {
+    box-shadow:
+      0 0 0 2.5px #1755ba,
+      0 0 16px 2px rgba(23, 85, 186, 0.55),
+      0 0 35px 6px rgba(23, 85, 186, 0.35),
+      0 0 65px 12px rgba(23, 85, 186, 0.18);
+  }
+}
+
+/* Enlarged ticket with monochromatic aura */
+#events-list.ticket-aura-focus .ticket-card-item.ticket-highlight-aura,
+.ticket-card-item.ticket-highlight-aura {
+  transform: scale(1.035) !important;
+  border-color: #1755ba !important;
+  position: relative !important;
+  z-index: 35 !important;
+  animation: monochromaticAuraPulse 2.4s ease-in-out infinite !important;
+}
+
 .org-toast {
   position: fixed !important;
   bottom: 24px !important;
@@ -9612,14 +9789,15 @@ textarea {
   padding: 12px 20px !important;
   border-radius: 14px !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22) !important;
-  transform: translateY(100px) !important;
+  transform: translateX(calc(100% + 36px)) !important;
   opacity: 0 !important;
   pointer-events: none !important;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease !important;
+  will-change: transform, opacity;
 }
 
 .org-toast.show {
-  transform: translateY(0) !important;
+  transform: translateX(0) !important;
   opacity: 1 !important;
   pointer-events: auto !important;
 }

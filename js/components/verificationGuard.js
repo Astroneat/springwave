@@ -63,12 +63,12 @@ export function showFloatingWarnings(needsVerification, needsProfileComplete) {
         return;
     }
 
-    // Get or create floating container in the bottom-left corner
+    // Get or create floating container in the bottom-right corner
     let container = document.getElementById('floating-notice-container');
     if (!container) {
         container = document.createElement('div');
         container.id = 'floating-notice-container';
-        container.className = 'fixed bottom-6 left-6 z-[60] flex flex-col gap-3 max-w-sm w-[calc(100vw-96px)] sm:w-[360px] pointer-events-none';
+        container.className = 'fixed bottom-6 right-6 z-[60] flex flex-col gap-3 max-w-sm w-[calc(100vw-48px)] sm:w-[360px] pointer-events-none';
         document.body.appendChild(container);
     }
 
@@ -80,7 +80,7 @@ export function showFloatingWarnings(needsVerification, needsProfileComplete) {
 
         const card = document.createElement('div');
         card.id = 'profile-complete-banner';
-        card.className = 'pointer-events-auto relative p-4 rounded-2xl bg-white/95 border border-indigo-500/30 backdrop-blur-md shadow-xl flex gap-3 transform translate-y-0 opacity-100 transition-all duration-300';
+        card.className = 'pointer-events-auto relative p-4 rounded-2xl bg-white/95 border border-indigo-500/30 backdrop-blur-md shadow-xl flex gap-3 transform translate-x-[calc(100%+40px)] opacity-0 transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform';
         
         card.innerHTML = `
             <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
@@ -102,14 +102,18 @@ export function showFloatingWarnings(needsVerification, needsProfileComplete) {
 
         card.querySelector('#dismiss-profile-banner').addEventListener('click', () => {
             sessionStorage.setItem('springwave_profile_banner_dismissed', 'true');
-            card.classList.add('opacity-0', 'translate-y-2');
+            card.classList.add('opacity-0', 'translate-x-[calc(100%+40px)]');
             setTimeout(() => {
                 card.remove();
                 checkEmptyContainer(container);
-            }, 300);
+            }, 700);
         });
 
         container.appendChild(card);
+        void card.offsetWidth;
+        requestAnimationFrame(() => {
+            card.classList.remove('translate-x-[calc(100%+40px)]', 'opacity-0');
+        });
     }
 
     // 2. Student Verification Warning Card
@@ -120,7 +124,7 @@ export function showFloatingWarnings(needsVerification, needsProfileComplete) {
 
         const card = document.createElement('div');
         card.id = 'read-only-banner';
-        card.className = 'pointer-events-auto relative p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xl flex gap-3 transform translate-y-0 opacity-100 transition-all duration-300';
+        card.className = 'pointer-events-auto relative p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xl flex gap-3 transform translate-x-[calc(100%+40px)] opacity-0 transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform';
         
         card.innerHTML = `
             <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
@@ -142,14 +146,18 @@ export function showFloatingWarnings(needsVerification, needsProfileComplete) {
 
         card.querySelector('#dismiss-readonly-banner').addEventListener('click', () => {
             sessionStorage.setItem('springwave_read_only_banner_dismissed', 'true');
-            card.classList.add('opacity-0', 'translate-y-2');
+            card.classList.add('opacity-0', 'translate-x-[calc(100%+40px)]');
             setTimeout(() => {
                 card.remove();
                 checkEmptyContainer(container);
-            }, 300);
+            }, 700);
         });
 
         container.appendChild(card);
+        void card.offsetWidth;
+        requestAnimationFrame(() => {
+            card.classList.remove('translate-x-[calc(100%+40px)]', 'opacity-0');
+        });
     }
 }
 

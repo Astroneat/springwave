@@ -10,6 +10,7 @@ import { explainRecommendation } from "../api/recommendations.js";
 import { getMyProfile } from "../api/profile.js";
 import { showLoginPrompt } from "./authModal.js";
 import { showQuizPrompt } from "./quizModal.js";
+import { showEventRegisteredToast } from "./toast.js";
 
 let userParticipatedIds = null;
 let userFavouriteIds = null;
@@ -1290,6 +1291,7 @@ function initParticipateButton(activityID) {
                     } else {
                         await participateActivity(activityID);
                         if (userParticipatedIds) userParticipatedIds.add(String(activityID));
+                        showEventRegisteredToast(currentOpenActivity);
                     }
 
                     // Update cache

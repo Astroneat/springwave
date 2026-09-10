@@ -7,7 +7,7 @@ import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/n
 import { formatDate } from "../lib/utils.js";
 import { API_BASE_URL } from "../config.js";
 import { openEventPopup } from "../components/eventPopup.js";
-import { t, applyTranslation } from "../lib/i18n.js";
+import { t, applyTranslation, getLang } from "../lib/i18n.js";
 import { showToast } from "../components/toast.js";
 
 let allTickets = [];
@@ -140,7 +140,7 @@ function renderEvents() {
       : (status === 'cancelled' ? t('my_events.status_cancelled', 'Cancelled') : t('my_events.ended', 'Ended'));
 
     return `
-      <div class="group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${expired || isInactive(tkt) ? "opacity-80" : ""}">
+      <div id="ticket-card-${eventId}" data-event-id="${eventId}" data-activity-id="${event.activityID || ''}" data-ticket-id="${tkt._id || ''}" class="ticket-card-item group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${expired || isInactive(tkt) ? "opacity-80" : ""}">
         <div class="relative w-full md:w-48 h-36 md:h-auto min-h-[144px] flex-shrink-0 bg-slate-100 overflow-hidden cursor-pointer event-card-preview" data-event-id="${eventId}">
           <img src="${event.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" 
                alt="${eventTitle}" 
@@ -438,6 +438,137 @@ function initModals() {
   });
 }
 
+let activeAuraCleanup = null;
+
+export function highlightTicket(targetEventId) {
+  if (!targetEventId) return;
+
+  const eventsList = document.getElementById("events-list");
+  const card = document.getElementById(`ticket-card-${targetEventId}`) 
+    || document.querySelector(`.ticket-card-item[data-event-id="${targetEventId}"]`)
+    || document.querySelector(`.ticket-card-item[data-activity-id="${targetEventId}"]`)
+    || document.querySelector(`.ticket-card-item[data-ticket-id="${targetEventId}"]`);
+
+  if (!card) return;
+
+  // Clear any existing active aura highlight
+  if (typeof activeAuraCleanup === "function") {
+    activeAuraCleanup();
+    activeAuraCleanup = null;
+  }
+
+  // Clear aura class on any other cards
+  document.querySelectorAll(".ticket-highlight-aura").forEach(el => {
+    el.classList.remove("ticket-highlight-aura");
+  });
+
+  // Scroll to the card smoothly centered in viewport
+  setTimeout(() => {
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    if (eventsList) {
+      eventsList.classList.add("ticket-aura-focus");
+    }
+
+    // Trigger reflow & add aura
+    card.classList.remove("ticket-highlight-aura");
+    void card.offsetWidth;
+    card.classList.add("ticket-highlight-aura");
+
+    // Add monochromatic badge inside top-right of the card
+    let badge = card.querySelector(".ticket-aura-badge");
+    if (!badge) {
+      badge = document.createElement("div");
+      badge.className = "ticket-aura-badge absolute top-3 right-3 z-30 px-3 py-1 rounded-full text-xs font-bold text-white bg-[#1755ba] shadow-md shadow-[#1755ba]/35 flex items-center gap-1.5 pointer-events-none transition-all duration-500 animate-fadeIn";
+      const isVi = getLang() === "vi";
+      badge.innerHTML = `<span class="material-symbols-outlined text-[15px]">verified</span><span>${isVi ? "Vừa đăng ký" : "Just Registered"}</span>`;
+      card.appendChild(badge);
+    }
+
+    // Dismissal function to smoothly restore all tickets
+    let isDismissed = false;
+    const dismissAura = () => {
+      if (isDismissed) return;
+      isDismissed = true;
+      if (eventsList) eventsList.classList.remove("ticket-aura-focus");
+      card.classList.remove("ticket-highlight-aura");
+      if (badge) {
+        badge.classList.add("opacity-0", "translate-y-[-4px]");
+        setTimeout(() => badge.remove(), 400);
+      }
+      document.removeEventListener("click", onClickOutside);
+      document.removeEventListener("keydown", onKeyDown);
+      activeAuraCleanup = null;
+    };
+
+    const onClickOutside = (e) => {
+      if (!card.contains(e.target)) {
+        dismissAura();
+      }
+    };
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        dismissAura();
+      }
+    };
+
+    // Listeners for manual dismissal after initial transition
+    setTimeout(() => {
+      document.addEventListener("click", onClickOutside);
+      document.addEventListener("keydown", onKeyDown);
+    }, 450);
+
+    // Auto-dismiss after 5 seconds
+    const timer = setTimeout(dismissAura, 5000);
+
+    activeAuraCleanup = () => {
+      clearTimeout(timer);
+      dismissAura();
+    };
+  }, 250);
+}
+
+function checkAndHighlightTicket() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetId = urlParams.get("event") 
+    || urlParams.get("highlight") 
+    || urlParams.get("id") 
+    || sessionStorage.getItem("lastRegisteredEventId");
+
+  if (!targetId) return;
+
+  try {
+    sessionStorage.removeItem("lastRegisteredEventId");
+  } catch {}
+
+  // Check if target ticket is in past events and auto-expand past events if needed
+  const pastEvents = allTickets.filter(t => isInactive(t) || isEventExpired(t));
+  const isTargetPast = pastEvents.some(t => String(t.event?._id) === String(targetId) || String(t.event?.activityID) === String(targetId));
+  if (isTargetPast && !showPast) {
+    showPast = true;
+    const toggleIcon = document.getElementById("toggle-expired-icon");
+    const toggleText = document.getElementById("toggle-expired-text");
+    const toggleBtn = document.getElementById("toggle-expired-btn");
+    if (toggleIcon) toggleIcon.textContent = "visibility_off";
+    if (toggleText) toggleText.textContent = t("my_events.hide_past_btn", "Hide Past Events");
+    if (toggleBtn) toggleBtn.classList.add("bg-slate-100");
+    renderEvents();
+  }
+
+  highlightTicket(targetId);
+
+  // Clean URL query param cleanly without reloading
+  if (urlParams.has("event") || urlParams.has("highlight") || urlParams.has("id")) {
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.highlightTicket = highlightTicket;
+}
+
 // ─── Load Page ───
 
 async function loadPage() {
@@ -498,6 +629,7 @@ async function loadPage() {
     }
 
     renderEvents();
+    checkAndHighlightTicket();
   } catch (err) {
     console.error("Failed to load events:", err);
     list.innerHTML = `<div class="text-center py-12 text-red-500 font-medium bg-white border border-red-100 rounded-2xl">${t("my_events.failed_load", "Failed to load events. Please try again later.")}</div>`;

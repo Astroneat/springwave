@@ -2644,11 +2644,12 @@ function showSuccessToast(message, linkUrl, linkText = "View Discussion Detail")
     </button>
   `;
   document.body.appendChild(toast);
+  void toast.offsetWidth;
   requestAnimationFrame(() => toast.classList.add("show"));
 
   const closeToast = () => {
     toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 400);
+    setTimeout(() => toast.remove(), 600);
   };
 
   const handleToastClick = () => {
