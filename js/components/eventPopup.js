@@ -1386,19 +1386,23 @@ function renderAIMatchContent(container, result, isVi) {
         ? tags.map(t => `<span class="ai-match-pill-tag"><i class="fa-solid fa-sparkles text-[9px] mr-1"></i>${escapeHtml(t)}</span>`).join("")
         : "";
 
-    const breakdownHTML = (breakdown.majorFit || breakdown.surveyFit || breakdown.activityFit) ? `
+    const majorVal = breakdown.majorFit ?? 60;
+    const mbtiVal = breakdown.personalityFit ?? breakdown.surveyFit ?? 60;
+    const goalVal = breakdown.goalFit ?? breakdown.activityFit ?? 60;
+
+    const breakdownHTML = (breakdown.majorFit || breakdown.personalityFit || breakdown.surveyFit || breakdown.goalFit || breakdown.activityFit) ? `
         <div class="ai-match-breakdown-grid mb-3">
             <div class="ai-breakdown-item">
-                <span class="ai-breakdown-label"><i class="fa-solid fa-graduation-cap text-blue-500"></i> ${isVi ? 'Ngành học' : 'Major'}</span>
-                <span class="ai-breakdown-value">${breakdown.majorFit || 60}%</span>
+                <span class="ai-breakdown-label"><i class="fa-solid fa-graduation-cap text-blue-500"></i> ${isVi ? 'Chuyên ngành' : 'Major'}</span>
+                <span class="ai-breakdown-value">${majorVal}%</span>
             </div>
             <div class="ai-breakdown-item">
-                <span class="ai-breakdown-label"><i class="fa-solid fa-bolt text-amber-500"></i> ${isVi ? 'Năng lực' : 'Competency'}</span>
-                <span class="ai-breakdown-value">${breakdown.surveyFit || 60}%</span>
+                <span class="ai-breakdown-label"><i class="fa-solid fa-brain text-purple-500"></i> ${isVi ? 'Tính cách MBTI' : 'MBTI Profile'}</span>
+                <span class="ai-breakdown-value">${mbtiVal}%</span>
             </div>
             <div class="ai-breakdown-item">
                 <span class="ai-breakdown-label"><i class="fa-solid fa-bullseye text-emerald-500"></i> ${isVi ? 'Mục tiêu' : 'Goal'}</span>
-                <span class="ai-breakdown-value">${breakdown.activityFit || 60}%</span>
+                <span class="ai-breakdown-value">${goalVal}%</span>
             </div>
         </div>
     ` : '';
@@ -1525,7 +1529,7 @@ function initAIMatchButton(container, activityID) {
                         <div class="h-full bg-primary rounded-full animate-pulse" style="width: 70%;"></div>
                     </div>
                     <p class="text-[11px] text-slate-500">
-                        ${t("ai_recommend.evaluating_match", isVi ? "Đang so khớp chuyên ngành, năng lực quiz và mục tiêu phát triển..." : "Evaluating major, competencies, and career goals...")}
+                        ${t("ai_recommend.evaluating_match", isVi ? "Đang so khớp chuyên ngành, tính cách MBTI và mục tiêu phát triển..." : "Evaluating major, MBTI personality, and career goals...")}
                     </p>
                 </div>
             `;
