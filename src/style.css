@@ -20266,24 +20266,24 @@ body {
   height: 100% !important;
   object-fit: cover !important;
   object-position: center !important;
-  filter: brightness(0.98) contrast(1.02) !important;
-  transform: scale(1.0) !important;
+  filter: blur(3.5px) brightness(0.92) contrast(0.98) !important;
+  transform: scale(1.04) !important;
   transition: transform 7.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
 }
 
 .hero-slide.active .hero-slide-img {
-  transform: scale(1.06) !important;
+  transform: scale(1.10) !important;
 }
 
-/* Lớp phủ mờ nhẹ 40% - Giữ ảnh nền sắc nét và rõ ràng */
+/* Lớp phủ làm dịu độ chói & tăng cường blur quang học giúp chữ đọc rõ nét */
 .hero-slider-overlay {
   position: absolute !important;
   inset: 0 !important;
   z-index: 3 !important;
   pointer-events: none !important;
-  background: rgba(255, 255, 255, 0.40) !important;
-  backdrop-filter: blur(1.5px) !important;
-  -webkit-backdrop-filter: blur(1.5px) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.46) 50%, rgba(255, 255, 255, 0.62) 100%) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
 }
 
 .hero-redesign-pattern {
@@ -20313,9 +20313,10 @@ body {
 .hero-redesign-content::before {
   content: "" !important;
   position: absolute !important;
-  inset: -20px -30px !important;
-  border-radius: 36px !important;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 72%) !important;
+  inset: -24px -36px !important;
+  border-radius: 40px !important;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0) 75%) !important;
+  filter: blur(12px) !important;
   z-index: -1 !important;
   pointer-events: none !important;
 }
