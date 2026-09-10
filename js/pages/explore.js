@@ -436,9 +436,6 @@ function initNavbarActiveLinks() {
         }
     });
 }
-
-
-
 async function loadCategories() {
     try {
         const data = await listCategories();
@@ -1311,10 +1308,6 @@ function initializePage() {
     initCardReveal();
 }
 
-
-
-
-
 function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
     const cat = a.category;
@@ -1875,7 +1868,3 @@ if (typeof window !== "undefined") {
         renderRecommendations(currentRecommendations).catch(() => {});
     });
 }
-
-
-
-

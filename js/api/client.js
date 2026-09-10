@@ -143,6 +143,7 @@ function scheduleRefresh() {
 }
 
 let refreshPromise = null;
+let signingKeyPromise = null;
 
 async function refreshTokens() {
     if (refreshPromise) return refreshPromise;
@@ -177,6 +178,41 @@ async function refreshTokens() {
     return refreshPromise;
 }
 
+// Older browser sessions can have a valid access token but predate the
+// per-session HMAC key. Recover it before making a signed write request.
+export async function ensureSigningKey() {
+    const existingKey = getSigningKey();
+    if (existingKey) return existingKey;
+
+    const token = getToken();
+    if (!token) return null;
+    if (signingKeyPromise) return signingKeyPromise;
+
+    signingKeyPromise = (async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/session/init`, {
+                headers: { Authorization: `Bearer ${token}` },
+                credentials: "include",
+            });
+            if (!response.ok) return null;
+
+            const data = await response.json();
+            if (!data?.signingKey) return null;
+
+            setSigningKey(data.signingKey);
+            return data.signingKey;
+        } catch {
+            return null;
+        } finally {
+            signingKeyPromise = null;
+        }
+    })();
+
+    return signingKeyPromise;
+}
+
+const needsRequestSignature = (method) => !["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
+
 export async function ensureSession() {
     const token = getToken();
     if (!token) return false;
@@ -210,10 +246,12 @@ async function request(endpoint, options = {}) {
     await enqueueRequest(isPriority);
 
     const token = getToken();
-    const signingKey = getSigningKey();
     const headers = { ...options.headers };
     const method = options.method || "GET";
     const isFormData = options.body instanceof FormData;
+    const signingKey = token && needsRequestSignature(method)
+        ? await ensureSigningKey()
+        : getSigningKey();
 
     if (!isFormData) {
         headers["Content-Type"] = "application/json";
@@ -221,6 +259,11 @@ async function request(endpoint, options = {}) {
 
     if (token) {
         headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (token && needsRequestSignature(method) && !signingKey) {
+        releaseRequest();
+        throw new ApiError(401, "Session signing key unavailable. Please sign in again.");
     }
 
     if (token && signingKey) {
@@ -407,13 +450,18 @@ export async function postStream(endpoint, body, callbacks = {}, options = {}) {
     await enqueueRequest(true);
 
     const token = getToken();
-    const signingKey = getSigningKey();
+    const signingKey = token ? await ensureSigningKey() : null;
     const headers = { Accept: "text/event-stream", ...options.headers };
     const method = "POST";
     headers["Content-Type"] = "application/json";
 
     if (token) {
         headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (token && !signingKey) {
+        releaseRequest();
+        throw new ApiError(401, "Session signing key unavailable. Please sign in again.");
     }
 
     const bodyStr = JSON.stringify(body);
@@ -491,4 +539,3 @@ export async function postStream(endpoint, body, callbacks = {}, options = {}) {
         completeProgress();
     }
 }
-
