@@ -2780,6 +2780,7 @@
     "event_details": "Chi tiết sự kiện",
     "ai_match": "Độ tương thích AI",
     "check_match": "Xem mức độ phù hợp",
+    "recheck_match": "Phân tích lại",
     "organizer_profile": "Hồ sơ Ban tổ chức",
     "download_hint": "Nhấn để tải tài liệu đính kèm",
     "open_full": "Mở ảnh gốc",
@@ -2871,7 +2872,9 @@
     "close_btn": "Để sau"
   },
   "ai_recommend": {
-    "analyzing": "Đang phân tích..."
+    "analyzing": "Đang phân tích...",
+    "analyzing_match": "AI đang phân tích độ tương thích với hồ sơ của bạn...",
+    "evaluating_match": "Đang so khớp chuyên ngành, năng lực quiz và mục tiêu phát triển..."
   },
   "navbar": {
     "host_pending_review": "Hồ sơ đăng ký Host của bạn đang chờ duyệt. Vui lòng đợi quản trị viên phê duyệt.",

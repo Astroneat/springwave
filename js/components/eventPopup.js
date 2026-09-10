@@ -1337,30 +1337,147 @@ function initParticipateButton(activityID) {
     });
 }
 
+function renderAIMatchContent(container, result, isVi) {
+    const resultEls = container.querySelectorAll(".event-ai-result-panel");
+    if (!resultEls || resultEls.length === 0) return;
+
+    const pct = Number.isFinite(result?.percentage)
+        ? result.percentage
+        : (result?.score ? Math.round(result.score * 100) : 75);
+
+    const fallbackExplanation = isVi 
+        ? "Sự kiện này phù hợp với sở thích và mục tiêu phát triển của bạn."
+        : "This event aligns well with your interests and growth goals.";
+
+    const explanation = (isVi ? result?.explanations?.vi : result?.explanations?.en)
+        || result?.explanation
+        || result?.message
+        || fallbackExplanation;
+
+    const tags = Array.isArray(isVi ? result?.tagsByLocale?.vi : result?.tagsByLocale?.en) && (isVi ? result.tagsByLocale.vi : result.tagsByLocale.en).length
+        ? (isVi ? result.tagsByLocale.vi : result.tagsByLocale.en)
+        : (Array.isArray(result?.tags) ? result.tags : []);
+
+    const breakdown = result?.breakdown || {};
+
+    let badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+    let progressBg = "#059669";
+    let levelText = isVi ? "Rất phù hợp" : "Strong Match";
+
+    if (pct >= 80) {
+        badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+        progressBg = "#059669";
+        levelText = isVi ? "Rất phù hợp" : "Strong Match";
+    } else if (pct >= 60) {
+        badgeClass = "bg-blue-100 text-blue-800 border-blue-300";
+        progressBg = "#1755ba";
+        levelText = isVi ? "Phù hợp tốt" : "Good Match";
+    } else if (pct >= 45) {
+        badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+        progressBg = "#d97706";
+        levelText = isVi ? "Phù hợp vừa" : "Moderate Match";
+    } else {
+        badgeClass = "bg-slate-100 text-slate-700 border-slate-300";
+        progressBg = "#475569";
+        levelText = isVi ? "Khám phá mới" : "Explore";
+    }
+
+    const tagsHTML = tags.length
+        ? tags.map(t => `<span class="ai-match-pill-tag"><i class="fa-solid fa-sparkles text-[9px] mr-1"></i>${escapeHtml(t)}</span>`).join("")
+        : "";
+
+    const breakdownHTML = (breakdown.majorFit || breakdown.surveyFit || breakdown.activityFit) ? `
+        <div class="ai-match-breakdown-grid mb-3">
+            <div class="ai-breakdown-item">
+                <span class="ai-breakdown-label"><i class="fa-solid fa-graduation-cap text-blue-500"></i> ${isVi ? 'Ngành học' : 'Major'}</span>
+                <span class="ai-breakdown-value">${breakdown.majorFit || 60}%</span>
+            </div>
+            <div class="ai-breakdown-item">
+                <span class="ai-breakdown-label"><i class="fa-solid fa-bolt text-amber-500"></i> ${isVi ? 'Năng lực' : 'Competency'}</span>
+                <span class="ai-breakdown-value">${breakdown.surveyFit || 60}%</span>
+            </div>
+            <div class="ai-breakdown-item">
+                <span class="ai-breakdown-label"><i class="fa-solid fa-bullseye text-emerald-500"></i> ${isVi ? 'Mục tiêu' : 'Goal'}</span>
+                <span class="ai-breakdown-value">${breakdown.activityFit || 60}%</span>
+            </div>
+        </div>
+    ` : '';
+
+    const contentHTML = `
+        <div class="ai-match-card-content">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-chart-pie text-primary"></i> ${isVi ? 'Điểm Tương Thích' : 'Match Score'}
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${badgeClass}">
+                    ${pct}% • ${levelText}
+                </span>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200/80 rounded-full h-2.5 mb-3 overflow-hidden p-0.5">
+                <div class="h-full rounded-full transition-all duration-700 ease-out" style="width: ${pct}%; background-color: ${progressBg};"></div>
+            </div>
+
+            ${breakdownHTML}
+
+            <p class="text-xs text-slate-700 leading-relaxed text-left mb-3 bg-white/70 p-2.5 rounded-xl border border-slate-200">
+                ${escapeHtml(explanation)}
+            </p>
+            
+            ${tagsHTML ? `<div class="flex flex-wrap gap-1.5 justify-start mb-2">${tagsHTML}</div>` : ""}
+
+            <div class="mt-2 text-right">
+                <a href="/quiz.html" class="text-[10.5px] text-primary hover:text-blue-800 font-semibold hover:underline inline-flex items-center gap-1">
+                    <i class="fa-solid fa-sliders"></i> ${isVi ? 'Cập nhật hồ sơ AI Quiz →' : 'Update AI Quiz Profile →'}
+                </a>
+            </div>
+        </div>
+    `;
+
+    resultEls.forEach(el => {
+        el.innerHTML = contentHTML;
+        el.style.display = "block";
+    });
+}
+
 function initAIMatchButton(container, activityID) {
     const btns = container.querySelectorAll(".ai-match-btn");
     if (!btns || btns.length === 0) return;
 
     let lastClick = 0;
-    const COOLDOWN = 15000;
+    const COOLDOWN = 3000;
 
     function setBtnLoading() {
         btns.forEach(b => {
-            b.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${t("ai_recommend.analyzing", "Analyzing...")}</span>`;
+            b.disabled = true;
+            b.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>${t("ai_recommend.analyzing", "Analyzing...")}</span>`;
         });
     }
 
     function setBtnCooldown(remaining) {
         btns.forEach(b => {
-            b.innerHTML = `<i class="fa-solid fa-hourglass-half"></i><span>${remaining}s</span>`;
+            b.disabled = true;
+            b.innerHTML = `<i class="fa-solid fa-hourglass-half mr-1"></i><span>${remaining}s</span>`;
         });
     }
 
-    function resetBtn() {
+    function resetBtn(hasEvaluated = false) {
+        const currentLang = (typeof getLang === 'function' ? getLang() : localStorage.getItem('springwave_lang')) || 'vi';
+        const isVi = currentLang.startsWith('vi');
         btns.forEach(b => {
             b.disabled = false;
-            b.innerHTML = `<span>${t("event_popup.check_match", "Check Match")}</span>`;
+            if (hasEvaluated) {
+                b.innerHTML = `<i class="fa-solid fa-arrows-rotate mr-1"></i><span>${t("event_popup.recheck_match", isVi ? "Phân tích lại" : "Re-check Match")}</span>`;
+            } else {
+                b.innerHTML = `<span>${t("event_popup.check_match", "Check Match")}</span>`;
+            }
         });
+    }
+
+    // If already evaluated previously in this session, sync button text
+    if (aiMatchSnapshots.has(String(activityID))) {
+        resetBtn(true);
     }
 
     btns.forEach(btn => {
@@ -1385,38 +1502,48 @@ function initAIMatchButton(container, activityID) {
                 const remaining = Math.ceil((COOLDOWN - (now - lastClick)) / 1000);
                 setBtnCooldown(remaining);
                 setTimeout(() => {
-                    resetBtn();
+                    resetBtn(aiMatchSnapshots.has(String(activityID)));
                 }, COOLDOWN - (now - lastClick));
                 return;
             }
 
             lastClick = now;
-            btns.forEach(b => { b.disabled = true; });
             setBtnLoading();
+
+            const currentLang = (typeof getLang === 'function' ? getLang() : localStorage.getItem('springwave_lang')) || 'vi';
+            const isVi = currentLang.startsWith('vi');
+
+            // Render engaging processing loading state in the result panel ("bấm xong xử lí")
             const resultEls = container.querySelectorAll(".event-ai-result-panel");
-            resultEls.forEach(el => { el.style.display = "none"; });
+            const loadingHTML = `
+                <div class="ai-match-loading-card p-4 my-2 rounded-2xl bg-gradient-to-r from-violet-50/90 via-purple-50/70 to-violet-50/90 border border-violet-100 text-center animate-pulse">
+                    <div class="flex items-center justify-center gap-2 mb-2 text-primary font-bold text-xs">
+                        <i class="fa-solid fa-wand-magic-sparkles fa-spin text-sm"></i>
+                        <span>${t("ai_recommend.analyzing_match", isVi ? "AI đang phân tích độ tương thích với hồ sơ của bạn..." : "AI is analyzing match with your profile...")}</span>
+                    </div>
+                    <div class="w-full bg-violet-200/60 rounded-full h-1.5 overflow-hidden mb-2">
+                        <div class="h-full bg-primary rounded-full animate-pulse" style="width: 70%;"></div>
+                    </div>
+                    <p class="text-[11px] text-slate-500">
+                        ${t("ai_recommend.evaluating_match", isVi ? "Đang so khớp chuyên ngành, năng lực quiz và mục tiêu phát triển..." : "Evaluating major, competencies, and career goals...")}
+                    </p>
+                </div>
+            `;
+            resultEls.forEach(el => {
+                el.innerHTML = loadingHTML;
+                el.style.display = "block";
+            });
 
             try {
-                const currentLang = (typeof getLang === 'function' ? getLang() : localStorage.getItem('springwave_lang')) || 'vi';
-                const isVi = currentLang.startsWith('vi');
-
+                // ALWAYS call backend fresh — bypass cache!
+                const result = await explainRecommendation(activityID, currentLang);
+                
                 const snapshotKey = String(activityID);
-                const cachedResult = aiMatchSnapshots.get(snapshotKey);
-                const result = cachedResult
-                    ? {
-                        ...cachedResult,
-                        explanation: cachedResult.explanations?.[isVi ? 'vi' : 'en'] || cachedResult.explanation,
-                        tags: cachedResult.tagsByLocale?.[isVi ? 'vi' : 'en'] || cachedResult.tags || [],
-                    }
-                    : await explainRecommendation(activityID, currentLang);
-                if (!cachedResult) aiMatchSnapshots.set(snapshotKey, result);
+                aiMatchSnapshots.set(snapshotKey, result);
+
+                renderAIMatchContent(container, result, isVi);
+
                 const pct = Number.isFinite(result?.percentage) ? result.percentage : (result?.score ? Math.round(result.score * 100) : 75);
-                const fallbackExplanation = isVi 
-                    ? "Sự kiện này phù hợp với sở thích và mục tiêu phát triển của bạn."
-                    : "This event aligns well with your interests and growth goals.";
-                const explanation = result?.explanation || result?.message || fallbackExplanation;
-                const tags = Array.isArray(result?.tags) ? result.tags : [];
-                const breakdown = result?.breakdown || {};
 
                 // Synchronize the evaluated AI score with external components (e.g. explore recommendation cards)
                 try {
@@ -1430,84 +1557,7 @@ function initAIMatchButton(container, activityID) {
                     }));
                 } catch (_) {}
 
-                let badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-                let progressBg = "#059669";
-                let levelText = isVi ? "Rất phù hợp" : "Strong Match";
-
-                if (pct >= 80) {
-                    badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-                    progressBg = "#059669";
-                    levelText = isVi ? "Rất phù hợp" : "Strong Match";
-                } else if (pct >= 60) {
-                    badgeClass = "bg-blue-100 text-blue-800 border-blue-300";
-                    progressBg = "#1755ba";
-                    levelText = isVi ? "Phù hợp tốt" : "Good Match";
-                } else if (pct >= 45) {
-                    badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
-                    progressBg = "#d97706";
-                    levelText = isVi ? "Phù hợp vừa" : "Moderate Match";
-                } else {
-                    badgeClass = "bg-slate-100 text-slate-700 border-slate-300";
-                    progressBg = "#475569";
-                    levelText = isVi ? "Khám phá mới" : "Explore";
-                }
-
-                const tagsHTML = tags.length
-                    ? tags.map(t => `<span class="ai-match-pill-tag"><i class="fa-solid fa-sparkles text-[9px] mr-1"></i>${escapeHtml(t)}</span>`).join("")
-                    : "";
-
-                const breakdownHTML = (breakdown.majorFit || breakdown.surveyFit || breakdown.activityFit) ? `
-                    <div class="ai-match-breakdown-grid mb-3">
-                        <div class="ai-breakdown-item">
-                            <span class="ai-breakdown-label"><i class="fa-solid fa-graduation-cap text-blue-500"></i> ${isVi ? 'Ngành học' : 'Major'}</span>
-                            <span class="ai-breakdown-value">${breakdown.majorFit || 60}%</span>
-                        </div>
-                        <div class="ai-breakdown-item">
-                            <span class="ai-breakdown-label"><i class="fa-solid fa-bolt text-amber-500"></i> ${isVi ? 'Năng lực' : 'Competency'}</span>
-                            <span class="ai-breakdown-value">${breakdown.surveyFit || 60}%</span>
-                        </div>
-                        <div class="ai-breakdown-item">
-                            <span class="ai-breakdown-label"><i class="fa-solid fa-bullseye text-emerald-500"></i> ${isVi ? 'Mục tiêu' : 'Goal'}</span>
-                            <span class="ai-breakdown-value">${breakdown.activityFit || 60}%</span>
-                        </div>
-                    </div>
-                ` : '';
-
-                const contentHTML = `
-                    <div class="ai-match-card-content">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-chart-pie text-primary"></i> ${isVi ? 'Điểm Tương Thích' : 'Match Score'}
-                            </span>
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${badgeClass}">
-                                ${pct}% • ${levelText}
-                            </span>
-                        </div>
-                        
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-slate-200/80 rounded-full h-2.5 mb-3 overflow-hidden p-0.5">
-                            <div class="h-full rounded-full transition-all duration-700 ease-out" style="width: ${pct}%; background-color: ${progressBg};"></div>
-                        </div>
-
-                        ${breakdownHTML}
-
-                        <p class="text-xs text-slate-700 leading-relaxed text-left mb-3 bg-white/70 p-2.5 rounded-xl border border-slate-200">
-                            ${escapeHtml(explanation)}
-                        </p>
-                        
-                        ${tagsHTML ? `<div class="flex flex-wrap gap-1.5 justify-start mb-2">${tagsHTML}</div>` : ""}
-
-                        <div class="mt-2 text-right">
-                            <a href="/quiz.html" class="text-[10.5px] text-primary hover:text-blue-800 font-semibold hover:underline inline-flex items-center gap-1">
-                                <i class="fa-solid fa-sliders"></i> ${isVi ? 'Cập nhật hồ sơ AI Quiz →' : 'Update AI Quiz Profile →'}
-                            </a>
-                        </div>
-                    </div>
-                `;
-                resultEls.forEach(el => {
-                    el.innerHTML = contentHTML;
-                    el.style.display = "block";
-                });
+                resetBtn(true);
             } catch (err) {
                 console.error("AI Match error:", err);
                 if (
@@ -1518,14 +1568,12 @@ function initAIMatchButton(container, activityID) {
                     showQuizPrompt({
                         redirectUrl: window.location.href
                     });
-                    resetBtn();
+                    resetBtn(false);
                     return;
                 }
-                const currentLang = (typeof getLang === 'function' ? getLang() : localStorage.getItem('springwave_lang')) || 'vi';
-                const isVi = currentLang.startsWith('vi');
                 const defaultErr = isVi ? "Không thể phân tích độ phù hợp lúc này." : "Unable to analyze compatibility at this time.";
                 const errorHTML = `
-                    <div class="ai-match-empty-box text-rose-600">
+                    <div class="ai-match-empty-box text-rose-600 p-3 bg-rose-50/70 rounded-xl border border-rose-200 my-2 text-center">
                         <i class="fa-solid fa-circle-exclamation text-lg"></i>
                         <p class="text-[11px] mt-1">${err.message || defaultErr}</p>
                     </div>
@@ -1534,8 +1582,8 @@ function initAIMatchButton(container, activityID) {
                     el.innerHTML = errorHTML;
                     el.style.display = "block";
                 });
+                resetBtn(false);
             }
-            resetBtn();
         });
     });
 }
@@ -1715,7 +1763,13 @@ if (typeof window !== "undefined") {
             disableParticipationButtons(currentOpenActivity);
             bindPopupInteractiveElements(container, currentOpenActivity, actId);
             if (aiMatchSnapshots.has(String(actId))) {
-                container.querySelector('.ai-match-btn')?.click();
+                const currentLang = (typeof getLang === 'function' ? getLang() : localStorage.getItem('springwave_lang')) || 'vi';
+                const isVi = currentLang.startsWith('vi');
+                renderAIMatchContent(container, aiMatchSnapshots.get(String(actId)), isVi);
+                const btns = container.querySelectorAll(".ai-match-btn");
+                btns.forEach(b => {
+                    b.innerHTML = `<i class="fa-solid fa-arrows-rotate mr-1"></i><span>${t("event_popup.recheck_match", isVi ? "Phân tích lại" : "Re-check Match")}</span>`;
+                });
             }
         }
         const leaveModal = document.getElementById("leaveEventConfirmModal");

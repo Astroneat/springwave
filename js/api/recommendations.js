@@ -8,6 +8,6 @@ export function getRecommendations(lang = getLang()) {
 
 export function explainRecommendation(eventId, lang = getLang()) {
     const activeLang = lang || 'vi';
-    return post("/recommendations/explain", { eventId, lang: activeLang }, { priority: true, timeout: 60000 });
+    return post("/recommendations/explain", { eventId, lang: activeLang, bypassCache: true }, { priority: true, timeout: 65000 });
 }
 
