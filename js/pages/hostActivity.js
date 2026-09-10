@@ -18,7 +18,8 @@ import {
     initCertificateOptionsToggle, 
     initTimePicker, 
     initEventModeSelector, 
-    initEditMode 
+    initEditMode,
+    applyEditModeHeading
 } from "../lib/hostForm.js";
 
 /* =========================
@@ -46,6 +47,10 @@ document.addEventListener(
             "host-activity-details-container",
             "./components/hostActivityDetails.html"
         );
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("edit")) {
+            applyEditModeHeading();
+        }
         applyTranslation();
 
         window.addEventListener("language-changed", () => {

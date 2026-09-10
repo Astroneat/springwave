@@ -688,13 +688,13 @@
         <div id="section-certificates" class="section-content hidden">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
                 <div>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Certificates</h2>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Issue, customize, and verify attendee certificates</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" data-i18n="org_dashboard.certificates">Certificates</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5" data-i18n="org_dashboard.cert_subtitle">Issue, customize, and verify attendee certificates</p>
                 </div>
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
                     <div id="cert-event-select-wrapper" class="relative w-full sm:w-auto"></div>
                     <button id="issue-certs-btn" class="py-2.5 px-4 rounded-xl bg-primary text-white text-xs font-bold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-xs shrink-0">
-                        <i class="fa-solid fa-award text-xs"></i> <span>Issue Certificates</span>
+                        <i class="fa-solid fa-award text-xs"></i> <span data-i18n="org_dashboard.issue_certs">Issue Certificates</span>
                     </button>
                 </div>
             </div>
@@ -707,15 +707,15 @@
                             <img id="cert-bg-manage-preview" src="" alt="Background Preview" class="w-full h-full object-cover hidden" />
                             <div id="cert-bg-manage-placeholder" class="text-center p-2 text-slate-400">
                                 <i class="fa-solid fa-certificate text-xl mb-1 text-amber-500/60 block"></i>
-                                <span class="text-[9px] font-bold uppercase tracking-wider block">Default Theme</span>
+                                <span class="text-[9px] font-bold uppercase tracking-wider block" data-i18n="org_dashboard.default_theme">Default Theme</span>
                             </div>
                         </div>
                         <div>
                             <div class="flex items-center gap-2 flex-wrap">
-                                <h3 class="text-sm sm:text-base font-bold text-slate-900">Certificate Background</h3>
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900" data-i18n="org_dashboard.cert_bg_title">Certificate Background</h3>
                                 <span id="cert-bg-status-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">Default</span>
                             </div>
-                            <p class="text-xs text-slate-500 mt-1 max-w-md leading-relaxed">
+                            <p class="text-xs text-slate-500 mt-1 max-w-md leading-relaxed" data-i18n="org_dashboard.cert_bg_desc">
                                 Customize the certificate canvas (A4 landscape ratio 1200x850px recommended). Applies automatically to all issued certificates.
                             </p>
                         </div>
@@ -724,15 +724,15 @@
                         <input type="file" id="cert-bg-manage-input" accept="image/*" class="hidden" />
                         <button type="button" id="upload-cert-bg-btn" class="px-3.5 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold border-none cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95">
                             <i class="fa-solid fa-upload"></i>
-                            <span>Upload Background</span>
+                            <span data-i18n="org_dashboard.upload_bg">Upload Background</span>
                         </button>
                         <button type="button" id="open-cert-designer-btn" class="px-3.5 py-2 rounded-xl bg-primary text-white hover:bg-primary-hover text-xs font-bold border-none cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95 shadow-xs">
                             <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            <span>Customize Canva Layout</span>
+                            <span data-i18n="org_dashboard.customize_canva_layout">Customize Canva Layout</span>
                         </button>
                         <button type="button" id="reset-cert-bg-btn" class="hidden px-3.5 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold border border-red-200 cursor-pointer spring-ease flex items-center gap-1.5 active:scale-95">
                             <i class="fa-solid fa-rotate-left"></i>
-                            <span>Reset</span>
+                            <span data-i18n="common.reset">Reset</span>
                         </button>
                     </div>
                 </div>
@@ -744,11 +744,11 @@
                     <table class="w-full text-xs sm:text-sm text-left">
                         <thead>
                             <tr class="border-b border-slate-100 bg-slate-50/60 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
-                                <th class="py-3.5 px-3 sm:px-5">User</th>
-                                <th class="py-3.5 px-3 sm:px-5 hidden md:table-cell">Certificate Code</th>
-                                <th class="py-3.5 px-3 sm:px-5">Issued At</th>
-                                <th class="py-3.5 px-3 sm:px-5">Status</th>
-                                <th class="py-3.5 px-3 sm:px-5 text-right">Actions</th>
+                                <th class="py-3.5 px-3 sm:px-5" data-i18n="org_dashboard.table_user">User</th>
+                                <th class="py-3.5 px-3 sm:px-5 hidden md:table-cell" data-i18n="org_dashboard.table_cert_code">Certificate Code</th>
+                                <th class="py-3.5 px-3 sm:px-5" data-i18n="org_dashboard.table_issued_at">Issued At</th>
+                                <th class="py-3.5 px-3 sm:px-5" data-i18n="org_dashboard.table_status">Status</th>
+                                <th class="py-3.5 px-3 sm:px-5 text-right" data-i18n="org_dashboard.table_actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="certs-table-body" class="divide-y divide-slate-100"></tbody>
@@ -758,8 +758,8 @@
                     <div class="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mx-auto mb-3 text-2xl">
                         <i class="fa-solid fa-award"></i>
                     </div>
-                    <p class="text-sm sm:text-base font-bold text-slate-700">Select an event</p>
-                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Pick an event from the selector to view issued certificates</p>
+                    <p class="text-sm sm:text-base font-bold text-slate-700" data-i18n="org_dashboard.select_event_view_certs">Select an event</p>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto" data-i18n="org_dashboard.select_event_view_certs_desc">Pick an event from the selector to view issued certificates</p>
                 </div>
             </div>
         </div>
@@ -1511,12 +1511,12 @@
                     </div>
                     <div class="truncate">
                         <div class="flex items-center gap-2">
-                            <h3 id="cert-designer-title" class="text-sm sm:text-base font-extrabold text-slate-900 truncate">
+                            <h3 id="cert-designer-title" class="text-sm sm:text-base font-extrabold text-slate-900 truncate" data-i18n="org_dashboard.cert_designer.modal_title">
                                 Certificate Layout Designer
                             </h3>
-                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">Canva Phôi Mapper</span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80" data-i18n="org_dashboard.cert_designer.canva_mapper">Canva Phôi Mapper</span>
                         </div>
-                        <p class="text-[11px] text-slate-500 truncate mt-0.5">
+                        <p class="text-[11px] text-slate-500 truncate mt-0.5" data-i18n="org_dashboard.cert_designer.modal_subtitle">
                             Kéo thả các trường dữ liệu lên phôi Canva (tỷ lệ chuẩn 1200 x 850 px). Tọa độ lưu tự động theo phần trăm (%).
                         </p>
                     </div>
@@ -1525,27 +1525,27 @@
                 <div class="flex items-center gap-2 shrink-0">
                     <!-- Undo & Forward (Redo) Controls -->
                     <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
-                        <button type="button" id="cert-designer-undo-btn" title="Undo (Ctrl+Z)" class="px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-white hover:shadow-2xs text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none" disabled>
+                        <button type="button" id="cert-designer-undo-btn" title="Undo (Ctrl+Z)" data-i18n-title="org_dashboard.cert_designer.undo_title" class="px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-white hover:shadow-2xs text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none" disabled>
                             <i class="fa-solid fa-rotate-left"></i>
-                            <span class="hidden sm:inline">Undo</span>
+                            <span class="hidden sm:inline" data-i18n="org_dashboard.cert_designer.undo">Undo</span>
                         </button>
-                        <button type="button" id="cert-designer-redo-btn" title="Forward (Ctrl+Y)" class="px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-white hover:shadow-2xs text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none" disabled>
+                        <button type="button" id="cert-designer-redo-btn" title="Forward (Ctrl+Y)" data-i18n-title="org_dashboard.cert_designer.forward_title" class="px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-white hover:shadow-2xs text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none" disabled>
                             <i class="fa-solid fa-rotate-right"></i>
-                            <span class="hidden sm:inline">Forward</span>
+                            <span class="hidden sm:inline" data-i18n="org_dashboard.cert_designer.forward">Forward</span>
                         </button>
                     </div>
 
                     <button type="button" id="cert-designer-sample-btn" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-2xs">
                         <i class="fa-solid fa-eye text-slate-500"></i>
-                        <span id="cert-sample-btn-text">Sample Student</span>
+                        <span id="cert-sample-btn-text" data-i18n="org_dashboard.cert_designer.sample_student">Sample Student</span>
                     </button>
                     <button type="button" id="cert-designer-reset-btn" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 text-xs font-semibold spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5">
                         <i class="fa-solid fa-rotate-left"></i>
-                        <span>Reset</span>
+                        <span data-i18n="org_dashboard.cert_designer.reset">Reset</span>
                     </button>
                     <button type="button" id="cert-designer-save-btn" class="px-4 py-1.5 rounded-xl bg-primary text-white hover:bg-primary-hover text-xs font-bold border-none spring-ease active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm">
                         <i class="fa-solid fa-floppy-disk"></i>
-                        <span>Save Layout</span>
+                        <span data-i18n="org_dashboard.cert_designer.save_layout">Save Layout</span>
                     </button>
                     <button type="button" id="cert-designer-close-btn" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/70 border-none bg-transparent cursor-pointer transition-colors ml-1" aria-label="Close">
                         <i class="fa-solid fa-xmark text-sm"></i>
@@ -1564,24 +1564,24 @@
                         <!-- Toggle Grid Button -->
                         <button type="button" id="cert-toggle-grid-btn" class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs">
                             <i class="fa-solid fa-border-all text-slate-400"></i>
-                            <span>Lưới: <strong id="cert-grid-status-text" class="text-slate-500">TẮT</strong></span>
+                            <span><span data-i18n="org_dashboard.cert_designer.grid_label">Lưới</span>: <strong id="cert-grid-status-text" class="text-slate-500">TẮT</strong></span>
                         </button>
                         
                         <!-- Custom Grid Spacing Select -->
                         <div id="cert-grid-options" class="flex items-center gap-1 pr-1.5 border-r border-slate-200">
                             <select id="cert-grid-size-select" class="px-2 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-700 outline-none cursor-pointer hover:border-primary">
-                                <option value="20">Lưới 20px (Mịn)</option>
-                                <option value="50" selected>Lưới 50px (Chuẩn)</option>
-                                <option value="100">Lưới 100px (Thưa)</option>
-                                <option value="thirds">Quy tắc 1/3 (3x3)</option>
-                                <option value="5pct">Tỷ lệ 5% (%)</option>
+                                <option value="20" data-i18n="org_dashboard.cert_designer.grid_20">Lưới 20px (Mịn)</option>
+                                <option value="50" selected data-i18n="org_dashboard.cert_designer.grid_50">Lưới 50px (Chuẩn)</option>
+                                <option value="100" data-i18n="org_dashboard.cert_designer.grid_100">Lưới 100px (Thưa)</option>
+                                <option value="thirds" data-i18n="org_dashboard.cert_designer.grid_thirds">Quy tắc 1/3 (3x3)</option>
+                                <option value="5pct" data-i18n="org_dashboard.cert_designer.grid_5pct">Tỷ lệ 5% (%)</option>
                             </select>
                         </div>
 
                         <!-- Magnet Snapping Toggle Button -->
                         <button type="button" id="cert-toggle-magnet-btn" class="px-3 py-1.5 rounded-xl bg-primary text-white font-bold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs">
                             <i class="fa-solid fa-magnet text-xs"></i>
-                            <span>Nam châm: <strong id="cert-magnet-status-text">BẬT</strong></span>
+                            <span><span data-i18n="org_dashboard.cert_designer.magnet_label">Nam châm</span>: <strong id="cert-magnet-status-text">BẬT</strong></span>
                         </button>
                     </div>
 
@@ -1597,8 +1597,8 @@
                             <!-- Fallback Blank Artboard Notice when no background uploaded yet -->
                             <div id="cert-artboard-no-bg-notice" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 border-4 border-dashed border-slate-300 m-8 rounded-2xl pointer-events-none">
                                 <i class="fa-solid fa-image text-5xl mb-3 text-slate-300"></i>
-                                <p class="text-xl font-bold text-slate-500">Chưa có phôi nền Canva</p>
-                                <p class="text-sm text-slate-400 mt-1">Hãy upload ảnh phôi từ Canva ở bảng quản lý bên ngoài để căn chỉnh trực quan</p>
+                                <p class="text-xl font-bold text-slate-500" data-i18n="org_dashboard.cert_designer.no_bg_title">Chưa có phôi nền Canva</p>
+                                <p class="text-sm text-slate-400 mt-1" data-i18n="org_dashboard.cert_designer.no_bg_desc">Hãy upload ảnh phôi từ Canva ở bảng quản lý bên ngoài để căn chỉnh trực quan</p>
                             </div>
 
                             <!-- Alignment Grid Overlay -->
@@ -1613,41 +1613,40 @@
                             <div id="cert-magnet-line-y" class="absolute inset-x-0 h-0.5 bg-amber-500 z-20 pointer-events-none hidden -translate-y-1/2"></div>
 
                             <!-- Snap Badge Tooltip -->
-                            <div id="cert-snap-badge" class="absolute z-30 px-2 py-0.5 rounded-md bg-sky-600 text-white font-mono text-[10px] font-bold shadow-lg pointer-events-none hidden -translate-x-1/2 -translate-y-full whitespace-nowrap mb-1">
+                            <div id="cert-snap-badge" class="absolute z-30 px-2 py-0.5 rounded-md bg-sky-600 text-white font-mono text-[10px] font-bold shadow-lg pointer-events-none hidden -translate-x-1/2 -translate-y-full whitespace-nowrap mb-1" data-i18n="org_dashboard.cert_designer.snap_center">
                                 Trục giữa 50%
                             </div>
 
                             <!-- Fixed System Draggable Fields -->
                             <div id="field-box-userName" class="cert-draggable-field group absolute cursor-move p-2 rounded-lg border-2 border-transparent hover:border-primary/50 transition-colors flex items-center gap-1.5" style="left: 50%; top: 42%; transform: translate(-50%, -50%);">
                                 <span class="cert-field-content font-bold whitespace-nowrap">Nguyễn Văn A</span>
-                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">Tên người nhận</span>
+                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" data-i18n="org_dashboard.cert_designer.field_userName">Tên người nhận</span>
                             </div>
 
                             <div id="field-box-qrCode" class="cert-draggable-field group absolute cursor-move p-0.5 rounded-xl border-2 border-transparent hover:border-primary/50 transition-colors flex flex-col items-center justify-center shadow-md" style="left: 10%; top: 82%; transform: translate(-50%, -50%); width: 80px; height: 80px;">
                                 <div class="w-full h-full flex items-center justify-center overflow-hidden rounded-lg" id="cert-artboard-qr-wrap">
                                     <canvas id="cert-artboard-qr-canvas" class="w-full h-full object-contain pointer-events-none"></canvas>
                                 </div>
-                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Mã QR</span>
+                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" data-i18n="org_dashboard.cert_designer.field_qrCode">Mã QR</span>
                             </div>
 
                             <div id="field-box-certCode" class="cert-draggable-field group absolute cursor-move p-1.5 rounded-lg border-2 border-transparent hover:border-primary/50 transition-colors flex items-center" style="left: 18%; top: 85%; transform: translate(-50%, -50%);">
                                 <span class="cert-field-content font-mono font-bold whitespace-nowrap">SW-202609-SAMPLE</span>
-                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Mã số chứng chỉ</span>
+                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" data-i18n="org_dashboard.cert_designer.field_certCode">Mã số chứng chỉ</span>
                             </div>
 
                             <div id="field-box-issueDate" class="cert-draggable-field group absolute cursor-move p-1.5 rounded-lg border-2 border-transparent hover:border-primary/50 transition-colors flex items-center" style="left: 88%; top: 85%; transform: translate(-50%, -50%);">
                                 <span class="cert-field-content font-medium whitespace-nowrap">Cấp ngày: 15/09/2026</span>
-                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ngày cấp</span>
+                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" data-i18n="org_dashboard.cert_designer.field_issueDate">Ngày cấp</span>
                             </div>
 
                             <div id="field-box-eventTitle" class="cert-draggable-field group absolute cursor-move p-2 rounded-lg border-2 border-transparent hover:border-primary/50 transition-colors flex items-center hidden" style="left: 50%; top: 54%; transform: translate(-50%, -50%);">
                                 <span class="cert-field-content font-bold whitespace-nowrap">Tên Sự Kiện / Hoạt Động</span>
-                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Tên sự kiện</span>
+                                <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" data-i18n="org_dashboard.cert_designer.field_eventTitle">Tên sự kiện</span>
                             </div>
 
                             <!-- Dynamic Custom Fields Container (Injected by JS) -->
                             <div id="cert-artboard-custom-fields"></div>
-
                         </div>
                     </div>
 
@@ -1655,10 +1654,10 @@
                     <div class="absolute bottom-3 left-3 px-2.5 py-1.5 rounded-xl bg-white/90 border border-slate-200 shadow-sm backdrop-blur-xs text-[11px] font-mono text-slate-500 pointer-events-none flex flex-wrap items-center gap-2">
                         <span>Canvas: 1200 x 850 px (<span id="cert-scale-indicator">100%</span>)</span>
                         <span class="text-slate-300">•</span>
-                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">G</kbd> Lưới</span>
-                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">M</kbd> Nam châm</span>
-                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">Alt</kbd> Bỏ hút</span>
-                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">←↑→↓</kbd> Tinh chỉnh</span>
+                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">G</kbd> <span data-i18n="org_dashboard.cert_designer.shortcut_grid">Lưới</span></span>
+                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">M</kbd> <span data-i18n="org_dashboard.cert_designer.shortcut_magnet">Nam châm</span></span>
+                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">Alt</kbd> <span data-i18n="org_dashboard.cert_designer.shortcut_alt">Bỏ hút</span></span>
+                        <span><kbd class="px-1 py-0.5 bg-slate-100 rounded border">←↑→↓</kbd> <span data-i18n="org_dashboard.cert_designer.shortcut_nudge">Tinh chỉnh</span></span>
                     </div>
                 </div>
 
@@ -1670,22 +1669,22 @@
                         <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center gap-1.5">
                                 <i class="fa-solid fa-layer-group text-primary text-xs"></i>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Bảng Layer</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider" data-i18n="org_dashboard.cert_designer.layers_panel">Bảng Layer</label>
                                 <span id="cert-layers-total-count" class="px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 font-mono text-[10px] font-bold">5 lớp</span>
                             </div>
                             <button type="button" id="btn-add-custom-text" class="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary-hover text-white text-[11px] font-bold spring-ease active:scale-95 cursor-pointer flex items-center gap-1 shadow-2xs">
                                 <i class="fa-solid fa-plus text-[10px]"></i>
-                                <span>Thêm Text</span>
+                                <span data-i18n="org_dashboard.cert_designer.add_text">Thêm Text</span>
                             </button>
                         </div>
 
                         <!-- Quick Add Preset Buttons -->
                         <div class="flex items-center gap-1 mb-2.5 overflow-x-auto pb-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-0.5">Tạo nhanh:</span>
-                            <button type="button" data-preset="heading" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0">+ Tiêu đề</button>
-                            <button type="button" data-preset="award" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0">+ Danh hiệu</button>
-                            <button type="button" data-preset="body" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0">+ Nội dung</button>
-                            <button type="button" data-preset="signature" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0">+ Chữ ký</button>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-0.5" data-i18n="org_dashboard.cert_designer.quick_create">Tạo nhanh:</span>
+                            <button type="button" data-preset="heading" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0" data-i18n="org_dashboard.cert_designer.preset_heading_btn">+ Tiêu đề</button>
+                            <button type="button" data-preset="award" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0" data-i18n="org_dashboard.cert_designer.preset_award_btn">+ Danh hiệu</button>
+                            <button type="button" data-preset="body" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0" data-i18n="org_dashboard.cert_designer.preset_body_btn">+ Nội dung</button>
+                            <button type="button" data-preset="signature" class="btn-quick-add-preset px-2 py-0.5 rounded-md bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700 text-[10px] font-semibold cursor-pointer border border-slate-200 shrink-0" data-i18n="org_dashboard.cert_designer.preset_signature_btn">+ Chữ ký</button>
                         </div>
 
                         <!-- Unified Layers List Container -->
@@ -1702,7 +1701,7 @@
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="w-2 h-2 rounded-full bg-primary shrink-0"></span>
                                 <div class="min-w-0">
-                                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-0.5">Đang chỉnh sửa</div>
+                                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-0.5" data-i18n="org_dashboard.cert_designer.editing">Đang chỉnh sửa</div>
                                     <div id="field-active-name" class="text-xs font-bold text-slate-800 truncate">Họ và tên</div>
                                 </div>
                             </div>
@@ -1712,8 +1711,8 @@
                         <!-- Toggle Visibility -->
                         <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
                             <div>
-                                <span class="text-xs font-bold text-slate-800 block">Hiển thị phần tử này</span>
-                                <span class="text-[10px] text-slate-500 block">Bật/Tắt trường trên chứng chỉ</span>
+                                <span class="text-xs font-bold text-slate-800 block" data-i18n="org_dashboard.cert_designer.display_element">Hiển thị phần tử này</span>
+                                <span class="text-[10px] text-slate-500 block" data-i18n="org_dashboard.cert_designer.toggle_field_desc">Bật/Tắt trường trên chứng chỉ</span>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="field-ctrl-enabled" class="sr-only peer" checked>
@@ -1724,14 +1723,14 @@
                         <!-- Custom Text Input, Tokens & Actions (Only when Custom Text is selected) -->
                         <div id="field-ctrl-customtext-group" class="space-y-2.5 hidden p-3 rounded-xl bg-amber-50/50 border border-amber-200/80">
                             <div class="flex items-center justify-between">
-                                <label for="field-ctrl-custom-val" class="block text-xs font-bold text-slate-800">Nội dung văn bản</label>
+                                <label for="field-ctrl-custom-val" class="block text-xs font-bold text-slate-800" data-i18n="org_dashboard.cert_designer.text_content">Nội dung văn bản</label>
                                 <span class="text-[10px] text-slate-400 font-mono">Multiline</span>
                             </div>
-                            <textarea id="field-ctrl-custom-val" rows="3" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary shadow-2xs resize-y" placeholder="Nhập nội dung văn bản (hỗ trợ xuống dòng Enter)..."></textarea>
+                            <textarea id="field-ctrl-custom-val" rows="3" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary shadow-2xs resize-y" placeholder="Nhập nội dung văn bản (hỗ trợ xuống dòng Enter)..." data-i18n-placeholder="org_dashboard.cert_designer.text_placeholder"></textarea>
                             
                             <!-- Dynamic Tokens Bar -->
                             <div class="space-y-1">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Chèn biến tự động:</span>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block" data-i18n="org_dashboard.cert_designer.insert_token">Chèn biến tự động:</span>
                                 <div class="flex flex-wrap gap-1" id="custom-text-tokens">
                                     <button type="button" class="token-insert-btn px-2 py-0.5 rounded-md bg-white hover:bg-sky-50 hover:text-sky-700 text-[10px] font-mono font-semibold text-slate-700 border border-slate-200 cursor-pointer" data-token="{{fullName}}">+ {{fullName}}</button>
                                     <button type="button" class="token-insert-btn px-2 py-0.5 rounded-md bg-white hover:bg-amber-50 hover:text-amber-700 text-[10px] font-mono font-semibold text-slate-700 border border-slate-200 cursor-pointer" data-token="{{eventTitle}}">+ {{eventTitle}}</button>
@@ -1742,12 +1741,12 @@
 
                             <!-- Quick Presets -->
                             <div class="space-y-1 pt-1">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Mẫu nhanh:</span>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block" data-i18n="org_dashboard.cert_designer.quick_templates">Mẫu nhanh:</span>
                                 <div class="flex flex-wrap gap-1" id="custom-text-presets">
-                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer">GIẢI NHẤT</button>
-                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer">GIẢI NHÌ</button>
-                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer">Tình nguyện viên xuất sắc</button>
-                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer">Trưởng Ban Tổ Chức</button>
+                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer" data-i18n="org_dashboard.cert_designer.preset_first_prize">GIẢI NHẤT</button>
+                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer" data-i18n="org_dashboard.cert_designer.preset_second_prize">GIẢI NHÌ</button>
+                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer" data-i18n="org_dashboard.cert_designer.preset_outstanding_vol">Tình nguyện viên xuất sắc</button>
+                                    <button type="button" class="preset-tag-btn px-2 py-0.5 rounded-md bg-white hover:bg-primary/10 hover:text-primary text-[10px] font-semibold text-slate-700 border border-slate-200 cursor-pointer" data-i18n="org_dashboard.cert_designer.preset_head_organizer">Trưởng Ban Tổ Chức</button>
                                 </div>
                             </div>
 
@@ -1755,11 +1754,11 @@
                             <div class="flex items-center gap-2 pt-1.5">
                                 <button type="button" id="field-ctrl-duplicate-btn" class="flex-1 py-1.5 px-3 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200 cursor-pointer spring-ease flex items-center justify-center gap-1.5 active:scale-95">
                                     <i class="fa-regular fa-copy text-xs text-primary"></i>
-                                    <span>Nhân bản text</span>
+                                    <span data-i18n="org_dashboard.cert_designer.duplicate_text">Nhân bản text</span>
                                 </button>
                                 <button type="button" id="field-ctrl-delete-btn" class="py-1.5 px-3 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold border border-red-200 cursor-pointer spring-ease flex items-center justify-center gap-1.5 active:scale-95">
                                     <i class="fa-solid fa-trash-can text-xs"></i>
-                                    <span>Xóa</span>
+                                    <span data-i18n="common.delete">Xóa</span>
                                 </button>
                             </div>
                         </div>
@@ -1769,7 +1768,7 @@
                             <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                                 <div class="flex items-center gap-1.5">
                                     <i class="fa-solid fa-qrcode text-primary text-xs"></i>
-                                    <span class="text-xs font-bold text-slate-800">Tùy biến Mã QR</span>
+                                    <span class="text-xs font-bold text-slate-800" data-i18n="org_dashboard.cert_designer.qr_customization">Tùy biến Mã QR</span>
                                 </div>
                                 <span class="text-[10px] font-mono text-slate-400">QR Engine</span>
                             </div>
@@ -1777,7 +1776,7 @@
                             <!-- QR Size Slider -->
                             <div class="space-y-1">
                                 <div class="flex items-center justify-between text-xs">
-                                    <label for="field-ctrl-qr-size" class="font-bold text-slate-700">Kích thước (Size)</label>
+                                    <label for="field-ctrl-qr-size" class="font-bold text-slate-700" data-i18n="org_dashboard.cert_designer.qr_size">Kích thước (Size)</label>
                                     <span id="field-ctrl-qr-size-val" class="font-mono font-bold text-primary">80px</span>
                                 </div>
                                 <input type="range" id="field-ctrl-qr-size" min="50" max="180" value="80" class="w-full accent-primary cursor-pointer" />
@@ -1785,27 +1784,27 @@
 
                             <!-- QR Pattern / Style (standard, dots, smooth, 8bit, diamond) -->
                             <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-700">Kiểu dáng hạt QR (Style)</label>
+                                <label class="block text-xs font-bold text-slate-700" data-i18n="org_dashboard.cert_designer.qr_pattern">Kiểu dáng hạt QR (Style)</label>
                                 <div class="grid grid-cols-5 gap-1" id="field-ctrl-qr-style-group">
-                                    <button type="button" data-style="standard" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all active border-primary bg-primary/10 text-primary" title="Vuông cổ điển">
+                                    <button type="button" data-style="standard" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all active border-primary bg-primary/10 text-primary" title="Vuông cổ điển" data-i18n-title="org_dashboard.cert_designer.qr_square_title">
                                         <i class="fa-solid fa-square text-xs pointer-events-none"></i>
-                                        <span class="text-[9px] font-medium leading-none pointer-events-none">Vuông</span>
+                                        <span class="text-[9px] font-medium leading-none pointer-events-none" data-i18n="org_dashboard.cert_designer.qr_square">Vuông</span>
                                     </button>
-                                    <button type="button" data-style="dots" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Chấm tròn Art">
+                                    <button type="button" data-style="dots" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Chấm tròn Art" data-i18n-title="org_dashboard.cert_designer.qr_dots_title">
                                         <i class="fa-solid fa-circle text-xs pointer-events-none"></i>
-                                        <span class="text-[9px] font-medium leading-none pointer-events-none">Chấm</span>
+                                        <span class="text-[9px] font-medium leading-none pointer-events-none" data-i18n="org_dashboard.cert_designer.qr_dots">Chấm</span>
                                     </button>
-                                    <button type="button" data-style="smooth" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Bo góc mượt">
+                                    <button type="button" data-style="smooth" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Bo góc mượt" data-i18n-title="org_dashboard.cert_designer.qr_rounded_title">
                                         <i class="fa-solid fa-square-full text-xs rounded-sm pointer-events-none"></i>
                                         <span class="text-[9px] font-medium leading-none pointer-events-none" data-i18n="org_dashboard.cert_designer.rounded_corner">Bo góc</span>
                                     </button>
-                                    <button type="button" data-style="8bit" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Retro Pixel 8-Bit">
+                                    <button type="button" data-style="8bit" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Retro Pixel 8-Bit" data-i18n-title="org_dashboard.cert_designer.qr_8bit_title">
                                         <i class="fa-solid fa-gamepad text-xs pointer-events-none"></i>
-                                        <span class="text-[9px] font-medium leading-none pointer-events-none">8-Bit</span>
+                                        <span class="text-[9px] font-medium leading-none pointer-events-none" data-i18n="org_dashboard.cert_designer.qr_8bit">8-Bit</span>
                                     </button>
-                                    <button type="button" data-style="diamond" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Kim cương quý phái">
+                                    <button type="button" data-style="diamond" class="qr-style-btn p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-center flex flex-col items-center gap-1 cursor-pointer transition-all text-slate-700" title="Kim cương quý phái" data-i18n-title="org_dashboard.cert_designer.qr_diamond_title">
                                         <i class="fa-solid fa-gem text-xs pointer-events-none"></i>
-                                        <span class="text-[9px] font-medium leading-none pointer-events-none">Thoi</span>
+                                        <span class="text-[9px] font-medium leading-none pointer-events-none" data-i18n="org_dashboard.cert_designer.qr_diamond">Thoi</span>
                                     </button>
                                 </div>
                             </div>
@@ -1866,13 +1865,13 @@
                         <div id="field-ctrl-font-group" class="space-y-1.5">
                             <label for="field-ctrl-font" class="block text-xs font-bold text-slate-700" data-i18n="org_dashboard.cert_designer.font_family">Font Chữ</label>
                             <select id="field-ctrl-font" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary">
-                                <option value="Playfair Display" style="font-family: 'Playfair Display', serif;">Playfair Display (Serif Cổ Điển)</option>
-                                <option value="Great Vibes" style="font-family: 'Great Vibes', cursive;">Great Vibes (Chữ Ký / Thư Pháp)</option>
-                                <option value="Plus Jakarta Sans" style="font-family: 'Plus Jakarta Sans', sans-serif;">Plus Jakarta Sans (Hiện Đại)</option>
-                                <option value="Be Vietnam Pro" style="font-family: 'Be Vietnam Pro', sans-serif;">Be Vietnam Pro (Chuẩn Tiếng Việt)</option>
-                                <option value="Lora" style="font-family: 'Lora', serif;">Lora (Hoàng Gia Sang Trọng - Chuẩn Tiếng Việt)</option>
-                                <option value="Montserrat" style="font-family: 'Montserrat', sans-serif;">Montserrat (Mạnh Mẽ)</option>
-                                <option value="monospace">Monospace (Mã Kỹ Thuật)</option>
+                                <option value="Playfair Display" style="font-family: 'Playfair Display', serif;">Playfair Display</option>
+                                <option value="Great Vibes" style="font-family: 'Great Vibes', cursive;">Great Vibes</option>
+                                <option value="Plus Jakarta Sans" style="font-family: 'Plus Jakarta Sans', sans-serif;">Plus Jakarta Sans</option>
+                                <option value="Be Vietnam Pro" style="font-family: 'Be Vietnam Pro', sans-serif;">Be Vietnam Pro</option>
+                                <option value="Lora" style="font-family: 'Lora', serif;">Lora</option>
+                                <option value="Montserrat" style="font-family: 'Montserrat', sans-serif;">Montserrat</option>
+                                <option value="monospace">Monospace</option>
                             </select>
                         </div>
 
@@ -1916,7 +1915,7 @@
                                 </select>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-700">In hoa</label>
+                                <label class="block text-xs font-bold text-slate-700" data-i18n="org_dashboard.cert_designer.uppercase_label">In hoa</label>
                                 <button type="button" id="field-ctrl-uppercase-btn" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 spring-ease cursor-pointer flex items-center justify-center gap-1.5">
                                     <span class="font-mono">UPPERCASE</span>
                                 </button>

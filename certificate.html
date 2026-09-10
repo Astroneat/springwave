@@ -169,39 +169,49 @@
 <body class="bg-[#f0f4fc] min-h-screen font-body-md text-slate-800 antialiased flex flex-col">
   
   <!-- Top Navigation Bar -->
-  <header class="sticky top-0 z-40 bg-[#f0f4fc]/95 backdrop-blur-md border-b border-[#d8e5f8] px-4 lg:px-8 py-3.5 shadow-sm">
-    <div class="max-w-6xl mx-auto flex items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <a href="/index.html" class="figma-navbar-brand flex items-center !text-2xl !no-underline hover:opacity-90 transition-opacity">
-          <span class="brand-spring !text-[#1755ba] font-extrabold">Spring</span><span class="brand-wave !text-[#38bdf8] font-extrabold">Wave</span>
+  <header class="sticky top-0 z-50 figma-navbar-container" id="navbar">
+    <div class="figma-navbar-inner relative spring-ease">
+      
+      <!-- Brand Logo & Context Title -->
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <a href="/index.html" class="figma-navbar-brand flex-shrink-0 flex items-center">
+          <span class="brand-spring">Spring</span><span class="brand-wave">Wave</span>
         </a>
-        <span class="text-[#c5d7f2]">/</span>
-        <span class="text-xs font-bold text-[#64748b] uppercase tracking-wider hidden sm:inline" data-i18n="certificate_view.verification_title">Certificate Verification</span>
+        <span class="text-white/30 hidden sm:inline text-sm font-light">/</span>
+        <span class="text-xs font-bold text-white/85 uppercase tracking-wider hidden sm:inline font-sans" data-i18n="certificate_view.verification_title">Certificate Verification</span>
       </div>
 
-      <div class="flex items-center gap-2.5">
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
         <!-- Language Switcher -->
-        <button id="lang-toggle-btn" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-[#1755ba] bg-white/80 border border-[#d8e5f8] hover:bg-white active:scale-95 transition-all cursor-pointer mr-1 shadow-sm" title="Change Language">
-          <i class="fa-solid fa-globe text-[#1755ba]"></i>
-          <span id="current-lang-text" class="uppercase font-mono">VI</span>
+        <button id="lang-toggle-btn" class="inline-flex items-center justify-center gap-1.5 h-[38px] px-3.5 rounded-full text-xs font-bold text-white bg-white/20 hover:bg-white/30 border border-white/25 active:scale-95 transition-all cursor-pointer shadow-xs" title="Change Language">
+          <span class="material-symbols-outlined text-white text-[18px] leading-none">language</span>
+          <span id="current-lang-text" class="uppercase font-mono leading-none">VI</span>
         </button>
 
-        <button id="share-community-btn" class="inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 h-[42px] rounded-xl text-xs font-semibold text-white bg-[#059669] hover:bg-[#047857] active:scale-95 transition-all shadow-xs cursor-pointer shrink-0">
-          <i class="fa-solid fa-bullhorn text-emerald-100"></i>
-          <span class="hidden sm:inline" data-i18n="certificate_view.share_community">Khoe lên Cộng đồng</span>
-          <span class="sm:hidden" data-i18n="certificate_view.share_community">Khoe</span>
+        <!-- Share to Community -->
+        <button id="share-community-btn" class="inline-flex items-center justify-center gap-1.5 h-[38px] px-3.5 sm:px-4 rounded-full text-xs font-semibold text-white bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition-all shadow-xs cursor-pointer shrink-0">
+          <i class="fa-solid fa-bullhorn text-emerald-100 text-xs leading-none"></i>
+          <span class="hidden sm:inline leading-none" data-i18n="certificate_view.share_community">Khoe lên Cộng đồng</span>
+          <span class="sm:hidden leading-none" data-i18n="certificate_view.share_community">Khoe</span>
         </button>
-        <button id="copy-link-btn" class="inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 h-[42px] rounded-xl text-xs font-semibold text-slate-700 bg-white border border-[#d8e5f8] hover:bg-slate-50 active:scale-95 transition-all cursor-pointer shadow-xs shrink-0">
-          <i class="fa-regular fa-copy text-slate-500"></i>
-          <span class="hidden md:inline" data-i18n="certificate_view.copy_link">Copy Link</span>
+
+        <!-- Copy Link -->
+        <button id="copy-link-btn" class="inline-flex items-center justify-center gap-1.5 h-[38px] px-3.5 sm:px-4 rounded-full text-xs font-semibold text-white bg-white/20 hover:bg-white/30 border border-white/25 active:scale-95 transition-all cursor-pointer shadow-xs shrink-0">
+          <i class="fa-regular fa-copy text-white text-xs leading-none"></i>
+          <span class="hidden md:inline leading-none" data-i18n="certificate_view.copy_link">Copy Link</span>
         </button>
-        <button id="download-png-btn" class="inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 h-[42px] rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 transition-all shadow-xs cursor-pointer shrink-0">
-          <i class="fa-solid fa-image text-slate-500"></i>
-          <span data-i18n="certificate_view.download_png">Download PNG</span>
+
+        <!-- Download PNG -->
+        <button id="download-png-btn" class="inline-flex items-center justify-center gap-1.5 h-[38px] px-3.5 sm:px-4 rounded-full text-xs font-semibold text-white bg-white/20 hover:bg-white/30 border border-white/25 active:scale-95 transition-all shadow-xs cursor-pointer shrink-0">
+          <i class="fa-solid fa-image text-white text-xs leading-none"></i>
+          <span class="leading-none" data-i18n="certificate_view.download_png">Download PNG</span>
         </button>
-        <button id="download-pdf-btn" class="inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 h-[42px] rounded-xl text-xs font-semibold text-white bg-[#1755ba] hover:bg-[#134496] active:scale-95 transition-all shadow-xs cursor-pointer shrink-0">
-          <i class="fa-solid fa-file-pdf"></i>
-          <span data-i18n="certificate_view.download_pdf">Download PDF</span>
+
+        <!-- Download PDF -->
+        <button id="download-pdf-btn" class="inline-flex items-center justify-center gap-1.5 h-[38px] px-4 sm:px-5 rounded-full text-xs font-bold text-[#1755ba] bg-white hover:bg-white/95 active:scale-95 transition-all shadow-sm cursor-pointer shrink-0">
+          <i class="fa-solid fa-file-pdf text-[#1755ba] text-xs leading-none"></i>
+          <span class="leading-none" data-i18n="certificate_view.download_pdf">Download PDF</span>
         </button>
       </div>
     </div>

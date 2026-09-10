@@ -4355,7 +4355,11 @@ function initCertBackgroundManager() {
 
   uploadBtn?.addEventListener("click", () => {
     if (!selectedCertEventId) {
-      alert("Please select an event first.");
+      showAlertDialog({
+        titleKey: "common.confirm_title",
+        messageKey: "org_dashboard.cert_designer.select_event_first",
+        type: "warning"
+      });
       return;
     }
     input?.click();
@@ -4366,14 +4370,18 @@ function initCertBackgroundManager() {
     if (!file || !selectedCertEventId) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("Image size must be less than 10MB");
+      showAlertDialog({
+        titleKey: "common.error",
+        messageKey: "org_dashboard.cert_designer.img_size_limit",
+        type: "error"
+      });
       input.value = "";
       return;
     }
 
     const origText = uploadBtn.innerHTML;
     uploadBtn.disabled = true;
-    uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Uploading...</span>`;
+    uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${t("common.loading", "Uploading...")}</span>`;
 
     try {
       const formData = new FormData();
@@ -4388,10 +4396,18 @@ function initCertBackgroundManager() {
         renderCertBgPanel(currentEvents[idx]);
       }
       
-      alert("Certificate background template updated successfully!");
+      await showAlertDialog({
+        titleKey: "org_dashboard.cert_designer.save_success_title",
+        messageKey: "org_dashboard.cert_designer.bg_upload_success",
+        type: "success"
+      });
     } catch (err) {
       console.error("Update certificate background error:", err);
-      alert("Failed to update certificate background: " + (err.message || "Unknown error"));
+      showAlertDialog({
+        titleKey: "common.error",
+        message: `${t("org_dashboard.cert_designer.bg_upload_failed", "Failed to update certificate background")}: ${err.message || "Unknown error"}`,
+        type: "error"
+      });
     } finally {
       uploadBtn.disabled = false;
       uploadBtn.innerHTML = origText;
@@ -4411,7 +4427,7 @@ function initCertBackgroundManager() {
 
     const origText = resetBtn.innerHTML;
     resetBtn.disabled = true;
-    resetBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Resetting...</span>`;
+    resetBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${t("common.loading", "Resetting...")}</span>`;
 
     try {
       const formData = new FormData();
@@ -4424,10 +4440,18 @@ function initCertBackgroundManager() {
         renderCertBgPanel(currentEvents[idx]);
       }
 
-      alert("Reset to default certificate template successfully.");
+      await showAlertDialog({
+        titleKey: "org_dashboard.cert_designer.save_success_title",
+        messageKey: "org_dashboard.cert_designer.bg_reset_success",
+        type: "success"
+      });
     } catch (err) {
       console.error("Reset certificate background error:", err);
-      alert("Failed to reset background: " + (err.message || "Unknown error"));
+      showAlertDialog({
+        titleKey: "common.error",
+        message: `${t("org_dashboard.cert_designer.bg_reset_failed", "Failed to reset certificate background")}: ${err.message || "Unknown error"}`,
+        type: "error"
+      });
     } finally {
       resetBtn.disabled = false;
       resetBtn.innerHTML = origText;
@@ -4677,12 +4701,25 @@ function initCertLayoutDesigner() {
   const STATIC_FIELD_KEYS = new Set(["userName", "qrCode", "certCode", "issueDate", "eventTitle"]);
 
   const STATIC_CHIP_META = {
-    userName: { label: "Họ và tên", icon: "fa-user", badge: "User" },
-    qrCode: { label: "Mã QR Check", icon: "fa-qrcode", badge: "QR" },
-    certCode: { label: "Mã chứng chỉ", icon: "fa-barcode", badge: "Code" },
-    issueDate: { label: "Ngày cấp", icon: "fa-calendar-days", badge: "Date" },
-    eventTitle: { label: "Tên sự kiện", icon: "fa-award", badge: "Event" },
+    userName: { labelKey: "org_dashboard.cert_designer.field_userName", defaultLabel: "Họ và tên", icon: "fa-user", badge: "User" },
+    qrCode: { labelKey: "org_dashboard.cert_designer.field_qrCode", defaultLabel: "Mã QR Check", icon: "fa-qrcode", badge: "QR" },
+    certCode: { labelKey: "org_dashboard.cert_designer.field_certCode", defaultLabel: "Mã chứng chỉ", icon: "fa-barcode", badge: "Code" },
+    issueDate: { labelKey: "org_dashboard.cert_designer.field_issueDate", defaultLabel: "Ngày cấp", icon: "fa-calendar-days", badge: "Date" },
+    eventTitle: { labelKey: "org_dashboard.cert_designer.field_eventTitle", defaultLabel: "Tên sự kiện", icon: "fa-award", badge: "Event" },
   };
+
+  function getFieldLabel(key) {
+    const meta = STATIC_CHIP_META[key];
+    if (meta) {
+      return t(meta.labelKey, meta.defaultLabel);
+    }
+    const field = currentConfig?.fields?.[key];
+    if (field && field.text) {
+      const txt = field.text.replace(/\n/g, " ").trim();
+      return txt ? (txt.length > 20 ? txt.slice(0, 18) + "..." : txt) : t("org_dashboard.cert_designer.field_customText", "Văn bản tùy chỉnh");
+    }
+    return t("org_dashboard.cert_designer.field_customText", "Văn bản tùy chỉnh");
+  }
 
   // Render & Update Grid Overlay
   function renderArtboardGrid() {
@@ -4691,7 +4728,7 @@ function initCertLayoutDesigner() {
     if (!isGridVisible) {
       artboardGrid.classList.add("hidden");
       toggleGridBtn.className = "px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs";
-      gridStatusText.textContent = "TẮT";
+      gridStatusText.textContent = t("org_dashboard.cert_designer.status_off", "TẮT");
       gridStatusText.className = "text-slate-500 font-bold";
       const icon = toggleGridBtn.querySelector("i");
       if (icon) icon.className = "fa-solid fa-border-all text-slate-400";
@@ -4700,7 +4737,7 @@ function initCertLayoutDesigner() {
 
     artboardGrid.classList.remove("hidden");
     toggleGridBtn.className = "px-2.5 py-1.5 rounded-xl border border-sky-400 bg-sky-50 text-sky-700 font-semibold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs active";
-    gridStatusText.textContent = "BẬT";
+    gridStatusText.textContent = t("org_dashboard.cert_designer.status_on", "BẬT");
     gridStatusText.className = "text-sky-600 font-bold";
     const icon = toggleGridBtn.querySelector("i");
     if (icon) icon.className = "fa-solid fa-border-all text-sky-600";
@@ -4729,10 +4766,10 @@ function initCertLayoutDesigner() {
 
     if (isMagnetActive) {
       toggleMagnetBtn.className = "px-3 py-1.5 rounded-xl bg-primary text-white font-bold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs active";
-      magnetStatusText.textContent = "BẬT";
+      magnetStatusText.textContent = t("org_dashboard.cert_designer.status_on", "BẬT");
     } else {
       toggleMagnetBtn.className = "px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 font-semibold spring-ease flex items-center gap-1.5 cursor-pointer shadow-2xs";
-      magnetStatusText.textContent = "TẮT";
+      magnetStatusText.textContent = t("org_dashboard.cert_designer.status_off", "TẮT");
     }
   }
 
@@ -4774,7 +4811,7 @@ function initCertLayoutDesigner() {
       box.className = "cert-draggable-field group absolute cursor-move p-2 rounded-lg border-2 border-transparent hover:border-primary/50 transition-colors flex items-center gap-1.5 max-w-[800px]";
       box.innerHTML = `
         <span class="cert-field-content font-bold whitespace-pre-line break-words text-center"></span>
-        <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Văn bản</span>
+        <span class="cert-field-badge absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">${t("org_dashboard.cert_designer.field_customText", "Văn bản")}</span>
       `;
       customFieldsContainer.appendChild(box);
       attachDragToElement(box);
@@ -4851,10 +4888,11 @@ function initCertLayoutDesigner() {
       uppercase: false,
     };
 
+    const isEn = getLang() === "en";
     if (presetType === "heading") {
       config = {
         ...config,
-        text: "GIẤY CHỨNG NHẬN",
+        text: isEn ? "CERTIFICATE OF RECOGNITION" : "GIẤY CHỨNG NHẬN",
         y: 28.0,
         fontFamily: "Playfair Display",
         fontSize: 32,
@@ -4866,7 +4904,7 @@ function initCertLayoutDesigner() {
     } else if (presetType === "award") {
       config = {
         ...config,
-        text: "DANH HIỆU XUẤT SẮC",
+        text: isEn ? "OUTSTANDING RECOGNITION" : "DANH HIỆU XUẤT SẮC",
         y: 48.0,
         fontFamily: "Playfair Display",
         fontSize: 20,
@@ -4878,7 +4916,9 @@ function initCertLayoutDesigner() {
     } else if (presetType === "body") {
       config = {
         ...config,
-        text: "Đã hoàn thành xuất sắc các nội dung đào tạo\nvà đóng góp tích cực cho chương trình",
+        text: isEn
+          ? "Has successfully completed all training requirements\nand actively contributed to the program"
+          : "Đã hoàn thành xuất sắc các nội dung đào tạo\nvà đóng góp tích cực cho chương trình",
         y: 56.0,
         fontFamily: "Plus Jakarta Sans",
         fontSize: 14,
@@ -4888,7 +4928,9 @@ function initCertLayoutDesigner() {
     } else if (presetType === "signature") {
       config = {
         ...config,
-        text: "Trưởng Ban Tổ Chức\n(Ký và ghi rõ họ tên)",
+        text: isEn
+          ? "Head of Organization\n(Signature & Full Name)"
+          : "Trưởng Ban Tổ Chức\n(Ký và ghi rõ họ tên)",
         y: 74.0,
         fontFamily: "Playfair Display",
         fontSize: 13,
@@ -4898,7 +4940,7 @@ function initCertLayoutDesigner() {
     } else {
       config = {
         ...config,
-        text: "Đoạn văn bản mới",
+        text: isEn ? "New text block" : "Đoạn văn bản mới",
         y: 60.0,
         fontFamily: "Playfair Display",
         fontSize: 22,
@@ -4926,7 +4968,7 @@ function initCertLayoutDesigner() {
     const systemKeys = allKeys.filter(k => STATIC_FIELD_KEYS.has(k));
 
     if (layersTotalCount) {
-      layersTotalCount.textContent = `${allKeys.length} lớp`;
+      layersTotalCount.textContent = `${allKeys.length} ${t("org_dashboard.cert_designer.layers_count_suffix", "lớp")}`;
     }
 
     // 1. Custom Text Layers Section
@@ -4938,7 +4980,7 @@ function initCertLayoutDesigner() {
     customHeader.innerHTML = `
       <div class="flex items-center gap-1">
         <i class="fa-solid fa-pen-nib text-[9px] text-amber-500"></i>
-        <span>Lớp tùy chỉnh</span>
+        <span>${t("org_dashboard.cert_designer.custom_layers_header", "Lớp tùy chỉnh")}</span>
       </div>
       <span class="font-mono text-slate-500">${customKeys.length}</span>
     `;
@@ -4947,7 +4989,7 @@ function initCertLayoutDesigner() {
     if (customKeys.length === 0) {
       const emptyNote = document.createElement("div");
       emptyNote.className = "p-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center";
-      emptyNote.innerHTML = `<span class="text-[11px] text-slate-400">Chưa có text tùy chỉnh. Bấm <strong>+ Thêm Text</strong> ở trên để tạo.</span>`;
+      emptyNote.innerHTML = `<span class="text-[11px] text-slate-400">${t("org_dashboard.cert_designer.no_custom_text", "Chưa có text tùy chỉnh. Bấm <strong>+ Thêm Text</strong> ở trên để tạo.")}</span>`;
       customSection.appendChild(emptyNote);
     } else {
       customKeys.forEach(key => {
@@ -4965,7 +5007,7 @@ function initCertLayoutDesigner() {
               : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70"
         }`;
 
-        let textSnippet = field.text ? field.text.replace(/\n/g, " ").trim() : "Text tùy chỉnh";
+        let textSnippet = field.text ? field.text.replace(/\n/g, " ").trim() : t("org_dashboard.cert_designer.field_customText", "Văn bản tùy chỉnh");
         if (textSnippet.length > 20) textSnippet = textSnippet.slice(0, 18) + "...";
 
         row.innerHTML = `
@@ -4977,13 +5019,13 @@ function initCertLayoutDesigner() {
             </div>
           </div>
           <div class="flex items-center gap-1 shrink-0">
-            <button type="button" class="btn-layer-toggle-eye w-6 h-6 rounded-md hover:bg-slate-200/80 flex items-center justify-center cursor-pointer text-slate-500 hover:text-slate-800" title="${isHidden ? 'Hiện lớp này' : 'Ẩn lớp này'}">
+            <button type="button" class="btn-layer-toggle-eye w-6 h-6 rounded-md hover:bg-slate-200/80 flex items-center justify-center cursor-pointer text-slate-500 hover:text-slate-800" title="${isHidden ? t("org_dashboard.cert_designer.show_layer", "Hiện lớp này") : t("org_dashboard.cert_designer.hide_layer", "Ẩn lớp này")}">
               <i class="fa-solid ${isHidden ? 'fa-eye-slash text-slate-400' : 'fa-eye text-primary'} text-[11px]"></i>
             </button>
-            <button type="button" class="btn-layer-duplicate w-6 h-6 rounded-md hover:bg-slate-200/80 flex items-center justify-center cursor-pointer text-slate-400 hover:text-primary" title="Nhân bản lớp">
+            <button type="button" class="btn-layer-duplicate w-6 h-6 rounded-md hover:bg-slate-200/80 flex items-center justify-center cursor-pointer text-slate-400 hover:text-primary" title="${t("org_dashboard.cert_designer.duplicate_layer", "Nhân bản lớp")}">
               <i class="fa-regular fa-copy text-[11px]"></i>
             </button>
-            <button type="button" class="btn-layer-delete w-6 h-6 rounded-md hover:bg-red-100 flex items-center justify-center cursor-pointer text-slate-400 hover:text-red-600" title="Xóa lớp">
+            <button type="button" class="btn-layer-delete w-6 h-6 rounded-md hover:bg-red-100 flex items-center justify-center cursor-pointer text-slate-400 hover:text-red-600" title="${t("org_dashboard.cert_designer.delete_layer", "Xóa lớp")}">
               <i class="fa-solid fa-trash-can text-[11px]"></i>
             </button>
           </div>
@@ -5030,7 +5072,7 @@ function initCertLayoutDesigner() {
     systemHeader.innerHTML = `
       <div class="flex items-center gap-1">
         <i class="fa-solid fa-shield-halved text-[9px] text-primary"></i>
-        <span>Trường hệ thống</span>
+        <span>${t("org_dashboard.cert_designer.system_layers_header", "Trường hệ thống")}</span>
       </div>
       <span class="font-mono text-slate-500">${systemKeys.length}</span>
     `;
@@ -5038,7 +5080,8 @@ function initCertLayoutDesigner() {
 
     systemKeys.forEach(key => {
       const field = currentConfig.fields[key];
-      const meta = STATIC_CHIP_META[key] || { label: key, icon: "fa-font", badge: "SYS" };
+      const meta = STATIC_CHIP_META[key] || { labelKey: "", defaultLabel: key, icon: "fa-font", badge: "SYS" };
+      const fieldLabel = getFieldLabel(key);
       const isCurrent = key === activeFieldKey;
       const isHidden = field.enabled === false;
 
@@ -5056,13 +5099,13 @@ function initCertLayoutDesigner() {
         <div class="flex items-center gap-2 min-w-0 flex-1 pr-1.5 pointer-events-none">
           <i class="fa-solid ${meta.icon} text-[11px] shrink-0 ${isCurrent ? 'text-primary' : 'text-slate-400'}"></i>
           <div class="min-w-0">
-            <div class="layer-title font-bold text-slate-800 truncate text-[11px]">${meta.label}</div>
+            <div class="layer-title font-bold text-slate-800 truncate text-[11px]">${fieldLabel}</div>
             <div class="text-[9px] font-mono text-slate-400">X: ${Math.round(field.x)}% Y: ${Math.round(field.y)}%</div>
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
           <span class="text-[9px] font-mono px-1.5 py-0.2 rounded ${isCurrent ? 'bg-primary/10 text-primary font-bold' : 'bg-slate-100 text-slate-500'}">${meta.badge}</span>
-          <button type="button" class="btn-layer-toggle-eye w-6 h-6 rounded-md hover:bg-slate-200/80 flex items-center justify-center cursor-pointer text-slate-500 hover:text-slate-800" title="${isHidden ? 'Hiện trường này' : 'Ẩn trường này'}">
+          <button type="button" class="btn-layer-toggle-eye w-6 h-6 rounded-md hover:bg-slate-200/80 flex items-center justify-center cursor-pointer text-slate-500 hover:text-slate-800" title="${isHidden ? t("org_dashboard.cert_designer.show_field", "Hiện trường này") : t("org_dashboard.cert_designer.hide_field", "Ẩn trường này")}">
             <i class="fa-solid ${isHidden ? 'fa-eye-slash text-slate-400' : 'fa-eye text-primary'} text-[11px]"></i>
           </button>
         </div>
@@ -5156,25 +5199,30 @@ function initCertLayoutDesigner() {
       contentEl.style.wordBreak = "break-word";
 
       const isCustom = key.startsWith("custom") || field.isCustomText;
+      const sampleUser = t("org_dashboard.cert_designer.sample_user", "Nguyễn Văn A");
+      const sampleEvent = t("org_dashboard.cert_designer.sample_event", "Hội Thảo Công Nghệ 2026");
+      const sampleDate = t("org_dashboard.cert_designer.sample_date", "Cấp ngày: 15/09/2026");
+      const sampleCustomFallback = t("org_dashboard.cert_designer.sample_custom", "Đoạn văn bản mẫu");
+
       if (isCustom) {
-        let textVal = field.text !== undefined ? field.text : (isSampleMode ? "Đoạn văn bản mẫu" : "{{customText}}");
+        let textVal = field.text !== undefined ? field.text : (isSampleMode ? sampleCustomFallback : "{{customText}}");
         if (isSampleMode && typeof textVal === "string") {
           textVal = textVal
-            .replace(/\{\{fullName\}\}/g, "Nguyễn Văn A")
-            .replace(/\{\{eventTitle\}\}/g, "Hội Thảo Công Nghệ 2026")
+            .replace(/\{\{fullName\}\}/g, sampleUser)
+            .replace(/\{\{eventTitle\}\}/g, sampleEvent)
             .replace(/\{\{issueDate\}\}/g, "15/09/2026")
             .replace(/\{\{certificateCode\}\}/g, "SW-202609-SAMPLE");
         }
         contentEl.textContent = textVal;
       } else if (key === "userName") {
-        contentEl.textContent = isSampleMode ? "Nguyễn Văn A" : "{{fullName}}";
+        contentEl.textContent = isSampleMode ? sampleUser : "{{fullName}}";
       } else if (key === "certCode") {
         contentEl.textContent = isSampleMode ? "SW-202609-SAMPLE" : "{{certificateCode}}";
       } else if (key === "issueDate") {
-        contentEl.textContent = isSampleMode ? "Cấp ngày: 15/09/2026" : "{{issueDate}}";
+        contentEl.textContent = isSampleMode ? sampleDate : "{{issueDate}}";
       } else if (key === "eventTitle") {
         const ev = currentEvents.find(e => e._id === selectedCertEventId);
-        contentEl.textContent = isSampleMode ? (ev?.title || "Tên Sự Kiện / Hoạt Động") : "{{eventTitle}}";
+        contentEl.textContent = isSampleMode ? (ev?.title || sampleEvent) : "{{eventTitle}}";
       }
     }
   }
@@ -5191,15 +5239,12 @@ function initCertLayoutDesigner() {
 
     // Active field indicator
     if (fieldActiveName) {
-      if (meta) fieldActiveName.textContent = meta.label;
-      else {
-        let snippet = field.text ? field.text.replace(/\n/g, " ").trim() : "Text tùy chỉnh";
-        if (snippet.length > 22) snippet = snippet.slice(0, 20) + "...";
-        fieldActiveName.textContent = snippet;
-      }
+      fieldActiveName.textContent = getFieldLabel(activeFieldKey);
     }
     if (fieldActiveBadge) {
-      fieldActiveBadge.textContent = isCustomText ? "Custom" : (meta?.badge || "System");
+      fieldActiveBadge.textContent = isCustomText
+        ? t("org_dashboard.cert_designer.badge_custom", "Custom")
+        : (meta?.badge || t("org_dashboard.cert_designer.badge_system", "System"));
       fieldActiveBadge.className = isCustomText
         ? "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200 shrink-0"
         : "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-primary/10 text-primary shrink-0";
@@ -5285,7 +5330,7 @@ function initCertLayoutDesigner() {
         customTextGroup?.classList.add("hidden");
       }
 
-      if (sizeLabel) sizeLabel.textContent = "Cỡ chữ (Font Size)";
+      if (sizeLabel) sizeLabel.textContent = t("org_dashboard.cert_designer.font_size", "Cỡ chữ (Font Size)");
       const fs = field.fontSize || 16;
       if (sizeInput) {
         sizeInput.min = "10";
@@ -5400,7 +5445,7 @@ function initCertLayoutDesigner() {
             guideLineX.style.left = "50%";
             guideLineX.classList.remove("hidden");
           }
-          snapLabel = "🎯 Giữa Canvas (X: 50%)";
+          snapLabel = `🎯 ${t("org_dashboard.cert_designer.snap_center_x", "Giữa Canvas (X: 50%)")}`;
         }
 
         if (Math.abs(newY - 50.0) <= SNAP_THRESHOLD_Y) {
@@ -5410,7 +5455,9 @@ function initCertLayoutDesigner() {
             guideLineY.style.top = "50%";
             guideLineY.classList.remove("hidden");
           }
-          snapLabel = snapLabel ? "🎯 Tâm Canvas (50%, 50%)" : "🎯 Giữa Canvas (Y: 50%)";
+          snapLabel = snapLabel
+            ? `🎯 ${t("org_dashboard.cert_designer.snap_center_both", "Tâm Canvas (50%, 50%)")}`
+            : `🎯 ${t("org_dashboard.cert_designer.snap_center_y", "Giữa Canvas (Y: 50%)")}`;
         }
 
         // 2. Inter-Element Smart Guides (Align with other active fields)
@@ -5419,7 +5466,7 @@ function initCertLayoutDesigner() {
         );
 
         for (const [otherKey, otherField] of otherEntries) {
-          const otherLabel = STATIC_CHIP_META[otherKey]?.label || (otherField.text ? (otherField.text.length > 12 ? otherField.text.slice(0, 10) + "..." : otherField.text) : "Mục khác");
+          const otherLabel = getFieldLabel(otherKey);
 
           if (!snappedX && Math.abs(newX - otherField.x) <= SNAP_THRESHOLD_X) {
             newX = otherField.x;
@@ -5428,7 +5475,7 @@ function initCertLayoutDesigner() {
               magnetLineX.style.left = `${newX}%`;
               magnetLineX.classList.remove("hidden");
             }
-            snapLabel = snapLabel || `🧲 Cột dọc thẳng: ${otherLabel}`;
+            snapLabel = snapLabel || `🧲 ${t("org_dashboard.cert_designer.align_col", "Cột dọc thẳng")}: ${otherLabel}`;
           }
 
           if (!snappedY && Math.abs(newY - otherField.y) <= SNAP_THRESHOLD_Y) {
@@ -5438,7 +5485,7 @@ function initCertLayoutDesigner() {
               magnetLineY.style.top = `${newY}%`;
               magnetLineY.classList.remove("hidden");
             }
-            snapLabel = snapLabel || `🧲 Hàng ngang thẳng: ${otherLabel}`;
+            snapLabel = snapLabel || `🧲 ${t("org_dashboard.cert_designer.align_row", "Hàng ngang thẳng")}: ${otherLabel}`;
           }
         }
 
@@ -5461,7 +5508,7 @@ function initCertLayoutDesigner() {
                   guideLineX.style.left = `${newX}%`;
                   guideLineX.classList.remove("hidden");
                 }
-                snapLabel = snapLabel || `📐 Lưới X: ${newX}%`;
+                snapLabel = snapLabel || `📐 ${t("org_dashboard.cert_designer.grid_label", "Lưới")} X: ${newX}%`;
               }
             }
           }
@@ -5483,7 +5530,7 @@ function initCertLayoutDesigner() {
                   guideLineY.style.top = `${newY}%`;
                   guideLineY.classList.remove("hidden");
                 }
-                snapLabel = snapLabel || `📐 Lưới Y: ${newY}%`;
+                snapLabel = snapLabel || `📐 ${t("org_dashboard.cert_designer.grid_label", "Lưới")} Y: ${newY}%`;
               }
             }
           }
@@ -5677,14 +5724,15 @@ function initCertLayoutDesigner() {
       applyFieldStyleToDOM(activeFieldKey);
 
       // Update live text snippet in Layers Panel
+      const fallbackTxt = t("org_dashboard.cert_designer.field_customText", "Văn bản tùy chỉnh");
       const activeRowSnippet = document.querySelector(`.layer-item-row[data-layer-key="${activeFieldKey}"] .layer-title`);
       if (activeRowSnippet) {
         const txt = e.target.value.replace(/\n/g, " ").trim();
-        activeRowSnippet.textContent = txt ? (txt.length > 20 ? txt.slice(0, 18) + "..." : txt) : "Text tùy chỉnh";
+        activeRowSnippet.textContent = txt ? (txt.length > 20 ? txt.slice(0, 18) + "..." : txt) : fallbackTxt;
       }
       if (fieldActiveName) {
         const txt = e.target.value.replace(/\n/g, " ").trim();
-        fieldActiveName.textContent = txt ? (txt.length > 22 ? txt.slice(0, 20) + "..." : txt) : "Text tùy chỉnh";
+        fieldActiveName.textContent = txt ? (txt.length > 22 ? txt.slice(0, 20) + "..." : txt) : fallbackTxt;
       }
     });
     document.getElementById("field-ctrl-custom-val")?.addEventListener("change", () => {
@@ -6019,13 +6067,21 @@ function initCertLayoutDesigner() {
       selectedCertEventId = certSelect.value;
     }
     if (!selectedCertEventId) {
-      alert("Vui lòng chọn một sự kiện trước.");
+      showAlertDialog({
+        titleKey: "common.confirm_title",
+        messageKey: "org_dashboard.cert_designer.select_event_first",
+        type: "warning"
+      });
       return;
     }
 
     const event = currentEvents.find(ev => ev._id === selectedCertEventId || String(ev._id) === String(selectedCertEventId));
     if (!event) {
-      alert("Không tìm thấy thông tin sự kiện.");
+      showAlertDialog({
+        titleKey: "common.error",
+        messageKey: "org_dashboard.event_not_found",
+        type: "error"
+      });
       return;
     }
 
@@ -6076,6 +6132,13 @@ function initCertLayoutDesigner() {
       currentConfig = JSON.parse(JSON.stringify(DEFAULT_CERT_CONFIG));
     }
 
+    applyTranslation(overlay);
+    if (sampleBtnText) {
+      sampleBtnText.textContent = isSampleMode
+        ? t("org_dashboard.cert_designer.sample_student", "Sample Student")
+        : t("org_dashboard.cert_designer.variable_tokens", "Variable Tokens");
+    }
+
     activeFieldKey = "userName";
     renderArtboardCustomFields();
     renderLayersPanel();
@@ -6114,7 +6177,9 @@ function initCertLayoutDesigner() {
   sampleBtn?.addEventListener("click", () => {
     isSampleMode = !isSampleMode;
     if (sampleBtnText) {
-      sampleBtnText.textContent = isSampleMode ? "Sample Student" : "Variable Tokens";
+      sampleBtnText.textContent = isSampleMode
+        ? t("org_dashboard.cert_designer.sample_student", "Sample Student")
+        : t("org_dashboard.cert_designer.variable_tokens", "Variable Tokens");
     }
     applyAllFieldsToDOM();
   });
@@ -6143,7 +6208,7 @@ function initCertLayoutDesigner() {
 
     const origHTML = saveBtn.innerHTML;
     saveBtn.disabled = true;
-    saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Đang lưu...</span>`;
+    saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${t("org_dashboard.cert_designer.saving", "Đang lưu...")}</span>`;
 
     try {
       const formData = new FormData();
@@ -6157,14 +6222,40 @@ function initCertLayoutDesigner() {
         currentEvents[idx].certificateConfig = currentConfig;
       }
 
-      alert("Lưu bố cục chứng chỉ Canva thành công!");
+      await showAlertDialog({
+        titleKey: "org_dashboard.cert_designer.save_success_title",
+        messageKey: "org_dashboard.cert_designer.save_success_msg",
+        type: "success"
+      });
       closeModal();
     } catch (err) {
       console.error("Save certificateConfig error:", err);
-      alert("Lưu bố cục thất bại: " + (err.message || "Unknown error"));
+      await showAlertDialog({
+        titleKey: "org_dashboard.cert_designer.save_failed_title",
+        message: `${t("org_dashboard.cert_designer.save_failed_msg", "Lưu bố cục thất bại")}: ${err.message || "Unknown error"}`,
+        type: "error"
+      });
     } finally {
       saveBtn.disabled = false;
       saveBtn.innerHTML = origHTML;
+    }
+  });
+
+  // Re-translate dynamic designer components if language switches while active
+  window.addEventListener("language-changed", () => {
+    if (overlay && !overlay.hasAttribute("hidden") && overlay.classList.contains("active")) {
+      applyTranslation(overlay);
+      if (sampleBtnText) {
+        sampleBtnText.textContent = isSampleMode
+          ? t("org_dashboard.cert_designer.sample_student", "Sample Student")
+          : t("org_dashboard.cert_designer.variable_tokens", "Variable Tokens");
+      }
+      renderArtboardCustomFields();
+      renderLayersPanel();
+      applyAllFieldsToDOM();
+      syncInspectorUI();
+      renderArtboardGrid();
+      updateMagnetBtnUI();
     }
   });
 
@@ -6345,10 +6436,22 @@ function closeRevokeModal() {
 function initIssueCerts() {
   document.getElementById("issue-certs-btn")?.addEventListener("click", async () => {
     const eventId = document.getElementById("cert-event-select")?.value;
-    if (!eventId) return alert(t("org_dashboard.select_event_first", "Select an event first"));
+    if (!eventId) {
+      showAlertDialog({
+        titleKey: "common.confirm_title",
+        messageKey: "org_dashboard.cert_designer.select_event_first",
+        type: "warning"
+      });
+      return;
+    }
     const event = currentEvents.find(ev => ev._id === eventId);
     if (!event || !(event.hasCertificate === true || event.hasCertificate === 'true')) {
-      return alert(t("org_dashboard.event_no_cert_support", "This event does not support certificates."));
+      showAlertDialog({
+        titleKey: "common.error",
+        messageKey: "org_dashboard.event_no_cert_support",
+        type: "error"
+      });
+      return;
     }
     const confirmed = await showConfirmDialog({
       titleKey: "common.confirm_title",
@@ -6359,10 +6462,18 @@ function initIssueCerts() {
     if (!confirmed) return;
     try {
       await issueCertificates(eventId);
-      alert("Certificates issued!");
+      await showAlertDialog({
+        titleKey: "org_dashboard.cert_designer.save_success_title",
+        messageKey: "org_dashboard.cert_designer.certs_issued_success",
+        type: "success"
+      });
       await loadCertificates(eventId);
     } catch (err) {
-      alert(err.message || "Failed to issue certificates");
+      showAlertDialog({
+        titleKey: "common.error",
+        message: err.message || t("org_dashboard.cert_designer.certs_issued_failed", "Failed to issue certificates"),
+        type: "error"
+      });
     }
   });
 
@@ -7194,5 +7305,9 @@ window.addEventListener("language-changed", () => {
   }
   if (typeof loadOrgAnalytics === "function" && currentSection === "analytics") {
     loadOrgAnalytics();
+  }
+  if (selectedCertEventId) {
+    const ev = currentEvents.find(e => e._id === selectedCertEventId);
+    if (ev) renderCertBgPanel(ev);
   }
 });

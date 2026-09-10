@@ -652,13 +652,44 @@ function createDatePicker(config) {
 
 const EDIT_EVENT_ID_KEY = '__editEventId';
 
+export function applyEditModeHeading() {
+  const headingEl = document.getElementById("host-activity-heading") || document.querySelector(".page-title h1");
+  if (headingEl) {
+    headingEl.dataset.i18n = "host.edit_page_title";
+    headingEl.textContent = t("host.edit_page_title") || "Adjust Activity";
+  }
+
+  const descEl = document.getElementById("host-activity-desc") || document.querySelector(".page-title p");
+  if (descEl) {
+    descEl.dataset.i18n = "host.edit_page_desc";
+    descEl.textContent = t("host.edit_page_desc") || "Update the details below to adjust your activity.";
+  }
+
+  const pageTitleEl = document.querySelector("title[data-i18n]");
+  if (pageTitleEl) {
+    pageTitleEl.dataset.i18n = "host.edit_title";
+    document.title = t("host.edit_title") || "Adjust Activity - SpringWave";
+  }
+
+  const editForm = document.getElementById("activity-form");
+  if (editForm) {
+    const submitBtn = editForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.dataset.i18n = "host.update_event";
+      submitBtn.textContent = t("host.update_event") || "Update Event";
+    }
+  }
+}
+
 export async function initEditMode(eventId) {
+  applyEditModeHeading();
   try {
     const result = await getActivityById(eventId);
     const event = result.activity || result.event;
     if (!event) return;
 
     sessionStorage.setItem(EDIT_EVENT_ID_KEY, eventId);
+    applyEditModeHeading();
 
     const titleEl = document.getElementById("title");
     const descEl = document.getElementById("description");
@@ -794,11 +825,7 @@ export async function initEditMode(eventId) {
       statusMsg.classList.add("info-msg");
     }
 
-    const editForm = document.getElementById("activity-form");
-    if (editForm) {
-      const submitBtn = editForm.querySelector('button[type="submit"]');
-      if (submitBtn) submitBtn.textContent = t("host.update_event");
-    }
+    applyEditModeHeading();
   } catch (err) {
     console.error('Failed to load event for editing:', err);
   }
