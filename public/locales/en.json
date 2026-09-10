@@ -1623,6 +1623,8 @@
     "draft": "Draft",
     "published": "Published",
     "view": "View",
+    "detail": "Details",
+    "details": "Details",
     "like": "Like",
     "none": "None",
     "confirm_title": "Confirmation",

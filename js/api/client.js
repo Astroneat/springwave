@@ -64,15 +64,27 @@ export function deepNormalizeNFC(val) {
     return val;
 }
 
-function checkRateLimit() {
-    const now = Date.now();
-    while (requestTimestamps.length > 0 && requestTimestamps[0] < now - 1000) {
-        requestTimestamps.shift();
+const MAX_BURST_REQUESTS = 30;
+const MAX_RATE_LIMIT_WAIT_MS = 10000;
+
+async function checkRateLimit() {
+    const startWait = Date.now();
+    while (true) {
+        const now = Date.now();
+        while (requestTimestamps.length > 0 && requestTimestamps[0] <= now - 1000) {
+            requestTimestamps.shift();
+        }
+        if (requestTimestamps.length < MAX_BURST_REQUESTS) {
+            requestTimestamps.push(now);
+            return;
+        }
+        if (now - startWait > MAX_RATE_LIMIT_WAIT_MS) {
+            throw new RateLimitError(429, "Too many requests. Please slow down.");
+        }
+        const oldest = requestTimestamps[0];
+        const waitMs = Math.max(25, 1000 - (now - oldest) + 10);
+        await new Promise(resolve => setTimeout(resolve, waitMs));
     }
-    if (requestTimestamps.length >= 20) {
-        throw new RateLimitError(429, "Too many requests. Please slow down.");
-    }
-    requestTimestamps.push(now);
 }
 
 async function sha256(message) {
@@ -190,7 +202,7 @@ if (typeof window !== "undefined" && getToken()) {
 
 async function request(endpoint, options = {}) {
     await ensureSession();
-    checkRateLimit();
+    await checkRateLimit();
 
     const isAiEndpoint = /^\/(chatbot|recommendations|roadmap\/generate|profile\/generate|survey\/submit)/.test(endpoint);
     const isPriority = options.priority === true || isAiEndpoint;
@@ -390,7 +402,7 @@ export function putFormData(endpoint, formData) {
 export async function postStream(endpoint, body, callbacks = {}, options = {}) {
     const { onMessage, onError, onDone } = callbacks;
     await ensureSession();
-    checkRateLimit();
+    await checkRateLimit();
 
     await enqueueRequest(true);
 

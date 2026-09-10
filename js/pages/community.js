@@ -253,17 +253,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadNavbar();
   let user = getUser();
 
-  // Fetch fresh profile from backend to check real profile completeness
-  if (user && isAuthenticated()) {
-    try {
-      const res = await getCurrentUser();
-      if (res && res.user) {
-        user = res.user;
-        setUser(res.user);
-      }
-    } catch {}
-  }
-
   const avatarEl = document.getElementById("forumStatusAvatar");
   if (avatarEl && user) {
     if (user.avatar && typeof user.avatar === 'string' && user.avatar.startsWith('http')) {
@@ -317,113 +306,135 @@ document.addEventListener("DOMContentLoaded", async () => {
   const uniName = urlParams.get("uniName");
   const topic = urlParams.get("topic");
 
-  let discussions;
-  if (category === "general") {
-    discussions = await getDiscussionsByCategory("general");
-  } else if (category === "event") {
-    const [userDiscussions, eventDiscussions] = await Promise.all([
-      getDiscussionsByCategory("event"),
-      getEventDiscussions(),
-    ]);
-    discussions = [...userDiscussions, ...eventDiscussions];
-    discussionsCache = eventDiscussions;
-  } else if (category === "uni" && uniId) {
-    discussions = await getCommunityDiscussions(uniId);
-    const trendingHeader = document.querySelector("#trending .forum-section-header");
-    if (trendingHeader && !document.getElementById("forumUniBackBtn")) {
-      const backLink = document.createElement("a");
-      backLink.id = "forumUniBackBtn";
-      backLink.href = "./community.html?cat=uni";
-      backLink.className = "inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline mb-2 cursor-pointer";
-      backLink.innerHTML = `<span class="material-symbols-outlined text-sm">arrow_back</span> ${t("community.all_universities") || "All Universities"}`;
-      trendingHeader.parentNode.insertBefore(backLink, trendingHeader);
+  let discussions = [];
+
+  if (category === "org") {
+    // Primary org view: immediately render organizations grid without loading discussions
+    await renderOrgGrid();
+  } else if (category === "uni" && !uniId) {
+    // Primary uni view: immediately render university directory without loading discussions
+    await renderUniGrid();
+    const currentUser = getUser();
+    const addBtn = document.getElementById("forumAddUniBtn");
+    if (addBtn && currentUser?.role === "admin") {
+      addBtn.style.display = "flex";
+      addBtn.addEventListener("click", () => {
+        openUniDialog(null, async (name, description, color, domains) => {
+          const result = await createUniversity(name, description, color, domains);
+          if (result) window.location.reload();
+        });
+      });
     }
-    const sectionTitle = document.querySelector("#trending .forum-section-title");
-    if (sectionTitle && uniName) {
-      sectionTitle.textContent = `${uniName} Discussions`;
+    initUniDialog();
+  } else {
+    // Load discussions for categories: "all", "general", "event", "uni" (with uniId), "mine", "saved"
+    if (category === "general") {
+      discussions = await getDiscussionsByCategory("general");
+    } else if (category === "event") {
+      const [userDiscussions, eventDiscussions] = await Promise.all([
+        getDiscussionsByCategory("event"),
+        getEventDiscussions(),
+      ]);
+      discussions = [...userDiscussions, ...eventDiscussions];
+      discussionsCache = eventDiscussions;
+    } else if (category === "uni" && uniId) {
+      discussions = await getCommunityDiscussions(uniId);
+      const trendingHeader = document.querySelector("#trending .forum-section-header");
+      if (trendingHeader && !document.getElementById("forumUniBackBtn")) {
+        const backLink = document.createElement("a");
+        backLink.id = "forumUniBackBtn";
+        backLink.href = "./community.html?cat=uni";
+        backLink.className = "inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline mb-2 cursor-pointer";
+        backLink.innerHTML = `<span class="material-symbols-outlined text-sm">arrow_back</span> ${t("community.all_universities") || "All Universities"}`;
+        trendingHeader.parentNode.insertBefore(backLink, trendingHeader);
+      }
+      const sectionTitle = document.querySelector("#trending .forum-section-title");
+      if (sectionTitle && uniName) {
+        sectionTitle.textContent = `${uniName} Discussions`;
+      }
+      const sectionSub = document.querySelector("#trending .forum-section-subtitle");
+      if (sectionSub) {
+        sectionSub.textContent = `Discussions from ${uniName || 'university'} community`;
+      }
+    } else if (category === "all") {
+      const [allDisc, eventDisc] = await Promise.all([
+        getDiscussionsByCategory("all"),
+        getEventDiscussions().catch(() => [])
+      ]);
+      const combined = [...allDisc];
+      for (const ed of eventDisc) {
+        const edRelEvent = String(ed.relatedEvent || ed.id || ed._id);
+        const existing = combined.find(d => 
+          String(d.id || d._id) === String(ed.id || ed._id) || 
+          (d.relatedEvent && String(d.relatedEvent) === edRelEvent)
+        );
+        if (existing) {
+          if (!existing._event && ed._event) existing._event = ed._event;
+        } else {
+          combined.push(ed);
+        }
+      }
+      discussions = combined;
+    } else {
+      discussions = await getDiscussionsByCategory(category);
     }
-    const sectionSub = document.querySelector("#trending .forum-section-subtitle");
-    if (sectionSub) {
-      sectionSub.textContent = `Discussions from ${uniName || 'university'} community`;
-    }
-  } else if (category === "all") {
-    const [allDisc, eventDisc] = await Promise.all([
-      getDiscussionsByCategory("all"),
-      getEventDiscussions().catch(() => [])
-    ]);
-    const combined = [...allDisc];
-    for (const ed of eventDisc) {
-      const edRelEvent = String(ed.relatedEvent || ed.id || ed._id);
-      const existing = combined.find(d => 
-        String(d.id || d._id) === String(ed.id || ed._id) || 
-        (d.relatedEvent && String(d.relatedEvent) === edRelEvent)
-      );
-      if (existing) {
-        if (!existing._event && ed._event) existing._event = ed._event;
-      } else {
-        combined.push(ed);
+
+    if (category === "event" || category === "all") {
+      const storedDiscRaw = localStorage.getItem("springwave_event_discussions");
+      if (storedDiscRaw) {
+        try {
+          const storedDiscs = JSON.parse(storedDiscRaw).filter(sd => {
+            const age = Date.now() - (sd._storedAt || 0);
+            return age < 7 * 24 * 60 * 60 * 1000; // remove entries older than 7 days
+          });
+          for (const sd of storedDiscs) {
+            const existing = discussions.findIndex(d => (d.id || d._id) === (sd.id || sd._id));
+            if (existing !== -1) {
+              discussions[existing]._event = sd._event;
+              discussions[existing].relatedEvent = sd.relatedEvent || discussions[existing].relatedEvent;
+            } else {
+              delete sd._storedAt;
+              discussions.unshift(sd);
+            }
+          }
+        } catch {}
       }
     }
-    discussions = combined;
-  } else {
-    discussions = await getDiscussionsByCategory(category);
-  }
 
-  if (category === "event" || category === "all") {
-    const storedDiscRaw = localStorage.getItem("springwave_event_discussions");
-    if (storedDiscRaw) {
+    const pendingRaw = sessionStorage.getItem("springwave_pending_discussion");
+    if (pendingRaw) {
+      sessionStorage.removeItem("springwave_pending_discussion");
       try {
-        const storedDiscs = JSON.parse(storedDiscRaw).filter(sd => {
-          const age = Date.now() - (sd._storedAt || 0);
-          return age < 7 * 24 * 60 * 60 * 1000; // remove entries older than 7 days
-        });
-        for (const sd of storedDiscs) {
-          const existing = discussions.findIndex(d => (d.id || d._id) === (sd.id || sd._id));
-          if (existing !== -1) {
-            discussions[existing]._event = sd._event;
-            discussions[existing].relatedEvent = sd.relatedEvent || discussions[existing].relatedEvent;
-          } else {
-            delete sd._storedAt;
-            discussions.unshift(sd);
-          }
+        const pending = JSON.parse(pendingRaw);
+        if (pending && (pending._id || pending.id)) {
+          const pid = pending._id || pending.id;
+          const existingIdx = discussions.findIndex(d => (d.id || d._id) === pid);
+          if (existingIdx !== -1) discussions.splice(existingIdx, 1);
+          discussions.unshift(pending);
         }
       } catch {}
     }
+
+    // Category filtering
+    if (category === "all") {
+      // Aggregated Newsfeed: Show all public discussions across categories (general, event, etc.)
+      // Only exclude internal private university discussions
+      discussions = discussions.filter(d => d.scope !== "community");
+    } else if (category === "uni" || category === "event" || category === "general") {
+      discussions = discussions.filter(d => d.category === category);
+    }
+
+    window._currentDiscussions = discussions;
+    await loadSavedDiscussionIds();
+    await enrichDiscussionsEventData(discussions);
+
+    renderDiscussions(discussions, category);
+    renderPopularDiscussions(discussions);
+    initFeedTabs();
+
+    // Concurrently enrich and sync accurate comment/reply counts from database
+    enrichDiscussionsReplies(discussions);
   }
-
-  const pendingRaw = sessionStorage.getItem("springwave_pending_discussion");
-  if (pendingRaw) {
-    sessionStorage.removeItem("springwave_pending_discussion");
-    try {
-      const pending = JSON.parse(pendingRaw);
-      if (pending && (pending._id || pending.id)) {
-        const pid = pending._id || pending.id;
-        const existingIdx = discussions.findIndex(d => (d.id || d._id) === pid);
-        if (existingIdx !== -1) discussions.splice(existingIdx, 1);
-        discussions.unshift(pending);
-      }
-    } catch {}
-  }
-
-  // Category filtering
-  if (category === "all") {
-    // Aggregated Newsfeed: Show all public discussions across categories (general, event, etc.)
-    // Only exclude internal private university discussions
-    discussions = discussions.filter(d => d.scope !== "community");
-  } else if (category === "uni" || category === "event" || category === "general") {
-    discussions = discussions.filter(d => d.category === category);
-  }
-
-  window._currentDiscussions = discussions;
-  await loadSavedDiscussionIds();
-  await enrichDiscussionsEventData(discussions);
-
-  renderDiscussions(discussions, category);
-  renderPopularDiscussions(discussions);
-  initFeedTabs();
-
-  // Concurrently enrich and sync accurate comment/reply counts from database
-  enrichDiscussionsReplies(discussions);
 
   // Register interactive click and modal handlers immediately so UI is instantly smooth
   initSidebarLinkClick();
@@ -433,23 +444,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.openEventPopup = openEventPopup;
   initDiscussionPopupClose();
 
-  // Load heavy network components concurrently in background
+  // Load ancillary components concurrently in background
   Promise.allSettled([
-    (category === "uni" && !uniId) ? renderUniGrid().then(() => {
-      const user = getUser();
-      const addBtn = document.getElementById("forumAddUniBtn");
-      if (addBtn && user?.role === "admin") {
-        addBtn.style.display = "flex";
-        addBtn.addEventListener("click", () => {
-          openUniDialog(null, async (name, description, color, domains) => {
-            const result = await createUniversity(name, description, color, domains);
-            if (result) window.location.reload();
-          });
-        });
-      }
-      initUniDialog();
-    }).catch(() => {}) : Promise.resolve(),
-    (category === "org") ? renderOrgGrid().catch(() => {}) : Promise.resolve(),
     initChatbot().catch(() => {}),
     loadFooter().catch(() => {})
   ]).then(() => {
@@ -775,32 +771,46 @@ async function loadSidebar(category, discussionsList = null) {
 async function enrichDiscussionsReplies(discussions) {
   if (!Array.isArray(discussions) || discussions.length === 0) return;
   const category = getCategoryFromURL();
-  await Promise.allSettled(
-    discussions.map(async (d) => {
-      const discId = String(d.id || d._id);
-      let storedCount = 0;
-      try {
-        const stored = JSON.parse(localStorage.getItem(`forum_comments_${discId}`) || "[]");
-        storedCount = stored.length;
-      } catch {}
+  if (category === "org" || (category === "uni" && !new URLSearchParams(window.location.search).get("uniId"))) {
+    return;
+  }
 
-      try {
-        const comments = await getComments(discId);
-        if (Array.isArray(comments)) {
-          const count = Math.max(comments.length, storedCount);
-          d.replies = count;
-          d.replyCount = count;
-          updateFeedDiscussionReplyCount(discId, count);
-        }
-      } catch {
-        if (storedCount > (d.replies || 0)) {
-          d.replies = storedCount;
-          d.replyCount = storedCount;
-          updateFeedDiscussionReplyCount(discId, storedCount);
-        }
+  // 1. Instantly apply locally stored comment counts from this browser
+  for (const d of discussions) {
+    const discId = String(d.id || d._id);
+    let storedCount = 0;
+    try {
+      const stored = JSON.parse(localStorage.getItem(`forum_comments_${discId}`) || "[]");
+      storedCount = stored.length;
+    } catch {}
+    if (storedCount > (d.replies || 0)) {
+      d.replies = storedCount;
+      d.replyCount = storedCount;
+      updateFeedDiscussionReplyCount(discId, storedCount);
+    }
+  }
+
+  // 2. Only fetch remote comments for discussions where reply count is truly undefined/missing
+  const needFetch = discussions.filter(d => d.replies === undefined || d.replies === null || isNaN(d.replies));
+  if (needFetch.length > 0) {
+    let idx = 0;
+    const worker = async () => {
+      while (idx < needFetch.length) {
+        const d = needFetch[idx++];
+        const discId = String(d.id || d._id);
+        try {
+          const comments = await getComments(discId);
+          if (Array.isArray(comments)) {
+            d.replies = comments.length;
+            d.replyCount = comments.length;
+            updateFeedDiscussionReplyCount(discId, comments.length);
+          }
+        } catch {}
       }
-    })
-  );
+    };
+    await Promise.all(Array.from({ length: Math.min(3, needFetch.length) }, () => worker()));
+  }
+
   renderPopularDiscussions(discussions, category).catch(() => {});
 }
 
@@ -3240,19 +3250,36 @@ async function renderOrgGrid() {
   }
   
   let orgsData = null;
+  let loadError = null;
   try {
     orgsData = await getPublicOrganizations();
   } catch (err) {
+    loadError = err;
     console.error("Failed to load public organizations:", err);
   }
-
-  const orgs = orgsData?.organizations || [];
 
   const orgSection = document.getElementById("organizations-section");
   const category = getCategoryFromURL();
   if (orgSection && category === "org") {
     orgSection.style.display = "";
   }
+
+  if (loadError) {
+    container.innerHTML = `
+      <div class="forum-empty text-center py-10" style="grid-column:1/-1;">
+        <span class="material-symbols-outlined forum-empty-icon text-red-500" style="font-size:48px;">error</span>
+        <p class="forum-empty-title text-base font-semibold text-[#191b22] mt-2">${t("community.failed_load_orgs", "Không thể tải danh sách tổ chức")}</p>
+        <p class="forum-empty-desc text-xs text-[#64748b] mt-1 mb-4">${loadError.message || t("community.try_again_later", "Vui lòng thử lại sau.")}</p>
+        <button id="retryLoadOrgsBtn" class="px-4 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all inline-flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">refresh</span> ${t("common.retry", "Thử lại")}
+        </button>
+      </div>
+    `;
+    document.getElementById("retryLoadOrgsBtn")?.addEventListener("click", () => renderOrgGrid());
+    return;
+  }
+
+  const orgs = orgsData?.organizations || [];
 
   if (!orgs || orgs.length === 0) {
     container.innerHTML = `
@@ -3265,36 +3292,9 @@ async function renderOrgGrid() {
     return;
   }
 
-  // Render cards
-  const cardsHtml = await Promise.all(orgs.map(async (org) => {
-    let events = [];
-    try {
-      const resp = await getOrganizationPublicEvents(org._id, 1);
-      events = resp.events || [];
-    } catch {}
-
-    const isPast = events.length > 0 && new Date(events[0].heldDate || events[0].createdAt) < new Date();
-    const eventsTitle = events.length === 0 ? t("org_profile.upcoming") : (isPast ? t("community.latest_events") : t("org_profile.upcoming"));
-
-    const eventsListHtml = events.length > 0 
-      ? events.map(e => `
-          <div class="flex items-center justify-between text-xs p-2 rounded-lg bg-[#f8f9fc] border border-[#ecedfa] hover:border-primary/30 transition-colors">
-            <div class="min-w-0 flex-grow pr-2">
-              <p class="font-semibold text-[#191b22] truncate">${e.title}</p>
-              <p class="text-[10px] text-[#64748b] flex items-center gap-1 mt-0.5">
-                <span class="material-symbols-outlined text-[10px]">calendar_today</span>
-                ${formatDate(e.heldDate)}
-              </p>
-            </div>
-            <button type="button" onclick="openEventPopup('${e._id}')" class="text-[10px] text-primary font-bold hover:underline shrink-0 flex items-center gap-0.5">
-              ${t("common.detail")} <span class="material-symbols-outlined text-[10px]">chevron_right</span>
-            </button>
-          </div>
-        `).join("")
-      : `<p class="text-xs text-[#94a3b8] italic text-center py-2">${t("org_profile.no_events")}</p>`;
-
+  // Render cards immediately with lightweight event placeholder
+  container.innerHTML = orgs.map(org => {
     const avatarUrl = org.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(org.name)}`;
-
     return `
       <div class="bg-white rounded-3xl border border-[#ecedfa] shadow-sm hover:shadow-md transition-all duration-300 p-5 flex flex-col justify-between" data-org-id="${org._id}">
         <div>
@@ -3316,10 +3316,12 @@ async function renderOrgGrid() {
           <div class="mb-4">
             <h4 class="text-xs font-bold text-[#191b22] mb-2 flex items-center gap-1">
               <span class="material-symbols-outlined text-[14px] text-primary">event</span>
-              ${eventsTitle}
+              <span id="org-events-title-${org._id}">${t("org_profile.upcoming")}</span>
             </h4>
-            <div class="space-y-2">
-              ${eventsListHtml}
+            <div class="space-y-2" id="org-events-list-${org._id}">
+              <div class="h-9 rounded-lg bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center">
+                <span class="text-[10px] text-gray-400 italic">${t("common.loading", "Đang tải...")}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -3335,9 +3337,7 @@ async function renderOrgGrid() {
         </div>
       </div>
     `;
-  }));
-
-  container.innerHTML = cardsHtml.join("");
+  }).join("");
 
   // Add click listeners to Follow buttons
   container.querySelectorAll(".follow-org-btn").forEach(btn => {
@@ -3356,8 +3356,6 @@ async function renderOrgGrid() {
       btn.disabled = true;
       try {
         const result = await toggleFollowOrganization(orgId);
-        
-        // Update button text and style
         if (result.isFollowing) {
           btn.textContent = "✓ " + t("org_profile.following_btn");
           btn.className = "follow-org-btn px-3 py-2 rounded-xl text-xs font-bold text-center flex-1 transition-all bg-gray-100 text-gray-500 hover:bg-gray-200";
@@ -3366,7 +3364,6 @@ async function renderOrgGrid() {
           btn.className = "follow-org-btn px-3 py-2 rounded-xl text-xs font-bold text-center flex-1 transition-all bg-primary text-white hover:bg-primary/90";
         }
 
-        // Update followers counter
         const card = container.querySelector(`[data-org-id="${orgId}"]`);
         if (card) {
           const counter = card.querySelector(".followers-count");
@@ -3379,6 +3376,56 @@ async function renderOrgGrid() {
       }
     });
   });
+
+  // Smoothly load organization events in background with bounded concurrency pool
+  loadOrgEventsWithPool(orgs, 3).catch(() => {});
+}
+
+async function loadOrgEventsWithPool(orgList, limit = 3) {
+  let index = 0;
+  async function worker() {
+    while (index < orgList.length) {
+      const org = orgList[index++];
+      try {
+        const resp = await getOrganizationPublicEvents(org._id, 1);
+        const events = resp?.events || [];
+        const isPast = events.length > 0 && new Date(events[0].heldDate || events[0].createdAt) < new Date();
+        const titleEl = document.getElementById(`org-events-title-${org._id}`);
+        if (titleEl) {
+          titleEl.textContent = events.length === 0 ? t("org_profile.upcoming") : (isPast ? t("community.latest_events") : t("org_profile.upcoming"));
+        }
+        const listEl = document.getElementById(`org-events-list-${org._id}`);
+        if (listEl) {
+          if (events.length > 0) {
+            listEl.innerHTML = events.map(e => `
+              <div class="flex items-center justify-between text-xs p-2 rounded-lg bg-[#f8f9fc] border border-[#ecedfa] hover:border-primary/30 transition-colors">
+                <div class="min-w-0 flex-grow pr-2">
+                  <p class="font-semibold text-[#191b22] truncate">${e.title}</p>
+                  <p class="text-[10px] text-[#64748b] flex items-center gap-1 mt-0.5">
+                    <span class="material-symbols-outlined text-[10px]">calendar_today</span>
+                    ${formatDate(e.heldDate)}
+                  </p>
+                </div>
+                <button type="button" onclick="openEventPopup('${e._id}')" class="text-[10px] text-primary font-bold hover:underline shrink-0 flex items-center gap-0.5">
+                  ${t("common.detail", "Details")} <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+                </button>
+              </div>
+            `).join("");
+          } else {
+            listEl.innerHTML = `<p class="text-xs text-[#94a3b8] italic text-center py-2">${t("org_profile.no_events")}</p>`;
+          }
+        }
+      } catch {
+        const listEl = document.getElementById(`org-events-list-${org._id}`);
+        if (listEl) {
+          listEl.innerHTML = `<p class="text-xs text-[#94a3b8] italic text-center py-2">${t("org_profile.no_events")}</p>`;
+        }
+      }
+    }
+  }
+  const poolSize = Math.min(limit, orgList.length);
+  const workers = Array.from({ length: poolSize }, () => worker());
+  await Promise.all(workers);
 }
 
 if (typeof window !== "undefined") {
@@ -3387,7 +3434,11 @@ if (typeof window !== "undefined") {
     setActiveCategory(category);
     updatePageTitle(category);
     showSections(category);
-    if (window._currentDiscussions) {
+    if (category === "org") {
+      renderOrgGrid().catch(() => {});
+    } else if (category === "uni" && !new URLSearchParams(window.location.search).get("uniId")) {
+      renderUniGrid().catch(() => {});
+    } else if (window._currentDiscussions) {
       renderDiscussions(window._currentDiscussions, category);
       renderPopularDiscussions(window._currentDiscussions, category);
     }
