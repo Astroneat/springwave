@@ -436,9 +436,6 @@ function initNavbarActiveLinks() {
         }
     });
 }
-
-
-
 async function loadCategories() {
     try {
         const data = await listCategories();
@@ -513,199 +510,102 @@ async function initExplore() {
     }
 }
 
-async function ensureCardTemplate() {
-    if (!cachedTemplate) {
-        const templateHTML = await fetchContent("./components/cards.html");
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(templateHTML, "text/html");
-        cachedTemplate = doc.querySelector(".card");
-    }
-    return cachedTemplate;
-}
-
-function createActivityCard(rawActivity, options = {}) {
-    if (!cachedTemplate) return null;
-    const actId = String(rawActivity.activityID || rawActivity._id || '');
-    const fullEvent = allActivities.find(e => String(e.activityID || e._id) === actId) || {};
-    const activity = { ...fullEvent, ...rawActivity };
-    if (rawActivity.hasCertificate === undefined && fullEvent.hasCertificate !== undefined) {
-        activity.hasCertificate = fullEvent.hasCertificate;
-    }
-
-    const card = cachedTemplate.cloneNode(true);
-    card.classList.add("revealed");
-
-    const image = card.querySelector(".card-image");
-    if (image) {
-        image.src = activity.thumbnail;
-        image.alt = activity.title;
-        image.loading = "lazy";
-        image.decoding = "async";
-    }
-    card.querySelector(".card-title").textContent = activity.title;
-    const locationSpan = card.querySelector(".info-location");
-    if (locationSpan) locationSpan.textContent = activity.location || t("explore.unknown_location");
-
-    const dateSpan = card.querySelector(".info-date");
-    if (dateSpan) dateSpan.textContent = formatDate(activity.heldDate);
-
-    const typeSpan = card.querySelector(".info-type");
-    if (typeSpan) {
-        const cat = activity.category;
-        if (cat && cat.name) {
-            typeSpan.textContent = cat.name;
-        } else {
-            typeSpan.textContent = capitalize(activity.type || "Activity");
-        }
-    }
-
-    const hostSpan = card.querySelector(".info-host");
-    if (hostSpan) {
-        const hostOrgName = typeof activity.organization === 'object' ? activity.organization?.name : null;
-        const orgUni = activity.organization?.university;
-        const uniShort = orgUni?.shortName || activity.source?.school;
-        const baseHost = hostOrgName || activity.hostName || (activity.organization ? t("common.organization", "Organization") : activity.createdByName) || t("common.unknown") || "Unknown";
-        hostSpan.textContent = uniShort ? `${baseHost} (${uniShort})` : baseHost;
-    }
-    
-    const status = getEventStatus(activity);
-
-    const btn = card.querySelector(".details-btn");
-    if (btn && status !== 'ended') {
-        btn.textContent = t("explore.view_details") || "View Details";
-    }
-
-    const topLeftBadges = document.createElement("div");
-    topLeftBadges.className = "absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-col items-start gap-1.5 z-10 pointer-events-none";
-
-    let pct = null;
-    if (Number.isFinite(activity.percentage)) {
-        pct = Math.round(activity.percentage);
-    } else if (Number.isFinite(activity.score)) {
-        pct = Math.round(activity.score <= 1 ? activity.score * 100 : activity.score);
-    } else if (Number.isFinite(activity.matchPercentage)) {
-        pct = Math.round(activity.matchPercentage);
-    } else if (Number.isFinite(activity.matchScore)) {
-        pct = Math.round(activity.matchScore <= 1 ? activity.matchScore * 100 : activity.matchScore);
-    } else if (Number.isFinite(activity.similarity)) {
-        pct = Math.round(activity.similarity <= 1 ? activity.similarity * 100 : activity.similarity);
-    } else if (options.matchScore !== undefined && options.matchScore !== null && Number.isFinite(Number(options.matchScore))) {
-        const s = Number(options.matchScore);
-        pct = Math.round(s <= 1 ? s * 100 : s);
-    } else if (options.isRecommended) {
-        // Deterministic high-match score for AI recommendations if not provided by backend
-        const str = String(activity.activityID || activity._id || activity.title || 'sw');
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = (hash << 5) - hash + str.charCodeAt(i);
-            hash |= 0;
-        }
-        pct = 86 + Math.abs(hash % 12);
-    }
-
-    // Top-Right container for Category Tag Overlay and Percentage Match Badge
-    let topRightBadges = card.querySelector(".card-top-right");
-    if (!topRightBadges) {
-        topRightBadges = document.createElement("div");
-        topRightBadges.className = "card-top-right absolute top-2 right-2 sm:top-2.5 sm:right-2.5 flex flex-col items-end gap-1.5 z-10 pointer-events-none max-w-[65%]";
-        const tagOverlay = card.querySelector(".card-tag-overlay");
-        if (tagOverlay) {
-            tagOverlay.classList.remove("absolute", "top-2", "right-2", "sm:top-2.5", "sm:right-2.5", "max-w-[75%]", "max-w-[48%]");
-            tagOverlay.classList.add("pointer-events-auto", "max-w-full");
-            tagOverlay.parentNode.insertBefore(topRightBadges, tagOverlay);
-            topRightBadges.appendChild(tagOverlay);
-        } else {
-            card.appendChild(topRightBadges);
-        }
-    }
-
-    if (pct !== null) {
-        const matchPill = document.createElement("div");
-        matchPill.className = "recommendation-match-pill pointer-events-auto";
-        matchPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>${pct}% ${t("explore.match_pill", "Match")}</span>`;
-        topRightBadges.appendChild(matchPill);
-    }
-
-    if (status === 'ended') {
-        card.classList.add("opacity-75", "grayscale-[0.5]");
-        if (btn) {
-            btn.textContent = t("explore.ended") || "Ended";
-            btn.classList.add("!bg-gray-300", "!text-gray-600", "cursor-not-allowed", "!shadow-none");
-            btn.classList.remove("bg-primary", "text-white");
-            btn.style.pointerEvents = "none";
-        }
-        const endedBadge = document.createElement("div");
-        endedBadge.className = "bg-red-50 text-red-700 border border-red-200/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
-        endedBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-xs"></i><span>${t("explore.ended") || "Ended"}</span>`;
-        topLeftBadges.appendChild(endedBadge);
-    } else if (status === 'ongoing') {
-        const ongoingBadge = document.createElement("div");
-        ongoingBadge.className = "bg-emerald-50 text-emerald-700 border border-emerald-200/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
-        ongoingBadge.innerHTML = `<i class="fa-solid fa-circle-play text-xs animate-pulse"></i><span>${t("explore.ongoing") || "Ongoing"}</span>`;
-        topLeftBadges.appendChild(ongoingBadge);
-    } else if (status === 'registration_closed') {
-        const closedBadge = document.createElement("div");
-        closedBadge.className = "bg-amber-50 text-amber-800 border border-amber-200/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
-        closedBadge.innerHTML = `<i class="fa-solid fa-user-xmark text-xs"></i><span>${t("explore.registration_closed") || "Hết hạn đăng ký"}</span>`;
-        topLeftBadges.appendChild(closedBadge);
-    }
-
-    const hasCert = activity.hasCertificate === true || activity.hasCertificate === 'true' 
-                 || activity.certificate === true || activity.certificate === 'true'
-                 || fullEvent?.hasCertificate === true || fullEvent?.hasCertificate === 'true';
-    if (hasCert) {
-        const certBadge = document.createElement("div");
-        certBadge.className = "bg-amber-50 text-amber-900 border border-amber-300/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs pointer-events-auto";
-        certBadge.innerHTML = `<i class="fa-solid fa-award text-amber-600 text-xs"></i><span>${t("explore.certificate_badge") || "Certificate"}</span>`;
-        topLeftBadges.appendChild(certBadge);
-    }
-
-    if (topLeftBadges.children.length > 0) {
-        card.appendChild(topLeftBadges);
-    }
-
-    card.dataset.id = String(activity.activityID || activity._id);
-    return card;
+function buildRecommendationSkeletonCard(i = 0) {
+    const delay = i * 80;
+    return `
+        <div class="explore-skeleton-card" style="animation-delay:${delay}ms">
+            <div class="explore-skeleton-block explore-skeleton-image"></div>
+            <div class="explore-skeleton-body">
+                <div class="explore-skeleton-block explore-skeleton-title"></div>
+                <div class="explore-skeleton-block explore-skeleton-title short"></div>
+                <div class="explore-skeleton-block explore-skeleton-line wide"></div>
+                <div class="explore-skeleton-block explore-skeleton-line"></div>
+                <div class="explore-skeleton-block explore-skeleton-pill"></div>
+                <div class="explore-skeleton-footer">
+                    <div class="explore-skeleton-block explore-skeleton-button"></div>
+                    <div class="explore-skeleton-block explore-skeleton-star"></div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 async function renderRecommendations(recommended) {
     const section = document.getElementById("recommendations-section");
     const container = document.getElementById("recommendations-container");
     if (!section || !container) return;
-    if (recommended.length === 0) {
+    if (!recommended || recommended.length === 0) {
         section.style.display = "none";
+        container.innerHTML = "";
         return;
     }
 
-    await ensureCardTemplate();
+    await getCardTemplate();
+    if (!cachedTemplate) return;
+
     section.style.display = "block";
     container.innerHTML = "";
     const frag = document.createDocumentFragment();
     recommended.slice(0, 8).forEach(a => {
-        const card = createActivityCard(a, { isRecommended: true });
-        if (card) {
-            if (!allActivities.some(existing => String(existing.activityID || existing._id) === String(a.activityID || a._id))) {
-                allActivities.push(a);
-            }
-            frag.appendChild(card);
-        }
+        const card = createCardElement(a, { showMatchBadge: true });
+        if (card) frag.appendChild(card);
     });
     container.appendChild(frag);
-    initCardClickHandlers();
+
+    if (typeof attachCardContainerListeners === "function") {
+        attachCardContainerListeners(container);
+    }
     await syncCardFavourites();
 }
 
 async function loadRecommendations() {
-    if (!isAuthenticated()) return;
+    const section = document.getElementById("recommendations-section");
+    const container = document.getElementById("recommendations-container");
+    if (!section || !container) return;
+
+    if (!isAuthenticated()) {
+        section.style.display = "none";
+        return;
+    }
+
+    // Immediately display section with shimmering skeleton cards
+    section.style.display = "block";
+    container.innerHTML = Array.from({ length: 4 }, (_, i) => buildRecommendationSkeletonCard(i)).join("");
+
     try {
-        const data = await getRecommendations();
-        const rawRecommended = data?.events || data?.recommendations || [];
-        currentRecommendations = rawRecommended.filter(a => getEventStatus(a) === 'registration_open');
-        await renderRecommendations(currentRecommendations);
-    } catch {
-        currentRecommendations = [];
-        const section = document.getElementById("recommendations-section");
-        if (section) section.style.display = "none";
+        const [data] = await Promise.all([
+            getRecommendations(),
+            getCardTemplate()
+        ]);
+
+        const rawRecommended = data?.events || data?.recommendations || (Array.isArray(data) ? data : []);
+        let recommended = rawRecommended.filter(a => getEventStatus(a) === 'registration_open');
+        if (recommended.length === 0) {
+            recommended = rawRecommended.filter(a => getEventStatus(a) !== 'ended');
+        }
+        if (recommended.length === 0 && rawRecommended.length > 0) {
+            recommended = rawRecommended;
+        }
+
+        currentRecommendations = recommended;
+
+        if (recommended.length === 0 || !cachedTemplate) {
+            section.style.display = "none";
+            container.innerHTML = "";
+            return;
+        }
+
+        recommendedActivitiesMap.clear();
+        recommended.forEach(a => {
+            const id = String(a.activityID || a._id || "");
+            if (id) recommendedActivitiesMap.set(id, a);
+        });
+
+        await renderRecommendations(recommended);
+    } catch (e) {
+        console.error("Failed to load recommendations:", e);
+        section.style.display = "none";
+        container.innerHTML = "";
     }
 }
 
@@ -714,30 +614,22 @@ window.addEventListener('springwave:ai-match-updated', (e) => {
     const { activityID, percentage } = e.detail || {};
     if (!activityID || !Number.isFinite(percentage)) return;
 
-    const cards = document.querySelectorAll(`.card[data-id="${activityID}"]`);
+    const cards = document.querySelectorAll(`[data-id="${activityID}"]`);
     cards.forEach(card => {
-        let pill = card.querySelector('.recommendation-match-pill');
+        let pill = card.querySelector('.card-match-badge') || card.querySelector('.recommendation-match-pill');
         if (pill) {
-            pill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>${percentage}% ${t("explore.match_pill", "Match")}</span>`;
-        } else {
-            let topRightBadges = card.querySelector(".card-top-right");
-            if (!topRightBadges) {
-                topRightBadges = document.createElement("div");
-                topRightBadges.className = "card-top-right absolute top-2 right-2 sm:top-2.5 sm:right-2.5 flex flex-col items-end gap-1.5 z-10 pointer-events-none max-w-[65%]";
-                const tagOverlay = card.querySelector(".card-tag-overlay");
-                if (tagOverlay) {
-                    tagOverlay.classList.remove("absolute", "top-2", "right-2", "sm:top-2.5", "sm:right-2.5", "max-w-[75%]", "max-w-[48%]");
-                    tagOverlay.classList.add("pointer-events-auto", "max-w-full");
-                    tagOverlay.parentNode.insertBefore(topRightBadges, tagOverlay);
-                    topRightBadges.appendChild(tagOverlay);
-                } else {
-                    card.appendChild(topRightBadges);
-                }
+            pill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i><span>${percentage}% ${t("explore.match_pill", "Match")}</span>`;
+        } else if (card.closest('#recommendations-container')) {
+            let badges = card.querySelector('.card-top-badges');
+            if (!badges) {
+                badges = document.createElement('div');
+                badges.className = 'card-top-badges absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-col items-start gap-1.5 z-10 pointer-events-none';
+                card.appendChild(badges);
             }
             const newPill = document.createElement('div');
-            newPill.className = 'recommendation-match-pill pointer-events-auto';
-            newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>${percentage}% ${t("explore.match_pill", "Match")}</span>`;
-            topRightBadges.appendChild(newPill);
+            newPill.className = 'card-match-badge recommendation-match-pill shadow-xs';
+            newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i><span>${percentage}% ${t("explore.match_pill", "Match")}</span>`;
+            badges.prepend(newPill);
         }
     });
 });
@@ -1168,7 +1060,7 @@ async function renderCardsDirect(activities) {
     cardsContainer.innerHTML = "";
     const frag = document.createDocumentFragment();
     paginatedActivities.forEach(activity => {
-        const card = createActivityCard(activity);
+        const card = createCardElement(activity);
         if (card) frag.appendChild(card);
     });
     cardsContainer.appendChild(frag);
@@ -1415,8 +1307,6 @@ async function initMyUniToggle() {
 function initializePage() {
     initCardReveal();
 }
-
-
 
 function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
@@ -1978,4 +1868,3 @@ if (typeof window !== "undefined") {
         renderRecommendations(currentRecommendations).catch(() => {});
     });
 }
-

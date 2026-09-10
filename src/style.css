@@ -9820,30 +9820,48 @@ textarea {
 
 .recommendations-container {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
   overflow-x: auto;
-  padding: 6px 4px 18px 4px;
-  scroll-snap-type: x mandatory;
+  padding: 6px 4px 16px 4px;
   scrollbar-width: thin;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
 }
 
 .recommendations-container::-webkit-scrollbar {
   height: 6px;
 }
-.recommendations-container::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 999px;
+
+.recommendations-container::-webkit-scrollbar-track {
+  background: rgba(28, 39, 76, 0.04);
+  border-radius: 9999px;
 }
 
-.recommendations-container .card {
+.recommendations-container::-webkit-scrollbar-thumb {
+  background: rgba(28, 39, 76, 0.15);
+  border-radius: 9999px;
+}
+
+.recommendations-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(28, 39, 76, 0.25);
+}
+
+.recommendations-container .card,
+.recommendations-container .explore-skeleton-card {
   flex: 0 0 280px;
   width: 280px;
+  min-width: 280px;
   max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   scroll-snap-align: start;
 }
 
 @media (max-width: 1280px) {
-  .recommendations-container .card {
+  .recommendations-container .card,
+  .recommendations-container .explore-skeleton-card {
     flex: 0 0 270px;
     width: 270px;
     max-width: 270px;
@@ -9854,7 +9872,8 @@ textarea {
   .recommendations-container {
     gap: 0.85rem;
   }
-  .recommendations-container .card {
+  .recommendations-container .card,
+  .recommendations-container .explore-skeleton-card {
     flex: 0 0 240px;
     width: 240px;
     max-width: 240px;
@@ -9866,11 +9885,28 @@ textarea {
     gap: 0.85rem;
     padding: 6px 4px 16px 4px;
   }
-  .recommendations-container .card {
+  .recommendations-container .card,
+  .recommendations-container .explore-skeleton-card {
     flex: 0 0 min(280px, 80vw);
     width: min(280px, 80vw);
     max-width: 300px;
   }
+}
+
+.card-match-badge {
+  background: #7c3aed !important;
+  color: #ffffff !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 3px 8px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  position: static !important;
+  letter-spacing: 0.02em !important;
+  pointer-events: auto !important;
 }
 
 .similar-events-grid {
