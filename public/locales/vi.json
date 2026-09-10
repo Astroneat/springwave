@@ -1623,6 +1623,8 @@
     "draft": "Bản nháp",
     "published": "Đã xuất bản",
     "view": "Xem",
+    "detail": "Chi tiết",
+    "details": "Chi tiết",
     "like": "Thích",
     "none": "Không có",
     "confirm_title": "Xác Nhận",
@@ -2778,6 +2780,10 @@
     "event_details": "Chi tiết sự kiện",
     "ai_match": "Độ tương thích AI",
     "check_match": "Xem mức độ phù hợp",
+    "recheck_match": "Phân tích lại",
+    "match_major": "Chuyên ngành",
+    "match_mbti": "Tính cách MBTI",
+    "match_goal": "Mục tiêu",
     "organizer_profile": "Hồ sơ Ban tổ chức",
     "download_hint": "Nhấn để tải tài liệu đính kèm",
     "open_full": "Mở ảnh gốc",
@@ -2869,7 +2875,9 @@
     "close_btn": "Để sau"
   },
   "ai_recommend": {
-    "analyzing": "Đang phân tích..."
+    "analyzing": "Đang phân tích...",
+    "analyzing_match": "AI đang phân tích độ tương thích với hồ sơ của bạn...",
+    "evaluating_match": "Đang so khớp chuyên ngành, tính cách MBTI và mục tiêu phát triển..."
   },
   "navbar": {
     "host_pending_review": "Hồ sơ đăng ký Host của bạn đang chờ duyệt. Vui lòng đợi quản trị viên phê duyệt.",

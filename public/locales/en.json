@@ -1623,6 +1623,8 @@
     "draft": "Draft",
     "published": "Published",
     "view": "View",
+    "detail": "Details",
+    "details": "Details",
     "like": "Like",
     "none": "None",
     "confirm_title": "Confirmation",
@@ -2778,6 +2780,10 @@
     "event_details": "Event Details",
     "ai_match": "AI Match",
     "check_match": "Check Match",
+    "recheck_match": "Re-check Match",
+    "match_major": "Major",
+    "match_mbti": "MBTI Profile",
+    "match_goal": "Goal",
     "organizer_profile": "Organizer Profile",
     "download_hint": "Click to download resource",
     "open_full": "Open full",
@@ -2869,7 +2875,9 @@
     "close_btn": "Maybe Later"
   },
   "ai_recommend": {
-    "analyzing": "Analyzing..."
+    "analyzing": "Analyzing...",
+    "analyzing_match": "AI is analyzing match with your profile...",
+    "evaluating_match": "Evaluating major, MBTI personality, and career goals..."
   },
   "navbar": {
     "host_pending_review": "Your host registration is pending review. Please wait for approval.",

@@ -64,15 +64,27 @@ export function deepNormalizeNFC(val) {
     return val;
 }
 
-function checkRateLimit() {
-    const now = Date.now();
-    while (requestTimestamps.length > 0 && requestTimestamps[0] < now - 1000) {
-        requestTimestamps.shift();
+const MAX_BURST_REQUESTS = 30;
+const MAX_RATE_LIMIT_WAIT_MS = 10000;
+
+async function checkRateLimit() {
+    const startWait = Date.now();
+    while (true) {
+        const now = Date.now();
+        while (requestTimestamps.length > 0 && requestTimestamps[0] <= now - 1000) {
+            requestTimestamps.shift();
+        }
+        if (requestTimestamps.length < MAX_BURST_REQUESTS) {
+            requestTimestamps.push(now);
+            return;
+        }
+        if (now - startWait > MAX_RATE_LIMIT_WAIT_MS) {
+            throw new RateLimitError(429, "Too many requests. Please slow down.");
+        }
+        const oldest = requestTimestamps[0];
+        const waitMs = Math.max(25, 1000 - (now - oldest) + 10);
+        await new Promise(resolve => setTimeout(resolve, waitMs));
     }
-    if (requestTimestamps.length >= 20) {
-        throw new RateLimitError(429, "Too many requests. Please slow down.");
-    }
-    requestTimestamps.push(now);
 }
 
 async function sha256(message) {
@@ -131,6 +143,7 @@ function scheduleRefresh() {
 }
 
 let refreshPromise = null;
+let signingKeyPromise = null;
 
 async function refreshTokens() {
     if (refreshPromise) return refreshPromise;
@@ -165,6 +178,41 @@ async function refreshTokens() {
     return refreshPromise;
 }
 
+// Older browser sessions can have a valid access token but predate the
+// per-session HMAC key. Recover it before making a signed write request.
+export async function ensureSigningKey() {
+    const existingKey = getSigningKey();
+    if (existingKey) return existingKey;
+
+    const token = getToken();
+    if (!token) return null;
+    if (signingKeyPromise) return signingKeyPromise;
+
+    signingKeyPromise = (async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/session/init`, {
+                headers: { Authorization: `Bearer ${token}` },
+                credentials: "include",
+            });
+            if (!response.ok) return null;
+
+            const data = await response.json();
+            if (!data?.signingKey) return null;
+
+            setSigningKey(data.signingKey);
+            return data.signingKey;
+        } catch {
+            return null;
+        } finally {
+            signingKeyPromise = null;
+        }
+    })();
+
+    return signingKeyPromise;
+}
+
+const needsRequestSignature = (method) => !["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
+
 export async function ensureSession() {
     const token = getToken();
     if (!token) return false;
@@ -190,7 +238,7 @@ if (typeof window !== "undefined" && getToken()) {
 
 async function request(endpoint, options = {}) {
     await ensureSession();
-    checkRateLimit();
+    await checkRateLimit();
 
     const isAiEndpoint = /^\/(chatbot|recommendations|roadmap\/generate|profile\/generate|survey\/submit)/.test(endpoint);
     const isPriority = options.priority === true || isAiEndpoint;
@@ -198,10 +246,12 @@ async function request(endpoint, options = {}) {
     await enqueueRequest(isPriority);
 
     const token = getToken();
-    const signingKey = getSigningKey();
     const headers = { ...options.headers };
     const method = options.method || "GET";
     const isFormData = options.body instanceof FormData;
+    const signingKey = token && needsRequestSignature(method)
+        ? await ensureSigningKey()
+        : getSigningKey();
 
     if (!isFormData) {
         headers["Content-Type"] = "application/json";
@@ -209,6 +259,11 @@ async function request(endpoint, options = {}) {
 
     if (token) {
         headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (token && needsRequestSignature(method) && !signingKey) {
+        releaseRequest();
+        throw new ApiError(401, "Session signing key unavailable. Please sign in again.");
     }
 
     if (token && signingKey) {
@@ -390,18 +445,23 @@ export function putFormData(endpoint, formData) {
 export async function postStream(endpoint, body, callbacks = {}, options = {}) {
     const { onMessage, onError, onDone } = callbacks;
     await ensureSession();
-    checkRateLimit();
+    await checkRateLimit();
 
     await enqueueRequest(true);
 
     const token = getToken();
-    const signingKey = getSigningKey();
+    const signingKey = token ? await ensureSigningKey() : null;
     const headers = { Accept: "text/event-stream", ...options.headers };
     const method = "POST";
     headers["Content-Type"] = "application/json";
 
     if (token) {
         headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (token && !signingKey) {
+        releaseRequest();
+        throw new ApiError(401, "Session signing key unavailable. Please sign in again.");
     }
 
     const bodyStr = JSON.stringify(body);
@@ -479,4 +539,3 @@ export async function postStream(endpoint, body, callbacks = {}, options = {}) {
         completeProgress();
     }
 }
-
