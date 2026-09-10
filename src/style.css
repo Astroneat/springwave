@@ -9881,6 +9881,11 @@ textarea {
   color: #23499b;
 }
 
+.notif-item-icon.badge-notif {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #d97706 !important;
+}
+
 .notif-item-icon .material-symbols-outlined {
   font-size: 18px;
 }

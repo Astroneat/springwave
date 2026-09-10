@@ -34,11 +34,13 @@ export function addBadgeNotification(badgeKey, badgeLabel) {
   const list = load();
   const exists = list.some((n) => n.type === "badge" && n.badgeKey === badgeKey);
   if (exists) return;
+  const label = badgeLabel || badgeKey;
   list.unshift({
     id: "notif_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
     type: "badge",
     badgeKey,
-    message: `You earned the "${badgeLabel}" badge!`,
+    badgeLabel: label,
+    message: `You earned the "${label}" badge!`,
     createdAt: new Date().toISOString(),
     read: false,
   });
@@ -83,6 +85,12 @@ export function markAllRead() {
 export async function pollServerNotifications() {
   if (!isAuthenticated()) return;
   try {
+    import("../components/badgeCelebration.js").then((m) => {
+      if (typeof m.syncOfflineBadgeNotifications === "function") {
+        m.syncOfflineBadgeNotifications();
+      }
+    }).catch(() => {});
+
     const serverNotifs = await fetchServerNotifications();
     if (!serverNotifs || serverNotifs.length === 0) return;
     const localList = load();

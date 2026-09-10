@@ -31,7 +31,8 @@ import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { t, getLang } from "../lib/i18n.js";
 import { populateUniversitySelect } from "../api/universities.js";
-import { triggerBadgeCelebration, BADGE_DEFINITIONS } from "../components/badgeCelebration.js";
+import { triggerBadgeCelebration, BADGE_DEFINITIONS, computeLocalBadges } from "../components/badgeCelebration.js";
+import { addBadgeNotification } from "../lib/notifications.js";
 
 const popupOverlay = document.getElementById("popup-overlay");
 const popupContainer = document.getElementById("popup-container");
@@ -135,47 +136,6 @@ function awardSelfDiscoveryBadgeIfNeeded(user) {
   }
 }
 
-function computeLocalBadges(user, c = {}, favoritesCount = 0, participationsCount = 0) {
-  const badges = [];
-  if (user) badges.push("hello_world");
-  if ((c.repliesGiven || 0) >= 1) badges.push("talk_is_silver");
-  if ((c.discussionsStarted || 0) >= 1) badges.push("so_it_begins");
-  if (hasUserCompletedQuiz(user)) {
-    badges.push("self_discovery");
-    try {
-      localStorage.setItem("springwave_quiz_completed", "true");
-    } catch {}
-  }
-  if ((c.discussionsStarted || 0) >= 5) badges.push("conversation_starter");
-  if ((c.repliesGiven || 0) >= 10) badges.push("helper");
-  if ((c.repliesGiven || 0) >= 50) badges.push("chatterbox");
-  if ((c.likesReceived || 0) >= 20) badges.push("respected");
-  if ((c.likesReceived || 0) >= 50) badges.push("the_oracle");
-  if ((c.discussionsStarted || 0) >= 20) badges.push("trendsetter");
-  if ((c.score || 0) >= 100) badges.push("community_star");
-  if ((c.repliesGiven || 0) >= 100) badges.push("keyboard_warrior");
-  if ((c.score || 0) >= 1000) badges.push("mentor");
-  if ((c.score || 0) >= 2000) badges.push("the_sage");
-  if ((c.repliesGiven || 0) > (c.discussionsStarted || 0) * 10 && (c.discussionsStarted || 0) > 0) badges.push("one_man_show");
-  if ((c.discussionsStarted || 0) <= 3 && (c.discussionsStarted || 0) > 0 && (c.likesReceived || 0) >= (c.discussionsStarted || 0) * 5) badges.push("quality_over_quantity");
-
-  // Activity & Event Gamification
-  if (favoritesCount >= 5) badges.push("active_explorer");
-  if (participationsCount >= 1) badges.push("event_goer");
-  if (user && user.role === "host") {
-    badges.push("rising_host");
-    if ((c.score || 0) >= 100 || favoritesCount >= 5) {
-      badges.push("grand_host");
-    }
-  }
-
-  // Knowledge & Certificates Gamification
-  if ((c.certificatesEarned || 0) >= 1) badges.push("certified_novice");
-  if ((c.certificatesEarned || 0) >= 5) badges.push("certified_expert");
-  if ((c.certificatesEarned || 0) >= 10) badges.push("certified_master");
-
-  return badges;
-}
 
 function closePopup() {
     if (!popupOverlay) return;
@@ -1017,6 +977,20 @@ async function syncBadgesAndContribution() {
     const localBadges = computeLocalBadges(user, c, favoritesCount, participationsCount);
     const mergedBadges = [...new Set([...serverBadges, ...localBadges])];
     const earnedKeys = new Set(mergedBadges);
+
+    // Detect newly earned badges and dispatch notifications
+    try {
+      const savedBadgesRaw = localStorage.getItem(badgeStorageKey);
+      const storedBadges = savedBadgesRaw ? JSON.parse(savedBadgesRaw) : [];
+      if (savedBadgesRaw !== null) {
+        const newBadges = mergedBadges.filter((b) => !storedBadges.includes(b));
+        for (const badgeKey of newBadges) {
+          const badgeDef = BADGE_DEFINITIONS.find((b) => b.key === badgeKey);
+          const badgeLabel = badgeDef ? badgeDef.label : badgeKey.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+          addBadgeNotification(badgeKey, badgeLabel);
+        }
+      }
+    } catch {}
 
     // Save to localStorage for instant 0ms loads on future visits
     localStorage.setItem(badgeStorageKey, JSON.stringify(mergedBadges));
