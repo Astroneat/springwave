@@ -225,8 +225,8 @@
       <div class="forum-section" id="organizations-section" style="display: none;">
         <div class="forum-section-header">
           <div class="forum-section-title-group">
-            <h2 class="forum-section-title">Organizations</h2>
-            <p class="forum-section-subtitle">Discover clubs, teams, and organizations. Follow to stay updated on their events.</p>
+            <h2 class="forum-section-title" data-i18n="community.organizations_heading">Organizations</h2>
+            <p class="forum-section-subtitle" data-i18n="community.organizations_desc">Discover clubs, teams, and organizations. Follow to stay updated on their events.</p>
           </div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="forumOrgGrid">
@@ -295,9 +295,9 @@
       </div>
       <div class="forum-post-modal-body">
         <div class="forum-post-field hidden" id="postIdentityField">
-          <label for="postIdentitySelect">Post as</label>
+          <label for="postIdentitySelect" data-i18n="community.post_as">Post as</label>
           <select id="postIdentitySelect" class="w-full px-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-sm outline-none focus:border-primary">
-            <option value="personal">Personal (Me)</option>
+            <option value="personal" data-i18n="community.post_as_personal">Personal (Me)</option>
           </select>
         </div>
         <div class="forum-post-field">
@@ -323,7 +323,7 @@
           </div>
         </div>
         <div class="forum-post-field" id="postScopeField" style="display:none;">
-          <label>Post to</label>
+          <label data-i18n="community.post_to">Post to</label>
           <div class="forum-post-scope-options">
             <label class="forum-post-radio">
               <input type="radio" name="scope" value="general" checked>
@@ -337,21 +337,21 @@
         </div>
         <div class="forum-post-field">
           <label for="postContent" data-i18n="community.content">Content</label>
-          <textarea id="postContent" rows="6" placeholder="Share your thoughts, questions, or experiences..."></textarea>
+          <textarea id="postContent" rows="6" placeholder="Share your thoughts, questions, or experiences..." data-i18n-placeholder="post_modal.content_placeholder"></textarea>
         </div>
         <div class="forum-post-field">
           <label for="postTags" data-i18n="community.tags">Tags</label>
-          <input type="text" id="postTags" placeholder="e.g. AI, Hackathon, Team Building (comma separated)" />
+          <input type="text" id="postTags" placeholder="e.g. AI, Hackathon, Team Building (comma separated)" data-i18n-placeholder="post_modal.tags_placeholder" />
         </div>
         <div class="forum-post-field">
-          <span class="forum-post-upload-label">Images</span>
+          <span class="forum-post-upload-label" data-i18n="community.images">Images</span>
           <div class="forum-post-upload-row">
             <label class="forum-post-upload-trigger" for="postImages">
               <span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>
-              <span>Add images</span>
+              <span data-i18n="community.add_images">Add images</span>
             </label>
             <input id="postImages" class="forum-post-file-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" multiple aria-describedby="postImagesHelp" />
-            <span id="postImagesHelp" class="forum-post-upload-help">PNG, JPG, WEBP, GIF or AVIF. Up to 4 images.</span>
+            <span id="postImagesHelp" class="forum-post-upload-help" data-i18n="community.images_hint">PNG, JPG, WEBP, GIF or AVIF. Up to 4 images.</span>
           </div>
           <div id="postImagePreview" class="forum-post-image-preview" role="status" aria-live="polite"></div>
         </div>
@@ -424,7 +424,7 @@
         <div class="forum-uni-dialog-field">
           <label for="uniName" data-i18n="community.uni_name">University Name</label>
           <select id="uniName">
-            <option value="">-- Select university --</option>
+            <option value="" data-i18n="community.select_university">-- Select university --</option>
           </select>
         </div>
         <div class="forum-uni-dialog-field">

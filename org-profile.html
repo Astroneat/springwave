@@ -119,7 +119,7 @@
                 <button id="edit-cover-btn"
                     class="hidden absolute top-4 right-4 bg-black/65 hover:bg-black/85 text-white px-3.5 py-2 rounded-xl flex items-center gap-2 text-sm font-semibold transition-all duration-200 cursor-pointer z-10 shadow-lg backdrop-blur-sm">
                     <span class="material-symbols-outlined text-lg">photo_camera</span>
-                    <span>Edit Cover Photo</span>
+                    <span data-i18n="org_profile.edit_cover_photo">Edit Cover Photo</span>
                 </button>
                 <input type="file" id="cover-file-input" accept="image/*" class="hidden" />
             </div>
@@ -137,7 +137,7 @@
                             <button id="edit-avatar-btn"
                                 class="hidden absolute inset-0 bg-black/50 hover:bg-black/60 text-white flex flex-col items-center justify-center gap-1 transition-opacity duration-200 cursor-pointer backdrop-blur-[2px]">
                                 <span class="material-symbols-outlined text-2xl">photo_camera</span>
-                                <span class="text-[11px] font-semibold">Update Logo</span>
+                                <span class="text-[11px] font-semibold" data-i18n="org_profile.update_logo">Update Logo</span>
                             </button>
                             <input type="file" id="avatar-file-input" accept="image/*" class="hidden" />
                         </div>
@@ -340,6 +340,23 @@
                                 </div>
                             </div>
                         </div>
+                    <!-- Similar Clubs / Organizations -->
+                    <div id="similar-orgs-section" class="bg-white border border-[#ecedfa] p-5 rounded-[24px] shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-bold text-sm text-[#191b22] flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary text-base">diversity_3</span>
+                                <span data-i18n="org_profile.similar_clubs">Similar Organizations</span>
+                            </h3>
+                            <span class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full" id="similar-orgs-badge" data-i18n="org_profile.domain_match">Domain Match</span>
+                        </div>
+                        <p class="text-xs text-[#64748b] mb-3.5 leading-relaxed" data-i18n="org_profile.similar_clubs_desc">Discover active student clubs in the same field</p>
+                        <div id="similar-orgs-container" class="space-y-3">
+                            <!-- Dynamically loaded -->
+                            <div class="py-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-spinner fa-spin text-primary"></i>
+                                <span data-i18n="common.loading">Loading...</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Trust & Safety Banner -->
@@ -364,7 +381,7 @@
     <!-- Toast Notification Container -->
     <div id="org-toast" class="org-toast">
         <span id="org-toast-icon" class="material-symbols-outlined text-lg">check_circle</span>
-        <span id="org-toast-msg">Action completed</span>
+        <span id="org-toast-msg" data-i18n="org_profile.action_completed">Action completed</span>
     </div>
 
     <!-- FOOTER -->

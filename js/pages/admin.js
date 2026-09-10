@@ -4,7 +4,7 @@ import { getEvents, getPendingEvents, approveEvent, rejectEvent, deleteEvent, sc
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate } from "../lib/utils.js";
-import { t, applyTranslation } from "../lib/i18n.js";
+import { t, applyTranslation, getCategoryName } from "../lib/i18n.js";
 import { showToast } from "../components/toast.js";
 import { 
     initThumbnailPreview, 
@@ -200,7 +200,7 @@ function renderTable() {
                     </div>
                 </td>
                 <td class="py-3.5 px-4 hidden md:table-cell">
-                    <span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#dae1ff] text-primary">${capitalize(e.type || "Event")}</span>
+                    <span class="inline-block text-xs font-semibold py-1 px-2.5 rounded-full bg-[#dae1ff] text-primary">${getCategoryName(e.category || e.type || "Event")}</span>
                 </td>
                 <td class="py-3.5 px-4 text-[#64748b] hidden lg:table-cell">${sourceSchool}</td>
                 <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${formatDate(e.heldDate)}</td>
@@ -297,7 +297,7 @@ function openViewPopup(id) {
 
 function buildViewHTML(e) {
     const heldDate = formatDate(e.heldDate);
-    const type = capitalize(e.type || "Event");
+    const type = getCategoryName(e.category || e.type || "Event");
     const source = e.createdByName || "—";
     return `
     <div class="flex flex-col md:flex-row gap-8">

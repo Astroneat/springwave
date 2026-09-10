@@ -139,7 +139,7 @@
     "host_callout_btn": "Register as an Organizer (Host)",
     "host_callout_explore": "Explore Student Events",
     "faq_title": "Frequently Asked Questions",
-    "faq_desc": "Quick answers to common questions about event participation and digital certificate issuance on SpringWave.",
+    "faq_desc": "Find answers to the most common questions about the SpringWave platform and its AI engine.",
     "faq_q1_title": "Does participating in SpringWave events count towards Student Training Points (ĐRL)?",
     "faq_q1_ans": "Yes. Official events hosted by verified student clubs and faculty partners on SpringWave provide verifiable attendance records and digital certificates with QR validation, helping students claim extracurricular credit according to university guidelines.",
     "faq_q2_title": "How do I receive and verify my digital certificate after attending?",
@@ -300,7 +300,6 @@
     "testimonial_tt_title": "Volunteering Opportunities",
     "faq_label": "FAQ",
     "faq_heading": "Frequently Asked Questions",
-    "faq_desc": "Find answers to the most common questions about the SpringWave platform and its AI engine.",
     "faq_q1": "How does the SpringWave AI matchmaker work?",
     "faq_a1": "SpringWave utilizes our custom RAG/LLM engine to evaluate your survey responses across four criteria: Communication, Technical, Creativity, and Social Impact. It compares your profile against our extracurricular catalog to recommend activities that align with your career goals and skill gap recommendations.",
     "faq_q2": "What is the gamification contribution system?",
@@ -317,7 +316,12 @@
     "tab_dashboard": "Gamified Dashboard",
     "take_quiz_to_see_matches": "Try AI Matchmaker",
     "view_all_discussions": "Join the Discussions",
-    "view_profile": "Go to Profile"
+    "view_profile": "Go to Profile",
+    "loading_events": "Loading events...",
+    "partners_heading": "Partner Clubs & Organizers:",
+    "feature_attendance": "QR Attendance & Digital Certificates",
+    "feature_drl": "Student Training Points (ĐRL) Proof",
+    "slide_goto": "Go to slide {{n}}"
   },
   "footer": {
     "brand_desc": "Connecting students, organizers, and communities through competitions, social activities, and events.",
@@ -469,7 +473,11 @@
     "about_activity": "About this Activity",
     "write_comment": "Write a thought or question...",
     "see_more_comments": "See more comments",
-    "match_pill": "Match"
+    "match_pill": "Match",
+    "selected_address": "Selected Address:",
+    "confirm_location": "Confirm Location",
+    "location_permission_denied": "Location permission was not granted. Search for an address instead.",
+    "location_error": "We could not get your location. Check your connection and try again."
   },
   "auth": {
     "show": "Show",
@@ -534,7 +542,19 @@
     "terms_agree": "By signing in, you agree to our",
     "terms_of_service": "Terms of Service",
     "and": "and",
-    "privacy_policy": "Privacy Policy"
+    "privacy_policy": "Privacy Policy",
+    "ms_no_client_id": "Microsoft Login is not configured with a Client ID.",
+    "ms_loading_sdk": "Loading Microsoft SDK, please try again in a moment...",
+    "ms_no_token": "Did not receive Access Token from Microsoft.",
+    "sending_request": "Sending request...",
+    "reset_link_sent": "Password reset link has been sent to your email.",
+    "request_failed": "Request failed. Please try again.",
+    "passwords_dont_match": "Passwords do not match.",
+    "password_updating": "Updating new password...",
+    "password_updated_success": "Password updated successfully!",
+    "password_reset_failed": "Password reset failed. The link or token may have expired.",
+    "saving": "Saving...",
+    "loading_sdk": "Loading SDK..."
   },
   "register": {
     "title": "SpringWave - Register",
@@ -582,7 +602,9 @@
     "terms_agree": "By registering, you agree to our",
     "terms_of_service": "Terms of Service",
     "and": "and",
-    "privacy_policy": "Privacy Policy"
+    "privacy_policy": "Privacy Policy",
+    "select_school": "-- Select your school --",
+    "website": "Website"
   },
   "community": {
     "title": "Community - SpringWave",
@@ -631,6 +653,7 @@
     "cancel": "Cancel",
     "publish": "Publish",
     "add_uni_title": "Add University",
+    "edit_uni_title": "Edit University",
     "uni_name": "University Name",
     "uni_desc": "Description (optional)",
     "uni_domains": "Email domains (comma-separated)",
@@ -660,7 +683,56 @@
     "image_only": "Only image files can be attached to a discussion.",
     "image_size_limit": "Each image must be 10 MB or smaller.",
     "image_count_limit": "You can attach up to 4 images.",
-    "verify_email_post": "Please verify your email before posting. Check your inbox or resend verification."
+    "verify_email_post": "Please verify your email before posting. Check your inbox or resend verification.",
+    "trending_title": "Trending Discussions",
+    "trending_subtitle": "Active conversations across the community",
+    "general_subtitle": "Open discussions, questions, and casual conversations",
+    "event_subtitle": "Discussions about events and activities",
+    "uni_subtitle": "Discussions from your university community",
+    "org_subtitle": "Discover clubs, teams, and organizations. Follow to stay updated on their events.",
+    "my_subtitle": "Your discussions and topics",
+    "saved_subtitle": "Your bookmarked content",
+    "link_copied": "Link copied to clipboard!",
+    "delete_failed": "Failed to delete discussion",
+    "failed_update_follow": "Failed to update follow status.",
+    "post_as": "Post as",
+    "post_as_personal": "Personal (Me)",
+    "post_to": "Post to",
+    "select_university": "-- Select university --",
+    "organizations_heading": "Organizations",
+    "organizations_desc": "Discover clubs, teams, and organizations. Follow to stay updated on their events.",
+    "images": "Images",
+    "add_images": "Add images",
+    "images_hint": "PNG, JPG, WEBP, GIF or AVIF. Up to 4 images.",
+    "join_community": "Join Community",
+    "share_cert_title": "🎉 I just received the Certificate of Completion for event: {{title}}!",
+    "share_cert_content": "Proudly sharing with everyone: I have successfully completed event \"{{title}}\" organized by {{org}}! Verifiable on SpringWave.",
+    "joined": "Joined",
+    "sort_newest": "Newest",
+    "sort_oldest": "Oldest",
+    "sort_relevant": "Most Relevant",
+    "reply": "Reply",
+    "replying_to": "Replying to",
+    "write_reply_placeholder": "Write a reply... (Press Enter to post)",
+    "view_more_replies": "View {{n}} more replies",
+    "show_less": "Show less",
+    "delete_comment": "Delete comment",
+    "discussion_not_found": "Discussion not found",
+    "empty_uni_communities_title": "No university communities",
+    "empty_uni_communities_desc": "University communities are not available yet. Check back later!",
+    "empty_skill_topics_title": "No skill topics yet",
+    "empty_skill_topics_desc": "Skill discussion topics are being curated. Stay tuned!",
+    "no_orgs_found_title": "No organizations found",
+    "no_orgs_found_desc": "Check back later for newly approved organizations!",
+    "latest_events": "Latest Events",
+    "no_description": "No description provided.",
+    "uni_members_title": "{{name}} Members",
+    "no_members_yet": "No members yet",
+    "no_comments_title": "No comments yet",
+    "no_comments_desc": "Be the first to start the conversation.",
+    "write_a_comment": "Write a comment",
+    "write_comment_placeholder": "Write a comment... (Press Enter to post)",
+    "cancel_reply": "Cancel reply"
   },
   "profile": {
     "title": "Profile - SpringWave",
@@ -774,7 +846,26 @@
     "alert_complete_profile_event": "Please update your complete personal info (DOB, School, Class, Major, Phone) in the Profile page before joining.",
     "alert_complete_profile_comment": "Please update your complete personal info (DOB, School, Class, Major, Phone) in the Profile page before commenting.",
     "participated_events": "Participated Events",
-    "save_password": "Save Password"
+    "save_password": "Save Password",
+    "pass_min_hint": "At least 8 characters, including letters and numbers.",
+    "otp_sent_hint": "A 6-digit OTP code has been sent to your email. Please check your inbox (including Spam/Junk).",
+    "resend_code": "Resend Code",
+    "school_locked_hint": "School has been verified via email domain and cannot be changed.",
+    "how_to_earn_points": "How to earn points",
+    "community_contrib": "Community Contribution",
+    "how_earn_points": "How to earn points?",
+    "earn_host_event": "Host Event",
+    "earn_certificate": "Earn Certificate",
+    "earn_attend_event": "Attend Event",
+    "earn_start_discussion": "Start Discussion",
+    "earn_reply_discussion": "Reply Discussion",
+    "earn_receive_like": "Receive Like",
+    "contrib_score": "Contribution Score",
+    "stat_discussions": "Discussions",
+    "stat_events": "Events",
+    "stat_hosted": "Hosted",
+    "stat_certificates": "Certificates",
+    "select_school": "-- Select your school --"
   },
   "quiz": {
     "title": "SpringWave - MBTI & Personality Quiz",
@@ -929,139 +1020,254 @@
       "INTJ": {
         "title": "The Strategic Architect (INTJ)",
         "tagline": "Independent strategic thinker with grand vision, constantly optimizing complex systems.",
-        "strengths": ["Strategic Thinking", "Long-term Planning", "Self-Reliance", "Complex Problem Solving"],
+        "strengths": [
+          "Strategic Thinking",
+          "Long-term Planning",
+          "Self-Reliance",
+          "Complex Problem Solving"
+        ],
         "advice": "Balance high-level master plans with operational flexibility, and communicate your visionary roadmap clearly to team members."
       },
       "INTP": {
         "title": "The Logical Thinker (INTP)",
         "tagline": "Endlessly curious analyst, master of deconstructing paradigms and engineering novel theories.",
-        "strengths": ["Analytical Acumen", "Intellectual Curiosity", "Original Reasoning", "Conceptual Mastery"],
+        "strengths": [
+          "Analytical Acumen",
+          "Intellectual Curiosity",
+          "Original Reasoning",
+          "Conceptual Mastery"
+        ],
         "advice": "Take deliberate steps to translate your brilliant conceptual breakthroughs into tangible, ship-ready projects."
       },
       "ENTJ": {
         "title": "The Decisive Commander (ENTJ)",
         "tagline": "Bold pioneer with macro vision, commanding decisive direction through every obstacle.",
-        "strengths": ["Executive Leadership", "Decisiveness", "Strategic Blueprinting", "High-Impact Execution"],
+        "strengths": [
+          "Executive Leadership",
+          "Decisiveness",
+          "Strategic Blueprinting",
+          "High-Impact Execution"
+        ],
         "advice": "Practice empathetic listening and create welcoming space for diverse team perspectives to flourish."
       },
       "ENTP": {
         "title": "The Innovative Debater (ENTP)",
         "tagline": "Witty and inventive catalyst, thriving on intellectual debates and unexplored frontiers.",
-        "strengths": ["Breakthrough Innovation", "Sharp Debate", "Dynamic Ideation", "Agile Adaptability"],
+        "strengths": [
+          "Breakthrough Innovation",
+          "Sharp Debate",
+          "Dynamic Ideation",
+          "Agile Adaptability"
+        ],
         "advice": "Channel your boundless enthusiasm to complete and polish projects through to full realization."
       },
       "INFJ": {
         "title": "The Inspiring Advocate (INFJ)",
         "tagline": "Profoundly intuitive and principled visionary, quietly inspiring transformative change.",
-        "strengths": ["Deep Intuition", "Human Empathy", "Purpose-Driven", "Inspiring Meaning"],
+        "strengths": [
+          "Deep Intuition",
+          "Human Empathy",
+          "Purpose-Driven",
+          "Inspiring Meaning"
+        ],
         "advice": "Care for your own physical and mental well-being to avoid burnout while championing community causes."
       },
       "INFP": {
         "title": "The Empathetic Mediator (INFP)",
         "tagline": "Authentic and idealistic soul, fiercely loyal to inner values and genuine creative expression.",
-        "strengths": ["Earnest Authenticity", "Artistic Creativity", "Compassionate Care", "Open-Mindedness"],
+        "strengths": [
+          "Earnest Authenticity",
+          "Artistic Creativity",
+          "Compassionate Care",
+          "Open-Mindedness"
+        ],
         "advice": "Ground your high ideals into consistent, daily actionable steps toward your dreams."
       },
       "ENFJ": {
         "title": "The Charismatic Protagonist (ENFJ)",
         "tagline": "Warm-hearted mentor who ignites the potential in others and unites teams with genuine care.",
-        "strengths": ["Inspirational Guidance", "Persuasive Communication", "Emotional Intelligence", "Team Cohesion"],
+        "strengths": [
+          "Inspirational Guidance",
+          "Persuasive Communication",
+          "Emotional Intelligence",
+          "Team Cohesion"
+        ],
         "advice": "Prioritize your own needs and set healthy boundaries so you aren't overwhelmed by others' challenges."
       },
       "ENFP": {
         "title": "The Passionate Campaigner (ENFP)",
         "tagline": "Vibrant and free-spirited enthusiast who spots magic and boundless potential everywhere.",
-        "strengths": ["Boundless Energy", "Expressive Communication", "Spontaneous Innovation", "Broad Networking"],
+        "strengths": [
+          "Boundless Energy",
+          "Expressive Communication",
+          "Spontaneous Innovation",
+          "Broad Networking"
+        ],
         "advice": "Build steady habits to focus your radiant energy on finishing key long-term endeavors."
       },
       "ISTJ": {
         "title": "The Responsible Logistician (ISTJ)",
         "tagline": "Principled, impeccably dependable pillar who executes every duty with precision and honor.",
-        "strengths": ["Unshakable Reliability", "Structured Discipline", "Meticulous Attention", "Solid Practicality"],
+        "strengths": [
+          "Unshakable Reliability",
+          "Structured Discipline",
+          "Meticulous Attention",
+          "Solid Practicality"
+        ],
         "advice": "Keep an open mind toward creative new approaches and embrace flexibility when situations shift."
       },
       "ISFJ": {
         "title": "The Dedicated Defender (ISFJ)",
         "tagline": "Attentive, selfless guardian quietly safeguarding group harmony and tending to everyone's needs.",
-        "strengths": ["Thoughtful Thoroughness", "Devoted Service", "Empathetic Listening", "Strong Duty"],
+        "strengths": [
+          "Thoughtful Thoroughness",
+          "Devoted Service",
+          "Empathetic Listening",
+          "Strong Duty"
+        ],
         "advice": "Confidently advocate for your own ideas and celebrate your invaluable accomplishments without hesitation."
       },
       "ESTJ": {
         "title": "The Systemic Executive (ESTJ)",
         "tagline": "Practical, assertive coordinator who excels at organizing people and executing orderly progress.",
-        "strengths": ["Project Coordination", "Action-Oriented Order", "Crisp Clarity", "Steadfast Discipline"],
+        "strengths": [
+          "Project Coordination",
+          "Action-Oriented Order",
+          "Crisp Clarity",
+          "Steadfast Discipline"
+        ],
         "advice": "Pay close attention to team members' emotions to build enduring loyalty and heartfelt engagement."
       },
       "ESFJ": {
         "title": "The Community Consul (ESFJ)",
         "tagline": "The lively heartbeat of the group, warm, generous, and dedicated to collective joy.",
-        "strengths": ["Community Building", "Considerate Support", "Event Hosting", "Welcoming Warmth"],
+        "strengths": [
+          "Community Building",
+          "Considerate Support",
+          "Event Hosting",
+          "Welcoming Warmth"
+        ],
         "advice": "Anchor your confidence in your self-worth rather than depending solely on external appreciation."
       },
       "ISTP": {
         "title": "The Practical Virtuoso (ISTP)",
         "tagline": "Calm, hands-on troubleshooter who masters tools and resolves complex real-world puzzles.",
-        "strengths": ["Technical Craftsmanship", "Applied Pragmatism", "Cool-Headed Under Fire", "Swift Adaptability"],
+        "strengths": [
+          "Technical Craftsmanship",
+          "Applied Pragmatism",
+          "Cool-Headed Under Fire",
+          "Swift Adaptability"
+        ],
         "advice": "Share your technical insights and collaborate more actively with friends and project teammates."
       },
       "ISFP": {
         "title": "The Sensitive Adventurer (ISFP)",
         "tagline": "Gentle, imaginative artist living fully in the present with distinctive aesthetic grace.",
-        "strengths": ["Aesthetic Flair", "Fluid Flexibility", "Warm Empathy", "Creative Independence"],
+        "strengths": [
+          "Aesthetic Flair",
+          "Fluid Flexibility",
+          "Warm Empathy",
+          "Creative Independence"
+        ],
         "advice": "Formulate structured long-term milestones to give your expressive talents room to thrive."
       },
       "ESTP": {
         "title": "The Dynamic Entrepreneur (ESTP)",
         "tagline": "High-energy trailblazer who thrives on immediate action and bold, spontaneous adventures.",
-        "strengths": ["Decisive Action", "Crisis Leadership", "Persuasive Charisma", "Undaunted Courage"],
+        "strengths": [
+          "Decisive Action",
+          "Crisis Leadership",
+          "Persuasive Charisma",
+          "Undaunted Courage"
+        ],
         "advice": "Take a moment to reflect on long-term consequences before diving into sudden impulses."
       },
       "ESFP": {
         "title": "The Energetic Entertainer (ESFP)",
         "tagline": "Playful and spirited soul who turns student life into an inspiring celebration of joy.",
-        "strengths": ["Infectious Vitality", "Dynamic Stage Presence", "Social Charm", "Quick Improvisation"],
+        "strengths": [
+          "Infectious Vitality",
+          "Dynamic Stage Presence",
+          "Social Charm",
+          "Quick Improvisation"
+        ],
         "advice": "Balance spontaneous celebrations with disciplined dedication to your core academic ambitions."
       },
       "tech_builder": {
         "title": "The Practical Problem Solver",
         "tagline": "Action-driven builder cracking complex technical riddles into working reality.",
-        "strengths": ["Logical Thinking", "Software Architecture", "Problem Solving", "Technical Mastery"],
+        "strengths": [
+          "Logical Thinking",
+          "Software Architecture",
+          "Problem Solving",
+          "Technical Mastery"
+        ],
         "advice": "Keep challenging yourself with complex algorithm problems, build personal projects, and collaborate in hackathons to polish your engineering skills."
       },
       "community_leader": {
         "title": "The Empathetic Catalyst",
         "tagline": "Radiating positive energy, aligning people and creating lasting bonds.",
-        "strengths": ["Leadership", "Organization", "Public Speaking", "Strategic Planning"],
+        "strengths": [
+          "Leadership",
+          "Organization",
+          "Public Speaking",
+          "Strategic Planning"
+        ],
         "advice": "Take on coordination roles in student organizations, practice active listening, and guide teams towards shared objectives."
       },
       "creative_innovator": {
         "title": "The Creative Visionary",
         "tagline": "Expressive, boundary-breaking, infusing imagination into every creation.",
-        "strengths": ["Visual Design", "Creative Thinking", "Ideation", "Aesthetic Sense"],
+        "strengths": [
+          "Visual Design",
+          "Creative Thinking",
+          "Ideation",
+          "Aesthetic Sense"
+        ],
         "advice": "Keep building your creative portfolio, experiment with new design trends, and collaborate with tech partners to turn ideas into visual realities."
       },
       "career_strategist": {
         "title": "The Purposeful Achiever",
         "tagline": "Goal-oriented, disciplined, proactively architecting their future trajectory.",
-        "strengths": ["Resume Writing", "Networking", "Industry Knowledge", "Goal Alignment"],
+        "strengths": [
+          "Resume Writing",
+          "Networking",
+          "Industry Knowledge",
+          "Goal Alignment"
+        ],
         "advice": "Attend corporate networking events, search for early internships, and refine your portfolio to showcase measurable accomplishments."
       },
       "deep_learner": {
         "title": "The Deep Contemplator",
         "tagline": "Patient, profoundly curious, seeking fundamental truth beneath the surface.",
-        "strengths": ["Academic Research", "Critical Analysis", "Focused Study", "Data Literacy"],
+        "strengths": [
+          "Academic Research",
+          "Critical Analysis",
+          "Focused Study",
+          "Data Literacy"
+        ],
         "advice": "Participate in university scientific research groups, read research papers in your field, and share study strategies with others."
       },
       "changemaker": {
         "title": "The Altruistic Changemaker",
         "tagline": "Compassionate, socially conscious, finding joy in lifting others up.",
-        "strengths": ["Empathy", "Social Responsibility", "Collaboration", "Facilitation"],
+        "strengths": [
+          "Empathy",
+          "Social Responsibility",
+          "Collaboration",
+          "Facilitation"
+        ],
         "advice": "Engage in social volunteer groups, coordinate community-driven events, and practice sustainable teamwork."
       },
       "dynamic_explorer": {
         "title": "The Adaptive Explorer",
         "tagline": "Open-minded, agile, embracing life as a rich tapestry of fresh discoveries.",
-        "strengths": ["Adaptability", "Curiosity", "Versatility", "Open-mindedness"],
+        "strengths": [
+          "Adaptability",
+          "Curiosity",
+          "Versatility",
+          "Open-mindedness"
+        ],
         "advice": "Keep exploring multiple fields without pressure, participate in clubs, and build a wide variety of soft skills."
       }
     },
@@ -1098,7 +1304,8 @@
     "exit_modal_title": "Exit AI Quiz?",
     "exit_modal_desc": "Are you sure you want to stop the quiz? Your current progress will not be saved.",
     "exit_modal_cancel": "Continue Quiz",
-    "exit_modal_confirm": "Exit Quiz"
+    "exit_modal_confirm": "Exit Quiz",
+    "preferences": "Preferences"
   },
   "host": {
     "title": "Create New Activity - SpringWave",
@@ -1182,6 +1389,10 @@
     "additional_options": "Additional Options",
     "enable_certificates": "Enable Certificates",
     "enable_certificates_desc": "If enabled, participants who attend this event will receive a certificate.",
+    "edit_mode_status": "Edit mode — update the fields and save",
+    "update_event": "Update Event",
+    "hosting_as": "Hosting as {{name}}",
+    "event_linked_to_org": "Event linked to organization",
     "enable_attendance": "Enable Attendance Tracking",
     "enable_attendance_desc": "If enabled, you can track attendance and check in participants for this event.",
     "checkin_rules": "Check-in Rules",
@@ -1189,7 +1400,13 @@
     "late_after": "Late after (minutes)",
     "late_after_desc": "Minutes after start time. Check-ins after this are marked <strong>Late</strong>.",
     "expire_after": "Expire after (minutes)",
-    "expire_after_desc": "Minutes after start time. Check-ins after this are <strong>rejected</strong>."
+    "expire_after_desc": "Minutes after start time. Check-ins after this are <strong>rejected</strong>.",
+    "custom_cert_bg": "Custom Certificate Background (Optional)",
+    "custom_cert_bg_desc": "Upload a 1200x850px background image (PNG/JPG) for your certificate. If left blank, the standard SpringWave template will be used.",
+    "title_placeholder": "e.g., Sunset Yoga on the Beach",
+    "desc_placeholder": "Provide a detailed overview of what participants can expect...",
+    "locate_me": "Use my location",
+    "select_org": "Select an organization..."
   },
   "admin": {
     "title": "Event Management — SpringWave",
@@ -1406,13 +1623,26 @@
     "draft": "Draft",
     "published": "Published",
     "view": "View",
+    "like": "Like",
     "none": "None",
     "confirm_title": "Confirmation",
     "confirm_btn": "Confirm",
     "cancel_btn": "Cancel",
     "ok_btn": "OK",
+    "delete_btn": "Delete",
+    "delete_button": "Delete",
     "delete_confirm_title": "Are you sure?",
-    "delete_confirm_desc": "This action cannot be undone."
+    "delete_confirm_desc": "This action cannot be undone.",
+    "organization": "Organization",
+    "copy_failed": "Failed to copy",
+    "comment_count": "{{n}} comment",
+    "comments_count": "{{n}} comments",
+    "replies_count": "{{n}} replies",
+    "views_count": "{{n}} views",
+    "loading_location": "Getting your current location...",
+    "loading_address": "Loading address details...",
+    "location_unsupported": "Your browser does not support location services. Search for an address instead.",
+    "view_more_comments": "View more comments ({{n}})"
   },
   "description": {
     "details": "Details",
@@ -1798,8 +2028,21 @@
       "tinh_nguyen": "Volunteering",
       "xa_hoi": "Social",
       "nghe_thuat": "Art",
-      "hoi_thao": "Seminar"
-    }
+      "hoi_thao": "Seminar",
+      "academic": "Academic",
+      "career": "Career",
+      "sports": "Sports",
+      "arts": "Arts",
+      "volunteer": "Volunteer",
+      "leadership": "Leadership"
+    },
+    "certificate": "Certificate",
+    "confirm_and_track": "Confirm & Track Roadmap",
+    "reconfigure": "Reconfigure Parameters",
+    "choose_alternative": "Choose an Alternative Event",
+    "analyzing_desc": "Analyzing your time commitments, learning preferences, and current catalog opportunities.",
+    "use_current_location": "Use my current location",
+    "generating_desc": "Analyzing your time commitments, learning preferences, and current catalog opportunities."
   },
   "org_dashboard": {
     "title": "Host Dashboard",
@@ -1902,7 +2145,68 @@
     "email_required": "Email is required.",
     "email_invalid": "Please enter a valid email address.",
     "org_deleted": "Organization deleted successfully.",
-    "event_deleted": "Event deleted successfully."
+    "event_deleted": "Event deleted successfully.",
+    "cert_designer": {
+      "rounded_corner": "Rounded Corners",
+      "frame_border": "Frame & Border",
+      "frame_none": "No Border (Transparent / Overlay)",
+      "frame_box": "Standard Card Box",
+      "frame_bordered": "Elegant Single Border",
+      "frame_double": "Royal Double Border",
+      "frame_dots_corner": "Corner Brackets (8-Bit)",
+      "qr_color": "QR Dot Color (Primary)",
+      "border_color": "Frame Border Color",
+      "transparent_bg": "Transparent Background",
+      "blend_template": "Blends directly into the template",
+      "font_family": "Font Family",
+      "font_size": "Font Size",
+      "text_color": "Text Color",
+      "letter_spacing": "Letter Spacing",
+      "spacing_default": "Default (0px)",
+      "spacing_tight": "Light (1px)",
+      "spacing_normal": "Medium (2px)",
+      "spacing_wide": "Wide (4px)",
+      "spacing_very_wide": "Very Wide (6px)",
+      "spacing_extra_wide": "Special (8px)",
+      "font_weight": "Font Weight",
+      "text_align": "Alignment",
+      "coordinates": "Coordinates (%)",
+      "center_x": "Center X",
+      "center_y": "Center Y",
+      "arrow_keys_tip": "Tip: You can use arrow keys ← ↑ → ↓ to move elements by 1 pixel.",
+      "only_custom_text_deletable": "Only custom text fields can be deleted. Standard template elements cannot be removed."
+    },
+    "event_no_cert_support": "This event does not have certificate support enabled.",
+    "manager_no_email": "Please enter a valid manager email.",
+    "org_disabled_title": "Your Organization has been disabled by an Administrator",
+    "org_disabled_desc": "All information and events belonging to this organization have been hidden from the public catalog.",
+    "affiliated_university": "Affiliated University",
+    "independent_org": "Independent (Not affiliated with any university)",
+    "excel_required_columns": "Required columns: Full Name, Student ID, Email",
+    "table_event": "Event",
+    "table_date": "Date",
+    "table_participants": "Participants",
+    "table_type": "Type",
+    "table_status": "Status",
+    "table_actions": "Actions",
+    "need_help": "Need Help?",
+    "need_help_desc": "Check our host guides and platform documentation.",
+    "support_center": "Support Center",
+    "select_org_placeholder": "Select organization...",
+    "new_org": "New Org",
+    "impersonating": "Impersonating",
+    "profile": "Profile",
+    "pdf_participant_count": "{{n}} participant(s)",
+    "pdf_preset_phone_db": "+ Phone (DB)",
+    "pdf_preset_school_db": "+ School (DB)",
+    "pdf_preset_class_db": "+ Class (DB)",
+    "pdf_preset_status_db": "+ Status (DB)",
+    "parsed_success": "Successfully parsed {{n}} participants!",
+    "parsed_desc": "From file: {{filename}}. Review and modify the rows in the table below before clicking Save.",
+    "parse_excel_failed": "Failed to parse Excel file",
+    "export_lib_loading": "Export library is loading, please try again in a moment.",
+    "avatar_updated_success": "Avatar updated successfully!",
+    "upload_failed": "Upload failed"
   },
   "admin_universities": {
     "title": "University Management",
@@ -1960,7 +2264,10 @@
     "failed_save": "Failed to save university",
     "failed_delete": "Failed to delete university",
     "failed_remove": "Failed to remove student: ",
-    "failed_load_students": "Failed to load students: "
+    "failed_load_students": "Failed to load students: ",
+    "name_placeholder": "e.g. University of Science and Technology",
+    "students_title": "Students in University",
+    "students_subtitle": "List of enrolled / verified students"
   },
   "student_verify": {
     "title": "Student Verification | SpringWave",
@@ -2002,7 +2309,9 @@
     "err_taken": "This student ID has already been verified by another user.",
     "err_upload": "Upload failed. Please try again with a smaller file.",
     "err_not_school_email": "Your email is not recognized as a school email. Please use the standard verification process.",
-    "alert_require_verify": "You need to verify your student status before participating or interacting. Please complete verification."
+    "alert_require_verify": "You need to verify your student status before participating or interacting. Please complete verification.",
+    "desc": "Please provide your student ID number and a photo of your student card to verify your identity. Admin will review and approve your request.",
+    "submit_success_alert": "Your verification request has been submitted and is awaiting Admin review."
   },
   "certificate_view": {
     "page_title": "Certificate Verification - SpringWave",
@@ -2051,7 +2360,11 @@
     "view_my_certificates": "View My Certificates",
     "share_success_title": "Achievement Shared Successfully! 🎉",
     "share_success_desc": "Your certificate discussion post has been published to the SpringWave Community!",
-    "view_post": "View Post"
+    "view_post": "View Post",
+    "revoked_banner_desc": "This certificate has been revoked by the organizer and is no longer valid.",
+    "organizing_unit": "Organizing Unit",
+    "exporting_image": "Exporting Image...",
+    "generating_pdf": "Generating PDF..."
   },
   "admin_categories": {
     "title": "Manage Categories",
@@ -2253,7 +2566,17 @@
     "contact_desc": "If you have questions about this policy, Google data handling, or wish to exercise your privacy rights, our team is here to assist:",
     "contact_email_privacy": "Privacy & Data Protection: springwave150626@gmail.com",
     "contact_email_support": "General Support: springwave150626@gmail.com",
-    "contact_response": "Commitment: We respond to all formal privacy requests within 48 business hours."
+    "contact_response": "Commitment: We respond to all formal privacy requests within 48 business hours.",
+    "page_title": "Privacy Policy — SpringWave",
+    "google_policy": "Google API Services User Data Policy",
+    "explore_google_policy": "Explore Google Policy",
+    "security_standard": "Standard ISO 27001 & Google Trust & Safety Aligned",
+    "need_assistance": "Need Assistance?",
+    "response_time": "Our security & data officer responds within 48 business hours.",
+    "primary_contact": "Primary Contact Entity:",
+    "entity_info": "SpringWave Digital Education Platform (RAH Team) • Da Nang, Vietnam",
+    "strict_google_commitment": "Strict Google Data Protection Commitment",
+    "tls_encryption": "TLS 1.3 Encryption"
   },
   "post_modal": {
     "title": "Start a Discussion",
@@ -2268,7 +2591,10 @@
     "publish_btn": "Publish",
     "linked_hint": "This discussion will be linked to this event",
     "toast_success": "Discussion posted successfully! Click here to view",
-    "toast_view": "View Discussion Detail"
+    "toast_view": "View Discussion Detail",
+    "throttle_wait": "Please wait {{remaining}} seconds before posting.",
+    "post_failed": "Failed to post discussion. Please try again.",
+    "just_now": "Just now"
   },
   "my_events": {
     "title": "My Events and Tickets",
@@ -2348,7 +2674,16 @@
     "now_following": "You are now following this organization!",
     "unfollowed": "Unfollowed organization.",
     "ended": "Ended",
-    "upcoming": "Upcoming"
+    "upcoming": "Upcoming",
+    "similar_clubs": "Similar Organizations",
+    "similar_clubs_desc": "Discover active student clubs in the same field",
+    "no_similar_clubs": "No similar clubs found in this domain yet.",
+    "view_profile": "View Profile",
+    "not_provided": "Not provided",
+    "edit_cover_photo": "Edit Cover Photo",
+    "update_logo": "Update Logo",
+    "domain_match": "Domain Match",
+    "action_completed": "Action completed"
   },
   "admin_analytics": {
     "title": "Platform Analytics",
@@ -2482,8 +2817,10 @@
     "cccd_number": "CCCD / Citizen ID Number",
     "cccd_placeholder": "e.g. 123456789",
     "upload_cccd": "Upload ID Card (Front & Back)",
-    "upload_cccd_hint": "PNG, JPG or PDF up to 10MB",
     "upload_cccd_label": "Click to upload or drag and drop",
+    "upload_cccd_hint": "PNG, JPG or PDF up to 10MB",
+    "more_files": "+{{n}} more",
+    "processing": "Processing...",
     "secure_encryption": "Secure Encryption",
     "section3_title": "Verification",
     "third_party_relation": "Third Party Relation",
@@ -2530,5 +2867,27 @@
     "perk_profile": "Personality profile & strengths",
     "start_btn": "Take AI Quiz Now (2 mins)",
     "close_btn": "Maybe Later"
+  },
+  "ai_recommend": {
+    "analyzing": "Analyzing..."
+  },
+  "navbar": {
+    "host_pending_review": "Your host registration is pending review. Please wait for approval.",
+    "complete_profile_before_host": "Complete your profile (Date of birth, School, Class, Major, Phone) before registering as a Host."
+  },
+  "attendance": {
+    "init_success": "Attendance tracking initialized successfully.",
+    "scan_loading": "Processing check-in...",
+    "scan_placeholder": "Position the attendee's ticket QR code or barcode inside the camera viewfinder.",
+    "format_qr_barcode": "QR or Barcode",
+    "format_barcode": "Barcode (ID Card)",
+    "format_qr": "QR Ticket",
+    "checked_in_late": "Checked in (Late)",
+    "checked_in": "Checked in"
+  },
+  "cert_designer": {
+    "only_custom_text_deletable": "Only custom text fields can be deleted. Standard template elements cannot be removed.",
+    "custom_bg_badge": "Custom Background",
+    "default_royal_theme": "Default Royal Theme"
   }
 }

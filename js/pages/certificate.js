@@ -922,7 +922,7 @@ async function drawCertificateDirectToCanvas(cert, certNode) {
       ctx.fillStyle = "rgba(220, 38, 38, 0.95)";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("REVOKED / ĐÃ THU HỒI", 0, 0);
+      ctx.fillText(getLang() === "vi" ? "ĐÃ THU HỒI" : "REVOKED", 0, 0);
       ctx.restore();
     }
 
@@ -1253,7 +1253,7 @@ function initActionButtons() {
     const btn = document.getElementById("download-png-btn");
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${getLang() === 'vi' ? 'Đang xuất ảnh...' : 'Exporting...'}</span>`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${t("certificate_view.exporting_image", "Exporting Image...")}</span>`;
 
     try {
       const certNode = document.getElementById("certificate-node");
@@ -1281,7 +1281,7 @@ function initActionButtons() {
     const btn = document.getElementById("download-pdf-btn");
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${getLang() === 'vi' ? 'Đang tạo PDF...' : 'Generating PDF...'}</span>`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${t("certificate_view.generating_pdf", "Generating PDF...")}</span>`;
 
     try {
       const certNode = document.getElementById("certificate-node");

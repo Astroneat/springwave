@@ -303,7 +303,7 @@ function initMicrosoftLogin() {
     msBtn.addEventListener("click", async () => {
         const statusMsg = document.getElementById("status-msg");
         if (!MICROSOFT_CLIENT_ID) {
-            statusMsg.textContent = "Microsoft Login chưa được cấu hình Client ID.";
+            statusMsg.textContent = t("login.ms_no_client_id", "Microsoft Login is not configured with a Client ID.");
             statusMsg.classList.remove("success-msg");
             statusMsg.classList.add("error-msg");
             return;
@@ -311,7 +311,7 @@ function initMicrosoftLogin() {
 
         const instance = getMsalInstance();
         if (!instance) {
-            statusMsg.textContent = "Đang tải Microsoft SDK, vui lòng thử lại sau giây lát...";
+            statusMsg.textContent = t("login.ms_loading_sdk", "Loading Microsoft SDK, please try again in a moment...");
             statusMsg.classList.remove("success-msg");
             statusMsg.classList.add("error-msg");
             return;
@@ -329,7 +329,7 @@ function initMicrosoftLogin() {
 
             const accessToken = loginResponse.accessToken;
             if (!accessToken) {
-                throw new Error("Không nhận được Access Token từ Microsoft.");
+                throw new Error(t("login.ms_no_token", "Did not receive Access Token from Microsoft."));
             }
 
             const data = await microsoftLogin(accessToken);
@@ -401,19 +401,19 @@ function initPasswordResetModals() {
 
             if (forgotSubmitBtn) forgotSubmitBtn.disabled = true;
             if (forgotStatus) {
-                forgotStatus.textContent = "Đang gửi yêu cầu...";
+                forgotStatus.textContent = t("login.sending_request", "Sending request...");
                 forgotStatus.className = "text-xs rounded-xl p-3 bg-blue-50 text-blue-700 block";
             }
 
             try {
                 const res = await forgotPassword(email);
                 if (forgotStatus) {
-                    forgotStatus.textContent = res.message || "Đã gửi liên kết đặt lại mật khẩu đến email của bạn.";
+                    forgotStatus.textContent = res.message || t("login.reset_link_sent", "Password reset link has been sent to your email.");
                     forgotStatus.className = "text-xs rounded-xl p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 block";
                 }
             } catch (err) {
                 if (forgotStatus) {
-                    forgotStatus.textContent = err.message || "Gửi yêu cầu thất bại. Vui lòng thử lại.";
+                    forgotStatus.textContent = err.message || t("login.request_failed", "Request failed. Please try again.");
                     forgotStatus.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
                 }
             } finally {
@@ -437,7 +437,7 @@ function initPasswordResetModals() {
                 if (!newPass || !confirmPass) return;
                 if (newPass !== confirmPass) {
                     if (resetStatus) {
-                        resetStatus.textContent = "Mật khẩu xác nhận không trùng khớp.";
+                        resetStatus.textContent = t("login.passwords_dont_match", "Passwords do not match.");
                         resetStatus.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
                     }
                     return;
@@ -445,14 +445,14 @@ function initPasswordResetModals() {
 
                 if (resetSubmitBtn) resetSubmitBtn.disabled = true;
                 if (resetStatus) {
-                    resetStatus.textContent = "Đang cập nhật mật khẩu mới...";
+                    resetStatus.textContent = t("login.password_updating", "Updating new password...");
                     resetStatus.className = "text-xs rounded-xl p-3 bg-blue-50 text-blue-700 block";
                 }
 
                 try {
                     const res = await resetPassword(token, newPass, confirmPass);
                     if (resetStatus) {
-                        resetStatus.textContent = res.message || "Đã cập nhật mật khẩu thành công!";
+                        resetStatus.textContent = res.message || t("login.password_updated_success", "Password updated successfully!");
                         resetStatus.className = "text-xs rounded-xl p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 block";
                     }
                     setTimeout(() => {
@@ -460,7 +460,7 @@ function initPasswordResetModals() {
                     }, 1500);
                 } catch (err) {
                     if (resetStatus) {
-                        resetStatus.textContent = err.message || "Đặt lại mật khẩu thất bại. Mã có thể đã hết hạn.";
+                        resetStatus.textContent = err.message || t("login.password_reset_failed", "Password reset failed. The link or token may have expired.");
                         resetStatus.className = "text-xs rounded-xl p-3 bg-rose-50 text-rose-700 border border-rose-200 block";
                     }
                 } finally {

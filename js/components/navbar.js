@@ -478,7 +478,7 @@ function initUserDropdown() {
                 }
                 if (data.status === 'pending') {
                     showNavbarToast({
-                        message: "Your host registration is pending review. Please wait for approval.",
+                        message: t("navbar.host_pending_review", "Your host registration is pending review. Please wait for approval."),
                         tone: "warning",
                         durationMs: 5000
                     });
@@ -487,7 +487,7 @@ function initUserDropdown() {
             } catch {}
             if (!u?.dob || !u?.school || !u?.class || !u?.major || !u?.phoneNo) {
                 showNavbarToast({
-                    message: "Complete your profile (Date of birth, School, Class, Major, Phone) before registering as a Host.",
+                    message: t("navbar.complete_profile_before_host", "Complete your profile (Date of birth, School, Class, Major, Phone) before registering as a Host."),
                     tone: "warning",
                     durationMs: 6000
                 });
@@ -599,6 +599,7 @@ function renderNotifDropdown() {
                 </div>
             </div>
         `;
+        applyTranslation(dropdown);
         return;
     }
 
@@ -650,6 +651,7 @@ function renderNotifDropdown() {
             </div>
         </div>
     `;
+    applyTranslation(dropdown);
 
     dropdown.querySelectorAll(".notif-item").forEach((item) => {
         item.addEventListener("click", () => {

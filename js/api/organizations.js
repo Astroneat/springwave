@@ -92,3 +92,8 @@ export function toggleFollowOrganization(orgId) {
 export function getPublicOrganizations() {
   return get("/organizations");
 }
+
+export function getSimilarOrganizations(orgId, limit = 4) {
+  if (!orgId || orgId === 'null' || orgId === 'undefined') return Promise.resolve({ organizations: [] });
+  return get(`/organizations/${orgId}/public/similar?limit=${limit}`);
+}

@@ -52,7 +52,7 @@
             <div style="margin-bottom: 25px;">
                 <label class="label" data-i18n="host.activity_title">Activity Title</label>
 
-                <input id="title" name="title" type="text" class="input" placeholder="e.g., Sunset Yoga on the Beach" required>
+                <input id="title" name="title" type="text" class="input" placeholder="e.g., Sunset Yoga on the Beach" data-i18n-placeholder="host.title_placeholder" required>
             </div>
 
 
@@ -179,7 +179,7 @@
                 <label class="label" data-i18n="host.description">Description</label>
 
                 <textarea id="description" name="description" class="textarea" required
-                    placeholder="Provide a detailed overview of what participants can expect..."></textarea>
+                    placeholder="Provide a detailed overview of what participants can expect..." data-i18n-placeholder="host.desc_placeholder"></textarea>
             </div>
 
             <!-- EVENT MODE SELECTOR (FOR ADMIN) -->
@@ -241,7 +241,7 @@
                 <label class="label" data-i18n="host.location">Location</label>
                 <div class="location-input-row">
                     <input id="location" name="location" type="text" class="input" placeholder="Type address or click on map" required data-i18n="host.location">
-                    <button type="button" class="btn btn-locate" id="locateBtn" title="Use my location">
+                    <button type="button" class="btn btn-locate" id="locateBtn" title="Use my location" data-i18n-title="host.locate_me">
                         <span class="material-symbols-outlined">my_location</span>
                     </button>
                 </div>
@@ -459,8 +459,8 @@
                 <input type="checkbox" id="hasCertificate" name="hasCertificate" class="w-5 h-5 rounded border-[#c3c6d5] text-primary cursor-pointer accent-primary" />
             </div>
             <div id="cert-bg-options" class="hidden pl-14 pr-4 pb-4 pt-3 -mt-2 bg-[#f8f9fc] border-x border-b border-[#ecedfa] rounded-b-xl space-y-2">
-                <label class="block text-xs font-semibold text-[#191b22]">Custom Certificate Background (Optional)</label>
-                <p class="text-[11px] text-[#64748b]">Upload a 1200x850px background image (PNG/JPG) for your certificate. If left blank, the standard SpringWave template will be used.</p>
+                <label class="block text-xs font-semibold text-[#191b22]" data-i18n="host.custom_cert_bg">Custom Certificate Background (Optional)</label>
+                <p class="text-[11px] text-[#64748b]" data-i18n="host.custom_cert_bg_desc">Upload a 1200x850px background image (PNG/JPG) for your certificate. If left blank, the standard SpringWave template will be used.</p>
                 <div class="flex items-center gap-3">
                     <input type="file" id="certificateBackgroundFile" name="certificateBackground" accept="image/*" class="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" />
                 </div>

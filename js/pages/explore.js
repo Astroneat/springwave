@@ -7,7 +7,7 @@ import { getRecommendations, explainRecommendation } from "../api/recommendation
 import { createDiscussionWithScope } from "../api/forum.js";
 import { CDN_DOMAIN } from "../config.js";
 import { openEventPopup } from "../components/eventPopup.js";
-import { t } from "../lib/i18n.js";
+import { t, getCategoryName, getCategoryI18nKey } from "../lib/i18n.js";
 import { showConfirmDialog } from "../lib/modal.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar as loadSharedNavbar } from "../components/navbar.js";
@@ -33,6 +33,259 @@ let currentCertificateOnly = false;
 let myUniversity = null;
 let currentRecommendations = [];
 let cachedTemplate = null;
+let templateFetchPromise = null;
+const recommendedActivitiesMap = new Map();
+let favReqInFlight = null;
+let cachedFavIds = null;
+const favLocks = new Set();
+
+function toggleCardStar(activityID, active) {
+    const cards = document.querySelectorAll(`.card[data-id="${activityID}"]`);
+    cards.forEach(card => {
+        const star = card.querySelector(".star");
+        if (star) star.classList.toggle("active", active);
+    });
+}
+
+function attachCardContainerListeners(container) {
+    if (!container || container.dataset.clickBound === "true") return;
+    container.dataset.clickBound = "true";
+
+    container.addEventListener("click", async (e) => {
+        const star = e.target.closest(".star");
+        if (star) {
+            e.preventDefault();
+            e.stopPropagation();
+            const card = star.closest(".card");
+            const id = card?.dataset.id;
+            if (!id || favLocks.has(id)) return;
+            if (!isAuthenticated()) {
+                showLoginPrompt({
+                    message: t("auth_modal.desc_favorite", "Vui lòng đăng nhập để lưu hoạt động yêu thích."),
+                    redirectUrl: window.location.pathname + window.location.search
+                });
+                return;
+            }
+
+            const user = getUser();
+            if (!checkVerificationGuard(user, "favourite activities")) {
+                return;
+            }
+            const active = star.classList.contains("active");
+            document.querySelectorAll(`.card[data-id="${id}"] .star`).forEach(s => s.classList.toggle("active", !active));
+            if (cachedFavIds) {
+                if (active) cachedFavIds.delete(id);
+                else cachedFavIds.add(id);
+            }
+            favLocks.add(id);
+            try {
+                if (active) await removeFavourite(id);
+                else {
+                    await addFavourite(id);
+                    const currentUserId = user?._id || user?.id || "guest";
+                    const explorerKey = `springwave_has_earned_explorer_${currentUserId}`;
+
+                    let alreadyHasBadge = false;
+                    try {
+                        const contribRaw = localStorage.getItem(`springwave_contrib_${currentUserId}`);
+                        if (contribRaw) {
+                            const contrib = JSON.parse(contribRaw);
+                            if (contrib?.badges?.includes("active_explorer")) {
+                                alreadyHasBadge = true;
+                            }
+                        }
+                    } catch {}
+
+                    if (cachedFavIds && cachedFavIds.size >= 5 && !localStorage.getItem(explorerKey) && !alreadyHasBadge) {
+                        localStorage.setItem(explorerKey, "true");
+                        setTimeout(() => {
+                            triggerBadgeCelebration("active_explorer");
+                        }, 500);
+                    }
+                }
+            } catch (err) {
+                document.querySelectorAll(`.card[data-id="${id}"] .star`).forEach(s => s.classList.toggle("active", active));
+                if (cachedFavIds) {
+                    if (active) cachedFavIds.add(id);
+                    else cachedFavIds.delete(id);
+                }
+                console.error("Failed to toggle favourite:", err);
+            } finally {
+                favLocks.delete(id);
+            }
+            return;
+        }
+
+        const detailsBtn = e.target.closest(".details-btn");
+        if (detailsBtn) {
+            e.stopPropagation();
+            const card = detailsBtn.closest(".card");
+            if (card?.dataset.id) {
+                const actData = recommendedActivitiesMap.get(card.dataset.id) || allActivities.find(a => String(a.activityID || a._id) === card.dataset.id);
+                await openEventPopup(card.dataset.id, { activityData: actData });
+            }
+            return;
+        }
+
+        const card = e.target.closest(".card");
+        if (card?.dataset.id) {
+            const actData = recommendedActivitiesMap.get(card.dataset.id) || allActivities.find(a => String(a.activityID || a._id) === card.dataset.id);
+            await openEventPopup(card.dataset.id, { activityData: actData });
+        }
+    });
+}
+
+function initCardClickHandlers() {
+    const container = document.getElementById("cards-container");
+    if (container) attachCardContainerListeners(container);
+    const recContainer = document.getElementById("recommendations-container");
+    if (recContainer) attachCardContainerListeners(recContainer);
+}
+
+async function syncCardFavourites() {
+    if (!isAuthenticated()) return;
+    try {
+        let activities;
+        if (favReqInFlight) {
+            const res = await favReqInFlight;
+            activities = res.activities || [];
+        } else {
+            favReqInFlight = getFavourites();
+            const res = await favReqInFlight;
+            favReqInFlight = null;
+            activities = res.activities || [];
+        }
+        cachedFavIds = new Set(activities.map(a => a.activityID));
+        cachedFavIds.forEach(id => toggleCardStar(id, true));
+    } catch (err) {
+        console.error("Failed to sync favourites:", err);
+    }
+}
+
+async function getCardTemplate() {
+    if (cachedTemplate) return cachedTemplate;
+    if (!templateFetchPromise) {
+        templateFetchPromise = (async () => {
+            try {
+                const templateHTML = await fetchContent("./components/cards.html");
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(templateHTML, "text/html");
+                cachedTemplate = doc.querySelector(".card");
+            } catch (err) {
+                console.error("Failed to fetch card template:", err);
+            }
+            return cachedTemplate;
+        })();
+    }
+    return templateFetchPromise;
+}
+
+function createCardElement(activity, options = {}) {
+    if (!cachedTemplate) return null;
+    const card = cachedTemplate.cloneNode(true);
+    card.classList.add("revealed");
+
+    const image = card.querySelector(".card-image");
+    if (image) {
+        image.src = activity.thumbnail || "";
+        image.alt = activity.title || "Activity";
+        image.loading = "lazy";
+        image.decoding = "async";
+        image.onerror = () => {
+            image.src = "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1200&auto=format&fit=crop";
+        };
+    }
+
+    const titleEl = card.querySelector(".card-title");
+    if (titleEl) titleEl.textContent = activity.title || "";
+
+    const locationSpan = card.querySelector(".info-location");
+    if (locationSpan) locationSpan.textContent = activity.location || t("explore.unknown_location");
+
+    const dateSpan = card.querySelector(".info-date");
+    if (dateSpan) dateSpan.textContent = formatDate(activity.heldDate);
+
+    const typeSpan = card.querySelector(".info-type");
+    if (typeSpan) {
+        typeSpan.textContent = getCategoryName(activity.category || activity.type || "Activity");
+    }
+
+    const hostSpan = card.querySelector(".info-host");
+    if (hostSpan) {
+        const hostOrgName = typeof activity.organization === 'object' ? activity.organization?.name : null;
+        const orgUni = activity.organization?.university;
+        const uniShort = orgUni?.shortName || activity.source?.school;
+        const baseHost = hostOrgName || activity.hostName || (activity.organization ? t("common.organization", "Organization") : activity.createdByName) || t("common.unknown") || "Unknown";
+        hostSpan.textContent = uniShort ? `${baseHost} (${uniShort})` : baseHost;
+    }
+
+    const status = getEventStatus(activity);
+
+    const btn = card.querySelector(".details-btn");
+    if (btn && status !== 'ended') {
+        btn.textContent = t("explore.view_details") || "View Details";
+    }
+
+    const topLeftBadges = document.createElement("div");
+    topLeftBadges.className = "card-top-badges absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-col items-start gap-1.5 z-10 pointer-events-none";
+
+    const pct = Number.isFinite(options.matchPercentage)
+        ? options.matchPercentage
+        : (Number.isFinite(activity.percentage) ? activity.percentage : (activity.score ? Math.round(activity.score * 100) : null));
+
+    if (options.showMatchBadge && pct !== null) {
+        const matchBadge = document.createElement("div");
+        matchBadge.className = "card-match-badge recommendation-match-pill shadow-xs";
+        matchBadge.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i><span>${pct}% ${t("explore.match_pill", "Match")}</span>`;
+        topLeftBadges.appendChild(matchBadge);
+    }
+
+    if (status === 'ended') {
+        card.classList.add("opacity-75", "grayscale-[0.5]");
+        if (btn) {
+            btn.textContent = t("explore.ended") || "Ended";
+            btn.classList.add("!bg-gray-300", "!text-gray-600", "cursor-not-allowed", "!shadow-none");
+            btn.classList.remove("bg-primary", "text-white");
+            btn.style.pointerEvents = "none";
+        }
+        const endedBadge = document.createElement("div");
+        endedBadge.className = "bg-red-50 text-red-700 border border-red-200/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
+        endedBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-xs"></i><span>${t("explore.ended") || "Ended"}</span>`;
+        topLeftBadges.appendChild(endedBadge);
+    } else if (status === 'ongoing') {
+        const ongoingBadge = document.createElement("div");
+        ongoingBadge.className = "bg-emerald-50 text-emerald-700 border border-emerald-200/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
+        ongoingBadge.innerHTML = `<i class="fa-solid fa-circle-play text-xs animate-pulse"></i><span>${t("explore.ongoing") || "Ongoing"}</span>`;
+        topLeftBadges.appendChild(ongoingBadge);
+    } else if (status === 'registration_closed') {
+        const closedBadge = document.createElement("div");
+        closedBadge.className = "bg-amber-50 text-amber-800 border border-amber-200/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
+        closedBadge.innerHTML = `<i class="fa-solid fa-user-xmark text-xs"></i><span>${t("explore.registration_closed") || "Registration Closed"}</span>`;
+        topLeftBadges.appendChild(closedBadge);
+    }
+
+    const hasCert = activity.hasCertificate === true || activity.hasCertificate === 'true';
+    if (hasCert) {
+        const certBadge = document.createElement("div");
+        certBadge.className = "bg-amber-50 text-amber-900 border border-amber-300/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
+        certBadge.innerHTML = `<i class="fa-solid fa-award text-amber-600 text-xs"></i><span>${t("explore.certificate_badge") || "Certificate"}</span>`;
+        topLeftBadges.appendChild(certBadge);
+    }
+
+    if (topLeftBadges.children.length > 0) {
+        card.appendChild(topLeftBadges);
+    }
+
+    const actId = String(activity.activityID || activity._id || "");
+    card.dataset.id = actId;
+
+    if (cachedFavIds && cachedFavIds.has(actId)) {
+        const star = card.querySelector(".star");
+        if (star) star.classList.add("active");
+    }
+
+    return card;
+}
 let participateQueue = [];
 let activeParticipations = 0;
 const MAX_CONCURRENT_PARTICIPATIONS = 3;
@@ -87,9 +340,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         ? getActivityById(eventId).then(r => r.activity || r).catch(() => null)
         : Promise.resolve(null);
 
+    // Trigger recommendations immediately in parallel so skeletons render without waiting for navbar or filters
+    loadRecommendations().catch((e) => console.warn("loadRecommendations error:", e));
+
     await loadNavbar();
     await initExplore();
-    loadRecommendations().catch(() => {});
     await initChatbot();
     initializePage();
 
@@ -197,10 +452,22 @@ async function loadCategories() {
             const btn = document.createElement("button");
             btn.className = "category-chip-figma category-chip";
             btn.dataset.category = cat.slug || cat._id;
-            btn.innerHTML = cat.icon
-                ? `<i class="${cat.icon}" style="font-size:14px;color:${cat.color || '#64748b'}"></i>`
+            const iconHtml = cat.icon
+                ? `<i class="${cat.icon}" style="font-size:14px;color:${cat.color || '#64748b'}"></i> `
                 : "";
-            btn.append(" " + cat.name);
+            const i18nKey = getCategoryI18nKey(cat);
+            const displayName = getCategoryName(cat);
+            if (i18nKey) {
+                btn.innerHTML = `${iconHtml}<span data-i18n="${i18nKey}">${displayName}</span>`;
+            } else {
+                btn.innerHTML = `${iconHtml}<span>${displayName}</span>`;
+            }
+            btn.addEventListener("click", async () => {
+                document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
+                btn.classList.add("active");
+                currentCategory = btn.dataset.category;
+                await applyFiltersAndSort();
+            });
             list.appendChild(btn);
         });
     } catch (e) {
@@ -246,6 +513,7 @@ async function initExplore() {
     }
 }
 
+<<<<<<< Updated upstream
 async function ensureCardTemplate() {
     if (!cachedTemplate) {
         const templateHTML = await fetchContent("./components/cards.html");
@@ -402,6 +670,29 @@ function createActivityCard(rawActivity, options = {}) {
 }
 
 async function renderRecommendations(recommended) {
+=======
+function buildRecommendationSkeletonCard(i = 0) {
+    const delay = i * 80;
+    return `
+        <div class="explore-skeleton-card" style="animation-delay:${delay}ms">
+            <div class="explore-skeleton-block explore-skeleton-image"></div>
+            <div class="explore-skeleton-body">
+                <div class="explore-skeleton-block explore-skeleton-title"></div>
+                <div class="explore-skeleton-block explore-skeleton-title short"></div>
+                <div class="explore-skeleton-block explore-skeleton-line wide"></div>
+                <div class="explore-skeleton-block explore-skeleton-line"></div>
+                <div class="explore-skeleton-block explore-skeleton-pill"></div>
+                <div class="explore-skeleton-footer">
+                    <div class="explore-skeleton-block explore-skeleton-button"></div>
+                    <div class="explore-skeleton-block explore-skeleton-star"></div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function loadRecommendations() {
+>>>>>>> Stashed changes
     const section = document.getElementById("recommendations-section");
     const container = document.getElementById("recommendations-container");
     if (!section || !container) return;
@@ -410,6 +701,7 @@ async function renderRecommendations(recommended) {
         return;
     }
 
+<<<<<<< Updated upstream
     await ensureCardTemplate();
     section.style.display = "block";
     container.innerHTML = "";
@@ -439,6 +731,60 @@ async function loadRecommendations() {
         currentRecommendations = [];
         const section = document.getElementById("recommendations-section");
         if (section) section.style.display = "none";
+=======
+    if (!isAuthenticated()) {
+        section.style.display = "none";
+        return;
+    }
+
+    // Immediately display section with shimmering skeleton cards
+    section.style.display = "block";
+    container.innerHTML = Array.from({ length: 4 }, (_, i) => buildRecommendationSkeletonCard(i)).join("");
+
+    try {
+        const [data] = await Promise.all([
+            getRecommendations(),
+            getCardTemplate()
+        ]);
+
+        const rawRecommended = data?.events || data?.recommendations || (Array.isArray(data) ? data : []);
+        let recommended = rawRecommended.filter(a => getEventStatus(a) === 'registration_open');
+        if (recommended.length === 0) {
+            recommended = rawRecommended.filter(a => getEventStatus(a) !== 'ended');
+        }
+        if (recommended.length === 0 && rawRecommended.length > 0) {
+            recommended = rawRecommended;
+        }
+
+        if (recommended.length === 0 || !cachedTemplate) {
+            section.style.display = "none";
+            container.innerHTML = "";
+            return;
+        }
+
+        recommendedActivitiesMap.clear();
+        recommended.forEach(a => {
+            const id = String(a.activityID || a._id || "");
+            if (id) recommendedActivitiesMap.set(id, a);
+        });
+
+        container.innerHTML = "";
+        const frag = document.createDocumentFragment();
+        recommended.slice(0, 8).forEach(a => {
+            const card = createCardElement(a, { showMatchBadge: true });
+            if (card) frag.appendChild(card);
+        });
+        container.appendChild(frag);
+
+        if (typeof attachCardContainerListeners === "function") {
+            attachCardContainerListeners(container);
+        }
+        await syncCardFavourites();
+    } catch (e) {
+        console.error("Failed to load recommendations:", e);
+        section.style.display = "none";
+        container.innerHTML = "";
+>>>>>>> Stashed changes
     }
 }
 
@@ -447,6 +793,7 @@ window.addEventListener('springwave:ai-match-updated', (e) => {
     const { activityID, percentage } = e.detail || {};
     if (!activityID || !Number.isFinite(percentage)) return;
 
+<<<<<<< Updated upstream
     const cards = document.querySelectorAll(`.card[data-id="${activityID}"]`);
     cards.forEach(card => {
         let pill = card.querySelector('.recommendation-match-pill');
@@ -471,6 +818,24 @@ window.addEventListener('springwave:ai-match-updated', (e) => {
             newPill.className = 'recommendation-match-pill pointer-events-auto';
             newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>${percentage}% ${t("explore.match_pill", "Match")}</span>`;
             topRightBadges.appendChild(newPill);
+=======
+    const cards = document.querySelectorAll(`[data-id="${activityID}"]`);
+    cards.forEach(card => {
+        let pill = card.querySelector('.card-match-badge') || card.querySelector('.recommendation-match-pill');
+        if (pill) {
+            pill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i><span>${percentage}% ${t("explore.match_pill", "Match")}</span>`;
+        } else if (card.closest('#recommendations-container')) {
+            let badges = card.querySelector('.card-top-badges');
+            if (!badges) {
+                badges = document.createElement('div');
+                badges.className = 'card-top-badges absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-col items-start gap-1.5 z-10 pointer-events-none';
+                card.appendChild(badges);
+            }
+            const newPill = document.createElement('div');
+            newPill.className = 'card-match-badge recommendation-match-pill shadow-xs';
+            newPill.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i><span>${percentage}% ${t("explore.match_pill", "Match")}</span>`;
+            badges.prepend(newPill);
+>>>>>>> Stashed changes
         }
     });
 });
@@ -500,12 +865,10 @@ function initSearchButton() {
         document.querySelector(".category-chip[data-category='all']")?.classList.add("active");
         currentCategory = "all";
 
-        // If searching with specific date range, auto switch status filter to 'all' so events in that range aren't hidden
-        if (dates.startDate) {
-            document.querySelectorAll(".status-option").forEach(c => c.classList.remove("active"));
-            document.querySelector(".status-option[data-status='all']")?.classList.add("active");
-            currentStatus = "all";
-        }
+        // Ensure status filter is set to 'upcoming' so only upcoming activities are shown
+        document.querySelectorAll(".status-option").forEach(c => c.classList.remove("active"));
+        document.querySelector(".status-option[data-status='upcoming']")?.classList.add("active");
+        currentStatus = "upcoming";
 
         const cardsContainer = document.getElementById("cards-container");
         showExploreLoading(cardsContainer, {
@@ -566,20 +929,6 @@ function initSearchButton() {
                 });
             }
             if (keyword) {
-                const kwLower = keyword.toLowerCase();
-                activities = activities.filter(a => {
-                    const exactMatch = (a.title || "").toLowerCase().includes(kwLower) ||
-                        (a.description || "").toLowerCase().includes(kwLower) ||
-                        (a.location || "").toLowerCase().includes(kwLower) ||
-                        (a.type || "").toLowerCase().includes(kwLower) ||
-                        (a.tags || []).some(t => t.toLowerCase().includes(kwLower));
-
-                    // AI embeddings can give junk strings (like "a", "22") scores around 0.5. 
-                    // Use 0.60 to filter out junk semantic matches.
-                    const semanticMatch = a.score !== undefined && a.score >= 0.60;
-                    return exactMatch || semanticMatch;
-                });
-
                 // Auto-switch to relevance sorting for semantic search
                 document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("active"));
                 currentSort = "relevance";
@@ -713,12 +1062,7 @@ async function loadCards() {
     const keyword = urlParams.get("keyword");
 
     try {
-        if (!cachedTemplate) {
-            const templateHTML = await fetchContent("./components/cards.html");
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(templateHTML, "text/html");
-            cachedTemplate = doc.querySelector(".card");
-        }
+        await getCardTemplate();
 
         const category = urlParams.get("category");
 
@@ -792,12 +1136,7 @@ async function loadCards() {
 }
 
 async function renderCards(activities) {
-    if (!cachedTemplate) {
-        const templateHTML = await fetchContent("./components/cards.html");
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(templateHTML, "text/html");
-        cachedTemplate = doc.querySelector(".card");
-    }
+    await getCardTemplate();
 
     allActivities = activities;
     if (typeof window.__renderSearchCalendar === "function") window.__renderSearchCalendar();
@@ -927,7 +1266,11 @@ async function renderCardsDirect(activities) {
     cardsContainer.innerHTML = "";
     const frag = document.createDocumentFragment();
     paginatedActivities.forEach(activity => {
+<<<<<<< Updated upstream
         const card = createActivityCard(activity);
+=======
+        const card = createCardElement(activity);
+>>>>>>> Stashed changes
         if (card) frag.appendChild(card);
     });
     cardsContainer.appendChild(frag);
@@ -1177,6 +1520,7 @@ function initializePage() {
 
 
 
+<<<<<<< Updated upstream
 function toggleCardStar(activityID, active) {
     const cards = document.querySelectorAll(`.card[data-id="${activityID}"]`);
     cards.forEach(card => {
@@ -1304,11 +1648,14 @@ async function syncCardFavourites() {
         console.error("Failed to sync favourites:", err);
     }
 }
+=======
+
+>>>>>>> Stashed changes
 
 function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
     const cat = a.category;
-    const typeLabel = cat && cat.name ? cat.name : capitalize(a.type);
+    const typeLabel = getCategoryName(cat || a.type || "Activity");
     const typeIcon = cat && cat.icon ? cat.icon.replace(/[^a-z0-9_-]/gi, "") : "fa-solid fa-tag";
     const typeColor = /^#[0-9a-fA-F]{3,8}$/.test(cat && cat.color) ? cat.color : "#64748b";
     const hasCoords = a.locationLat && a.locationLng;
@@ -1488,7 +1835,7 @@ function buildFavouritesHTML(activities) {
     const items = activities.map(a => {
         const held = formatDate(a.heldDate);
         const cat = a.category;
-        const type = cat && cat.name ? cat.name : capitalize(a.type);
+        const type = getCategoryName(cat || a.type || "Activity");
         const safeType = escapeHtml(type);
         const safeTitle = escapeHtml(a.title);
         const safeLocation = escapeHtml(a.location);
@@ -1775,7 +2122,7 @@ function initMapSelector() {
 
     const useCurrentLocation = () => {
         if (!navigator.geolocation) {
-            addressText.textContent = "Your browser does not support location services. Search for an address instead.";
+            addressText.textContent = t("common.location_unsupported", "Your browser does not support location services. Search for an address instead.");
             return;
         }
 
@@ -1784,7 +2131,7 @@ function initMapSelector() {
             locateBtn.disabled = true;
             locateBtn.innerHTML = '<span class="material-symbols-outlined map-locating-icon" aria-hidden="true">progress_activity</span>';
         }
-        addressText.textContent = "Getting your current location...";
+        addressText.textContent = t("common.loading_location", "Getting your current location...");
 
         const restoreButton = () => {
             if (locateBtn) {
@@ -1804,8 +2151,8 @@ function initMapSelector() {
             },
             (error) => {
                 addressText.textContent = error.code === error.PERMISSION_DENIED
-                    ? "Location permission was not granted. Search for an address instead."
-                    : "We could not get your location. Check your connection and try again.";
+                    ? t("explore.location_permission_denied", "Location permission was not granted. Search for an address instead.")
+                    : t("explore.location_error", "We could not get your location. Check your connection and try again.");
                 restoreButton();
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
@@ -1813,7 +2160,7 @@ function initMapSelector() {
     };
 
     const reverseGeocode = async (lat, lng) => {
-        addressText.textContent = "Loading address details...";
+        addressText.textContent = t("common.loading_address", "Loading address details...");
         try {
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
             const data = await res.json();
@@ -1854,6 +2201,9 @@ function initMapSelector() {
 
 if (typeof window !== "undefined") {
     window.addEventListener("language-changed", async () => {
+        document.querySelectorAll("#categoryList .category-chip span[data-i18n]").forEach(span => {
+            span.textContent = t(span.dataset.i18n);
+        });
         if (currentFilteredActivities && currentFilteredActivities.length > 0) {
             await renderCardsDirect(currentFilteredActivities);
         } else if (allActivities && allActivities.length > 0) {

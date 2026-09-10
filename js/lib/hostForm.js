@@ -219,7 +219,7 @@ export function initMapPicker() {
 
     locationInput.addEventListener("input", () => {
         if (!locationInput.value.trim()) {
-            markerLabel.textContent = "Click on map to set location";
+            markerLabel.textContent = t("host.click_map_hint");
             markerLabel.classList.remove("filled");
             if (marker) { marker.remove(); marker = null; }
             latInput.value = "";
@@ -789,7 +789,7 @@ export async function initEditMode(eventId) {
 
     const statusMsg = document.getElementById("status-msg");
     if (statusMsg) {
-      statusMsg.textContent = 'Edit mode — update the fields and save';
+      statusMsg.textContent = t("host.edit_mode_status");
       statusMsg.classList.remove("error-msg", "success-msg");
       statusMsg.classList.add("info-msg");
     }
@@ -797,7 +797,7 @@ export async function initEditMode(eventId) {
     const editForm = document.getElementById("activity-form");
     if (editForm) {
       const submitBtn = editForm.querySelector('button[type="submit"]');
-      if (submitBtn) submitBtn.textContent = 'Update Event';
+      if (submitBtn) submitBtn.textContent = t("host.update_event");
     }
   } catch (err) {
     console.error('Failed to load event for editing:', err);
@@ -1177,19 +1177,19 @@ export async function initOrgSelector(urlOrgId) {
         ).join("");
         container.innerHTML = `
             <select id="org-id-value" class="input" style="appearance:auto;cursor:pointer">
-                <option value="">Select an organization...</option>
+                <option value="">${t("host.select_org")}</option>
                 ${options}
             </select>
             <input type="hidden" id="org-name-display" value=""/>`;
         const sel = document.getElementById("org-id-value");
         sel.addEventListener("change", () => {
             const selected = orgs.find(o => o._id === sel.value);
-            hint.textContent = selected ? `Hosting as ${selected.name}` : '';
+            hint.textContent = selected ? t("host.hosting_as", { name: selected.name }) : '';
         });
         if (matchedOrg) {
             sel.value = matchedOrg._id;
             document.getElementById("org-name-display").value = matchedOrg.name;
-            hint.textContent = `Hosting as ${matchedOrg.name}`;
+            hint.textContent = t("host.hosting_as", { name: matchedOrg.name });
         }
         return;
     }
@@ -1198,7 +1198,7 @@ export async function initOrgSelector(urlOrgId) {
         container.innerHTML = `
             <input type="text" class="input" id="org-name-display" value="Organization" readonly/>
             <input type="hidden" id="org-id-value" value="${urlOrgId}"/>`;
-        hint.textContent = 'Event linked to organization';
+        hint.textContent = t("host.event_linked_to_org");
     }
 }
 

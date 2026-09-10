@@ -636,7 +636,7 @@ function openEditModal() {
         if (user.schoolLocked) {
             schoolInput.disabled = true;
             schoolInput.classList.add("opacity-70", "cursor-not-allowed");
-            schoolInput.title = "Trường học đã được xác thực qua email và không thể thay đổi.";
+            schoolInput.title = t("profile.school_locked_hint", "School has been verified via email domain and cannot be changed.");
         } else {
             schoolInput.disabled = false;
             schoolInput.classList.remove("opacity-70", "cursor-not-allowed");

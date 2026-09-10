@@ -4327,14 +4327,20 @@ textarea {
   flex-shrink: 0;
 }
 
+<<<<<<< Updated upstream
 #cards-container .info i.fa-location-dot,
 #recommendations-container .info i.fa-location-dot,
+=======
+>>>>>>> Stashed changes
 .card .info i.fa-location-dot {
   color: #3493fa;
 }
 
+<<<<<<< Updated upstream
 #cards-container .info i.fa-calendar,
 #recommendations-container .info i.fa-calendar,
+=======
+>>>>>>> Stashed changes
 .card .info i.fa-calendar {
   color: #5d6b98;
 }
@@ -9820,16 +9826,29 @@ textarea {
 
 .recommendations-container {
   display: flex;
+<<<<<<< Updated upstream
   gap: 1.5rem;
   overflow-x: auto;
   padding: 6px 4px 18px 4px;
   scroll-snap-type: x mandatory;
   scrollbar-width: thin;
+=======
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding-top: 6px;
+  padding-bottom: 16px;
+  padding-left: 2px;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+>>>>>>> Stashed changes
 }
 
 .recommendations-container::-webkit-scrollbar {
   height: 6px;
 }
+<<<<<<< Updated upstream
 
 .recommendations-container::-webkit-scrollbar-thumb {
   background: #cbd5e1;
@@ -9872,6 +9891,45 @@ textarea {
     width: min(280px, 80vw);
     max-width: 300px;
   }
+=======
+.recommendations-container::-webkit-scrollbar-track {
+  background: rgba(28, 39, 76, 0.04);
+  border-radius: 9999px;
+}
+.recommendations-container::-webkit-scrollbar-thumb {
+  background: rgba(28, 39, 76, 0.15);
+  border-radius: 9999px;
+}
+.recommendations-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(28, 39, 76, 0.25);
+}
+
+.recommendations-container .card,
+.recommendations-container .explore-skeleton-card {
+  flex: 0 0 280px;
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-match-badge {
+  background: #7c3aed !important;
+  color: #ffffff !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 3px 8px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  position: static !important;
+  letter-spacing: 0.02em !important;
+  pointer-events: auto !important;
+>>>>>>> Stashed changes
 }
 
 .similar-events-grid {
@@ -10008,7 +10066,17 @@ textarea {
   .recommendations-title {
     font-size: 16px;
   }
-  .recommendations-container,
+  .recommendations-container {
+    gap: 1rem;
+    padding-bottom: 12px;
+  }
+  .recommendations-container .card,
+  .recommendations-container .explore-skeleton-card {
+    flex: 0 0 260px;
+    width: 260px;
+    min-width: 260px;
+    max-width: 260px;
+  }
   .similar-events-grid {
     gap: 8px;
   }
@@ -20248,7 +20316,7 @@ body {
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
-  background: #1755ba !important;
+  background: #dc2626 !important;
   color: #ffffff !important;
   font-size: 10.5px !important;
   font-weight: 800 !important;
@@ -20256,6 +20324,7 @@ body {
   border-radius: 6px !important;
   letter-spacing: 0.04em !important;
   flex-shrink: 0 !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3) !important;
 }
 
 @media (max-width: 640px) {

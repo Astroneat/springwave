@@ -1,5 +1,5 @@
 import { getFavourites } from "../api/user.js";
-import { t } from "../lib/i18n.js";
+import { t, getCategoryName } from "../lib/i18n.js";
 import { formatDate, capitalize, getEventStatus } from "../lib/utils.js";
 import { isAuthenticated } from "../lib/session.js";
 import { openEventPopup } from "./eventPopup.js";
@@ -88,15 +88,15 @@ function buildFavouritesHTML(activities) {
     }
     const items = activities.map(a => {
         const held = formatDate(a.heldDate);
-        const type = capitalize(a.type);
+        const type = getCategoryName(a.category || a.type || "Activity");
         const status = getEventStatus(a);
         let statusTag = '';
         if (status === 'ongoing') {
-            statusTag = `<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:#d1fae5;color:#059669;font-weight:600;">${t("explore.ongoing") || "Đang diễn ra"}</span>`;
+            statusTag = `<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:#d1fae5;color:#059669;font-weight:600;">${t("explore.ongoing", "Ongoing")}</span>`;
         } else if (status === 'registration_closed') {
-            statusTag = `<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#b45309;font-weight:600;">${t("explore.registration_closed") || "Hết hạn đăng ký"}</span>`;
+            statusTag = `<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#b45309;font-weight:600;">${t("explore.registration_closed", "Registration Closed")}</span>`;
         } else if (status === 'ended') {
-            statusTag = `<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:#fee2e2;color:#dc2626;font-weight:600;">${t("explore.ended") || "Đã kết thúc"}</span>`;
+            statusTag = `<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:#fee2e2;color:#dc2626;font-weight:600;">${t("explore.ended", "Ended")}</span>`;
         }
         return `<div class="activity-card" data-id="${a.activityID}" style="cursor:pointer;border:1px solid #e8ecf4;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:16px;transition:background 0.2s">
             <div style="width:120px;height:90px;border-radius:10px;overflow:hidden;background:#e8ecf4;flex-shrink:0;">

@@ -93,6 +93,55 @@ export function applyTranslation(scope = document) {
   });
 }
 
+export function getCategoryI18nKey(category) {
+  if (!category) return "";
+  const name = typeof category === "object" ? (category.name || category.slug || "") : String(category);
+  const slug = typeof category === "object" ? (category.slug || "") : "";
+  const normalized = (slug || name).toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+
+  const keyMap = {
+    sport: "explore.sports",
+    sports: "explore.sports",
+    thethao: "explore.sports",
+    music: "explore.music",
+    amnhac: "explore.music",
+    education: "explore.education",
+    giaoduc: "explore.education",
+    technology: "explore.technology",
+    tech: "explore.technology",
+    congnghe: "explore.technology",
+    volunteering: "explore.volunteering",
+    volunteer: "explore.volunteering",
+    tinhnguyen: "explore.volunteering",
+    social: "explore.social",
+    socialactivity: "explore.social",
+    xahoi: "explore.social",
+    art: "explore.arts",
+    arts: "explore.arts",
+    nghethuat: "explore.arts",
+    workshop: "explore.workshop",
+    seminar: "explore.seminar",
+    hoithao: "explore.seminar"
+  };
+  return keyMap[normalized] || "";
+}
+
+export function getCategoryName(category, fallback = "") {
+  if (!category) return fallback;
+  const name = typeof category === "object" ? (category.name || category.slug || "") : String(category);
+  const key = getCategoryI18nKey(category);
+  if (key) {
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+  }
+  return name || fallback;
+}
+
+if (typeof window !== "undefined") {
+  window.getCategoryName = getCategoryName;
+  window.getCategoryI18nKey = getCategoryI18nKey;
+}
+
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
     if (!loaded) initI18n();

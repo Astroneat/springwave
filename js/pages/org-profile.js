@@ -8,10 +8,11 @@ import {
   toggleFollowOrganization,
   uploadOrgAvatar,
   uploadOrgCover,
-  getOrgActivities
+  getOrgActivities,
+  getSimilarOrganizations
 } from "../api/organizations.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
-import { t, applyTranslation } from "../lib/i18n.js";
+import { t, getLang, applyTranslation, getCategoryName } from "../lib/i18n.js";
 import { showToast as globalShowToast } from "../components/toast.js";
 import { showLoginPrompt } from "../components/authModal.js";
 
@@ -96,7 +97,7 @@ function renderFilteredEvents() {
             </div>
             <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-lg text-[11px] font-bold text-primary flex items-center gap-1.5 border border-primary/20 shadow-sm z-10 max-w-[70%]">
               <i class="fa-solid fa-tag text-primary text-[10px] shrink-0"></i>
-              <span class="info-type truncate">${capitalize(e.type || (e.category?.name || "Activity"))}</span>
+              <span class="info-type truncate">${getCategoryName(e.category || e.type || "Activity")}</span>
             </div>
           </div>
           <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
@@ -167,6 +168,115 @@ function showErrorState(title, message) {
   if (errorState) errorState.classList.remove("hidden");
   if (errorTitle && title) errorTitle.textContent = title;
   if (errorDesc && message) errorDesc.textContent = message;
+}
+
+const escapeHtml = (str) =>
+  String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+// --- Load & Render Similar Organizations ---
+async function loadSimilarOrganizations(orgId) {
+  const container = document.getElementById("similar-orgs-container");
+  const section = document.getElementById("similar-orgs-section");
+  if (!container) return;
+
+  try {
+    const res = await getSimilarOrganizations(orgId, 4);
+    const orgs = res?.organizations || [];
+
+    if (orgs.length === 0) {
+      if (section) section.style.display = "none";
+      return;
+    }
+
+    if (section) section.style.display = "";
+
+    const domainLabels = {
+      tech: { vi: "Công nghệ", en: "Technology" },
+      biz: { vi: "Kinh tế", en: "Business" },
+      art: { vi: "Nghệ thuật", en: "Arts" },
+      social: { vi: "Tình nguyện", en: "Volunteering" },
+      language: { vi: "Ngoại ngữ", en: "Languages" },
+      sport: { vi: "Thể thao", en: "Sports" },
+    };
+    const currentLang = getLang();
+
+    container.innerHTML = orgs.map((o) => {
+      const avatar = o.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(o.name || "Org")}&background=random`;
+      const domainObj = domainLabels[o.domain];
+      const domainName = domainObj ? (currentLang === "en" ? domainObj.en : domainObj.vi) : capitalize(o.domain || "CLB");
+      const isFollowing = Boolean(o.isFollowing);
+
+      return `
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-[#faf8ff] hover:bg-[#f1edff]/60 border border-[#ecedfa]/60 transition-all group">
+          <a href="/org-profile.html?id=${o._id}" class="flex items-center gap-3 min-w-0 flex-1 pr-2">
+            <img src="${avatar}" alt="${escapeHtml(o.name)}" class="w-10 h-10 rounded-xl object-cover border border-[#ecedfa] shrink-0 bg-white" />
+            <div class="min-w-0 flex-1">
+              <h4 class="font-bold text-xs text-[#191b22] group-hover:text-primary transition-colors truncate">${escapeHtml(o.name)}</h4>
+              <div class="flex items-center gap-2 mt-0.5 text-[11px] text-[#64748b]">
+                <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-primary/10 text-primary">${domainName}</span>
+                <span>•</span>
+                <span>${o.followersCount || 0} ${t("org_profile.followers", "Followers")}</span>
+              </div>
+            </div>
+          </a>
+          <button type="button" class="similar-follow-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+            isFollowing 
+              ? "bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600 border border-slate-200" 
+              : "bg-primary text-white hover:bg-primary/90 shadow-sm"
+          }" data-org-id="${o._id}" data-following="${isFollowing}">
+            ${isFollowing ? "✓" : "+"}
+          </button>
+        </div>
+      `;
+    }).join("");
+
+    // Attach follow toggle event listeners
+    container.querySelectorAll(".similar-follow-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!isAuthenticated()) {
+          showLoginPrompt({
+            message: t("auth_modal.desc_follow", "Vui lòng đăng nhập để theo dõi tổ chức."),
+            redirectUrl: window.location.pathname + window.location.search,
+          });
+          return;
+        }
+
+        const targetOrgId = btn.dataset.orgId;
+        if (!targetOrgId) return;
+
+        btn.disabled = true;
+        try {
+          const result = await toggleFollowOrganization(targetOrgId);
+          const nowFollowing = Boolean(result.isFollowing);
+          btn.dataset.following = String(nowFollowing);
+          if (nowFollowing) {
+            btn.textContent = "✓";
+            btn.className = "similar-follow-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600 border border-slate-200";
+          } else {
+            btn.textContent = "+";
+            btn.className = "similar-follow-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer bg-primary text-white hover:bg-primary/90 shadow-sm";
+          }
+          showToast(nowFollowing ? t("org_profile.now_following", "You are now following this organization!") : t("org_profile.unfollowed", "Unfollowed organization."));
+        } catch (err) {
+          console.error("Similar org follow error:", err);
+          showToast(err.message || "Follow request failed.", true);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  } catch (err) {
+    console.warn("Failed to load similar organizations:", err);
+    if (section) section.style.display = "none";
+  }
 }
 
 // --- DOM Ready ---
@@ -264,7 +374,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       websiteEl.textContent = org.website;
       websiteEl.href = org.website.startsWith("http") ? org.website : "https://" + org.website;
     } else {
-      websiteEl.textContent = "Not provided";
+      websiteEl.textContent = t("org_profile.not_provided");
       websiteEl.removeAttribute("href");
       websiteEl.classList.remove("text-primary", "hover:underline");
       websiteEl.classList.add("text-[#64748b]");
@@ -473,6 +583,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderFilteredEvents();
   }
 
+  // ─── Load & render similar organizations ───
+  loadSimilarOrganizations(orgId).catch((e) => console.warn("Similar orgs load error:", e));
+
   window.addEventListener("language-changed", () => {
     applyTranslation();
     if (reviewsLabel) {
@@ -482,5 +595,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       updateFollowButtonUI(followBtn, followBtn.dataset.following === "true");
     }
     renderFilteredEvents();
+    loadSimilarOrganizations(orgId).catch(() => {});
   });
 });

@@ -2,7 +2,7 @@ import { sanitizeHtml } from "../lib/sanitize.js";
 import { getActivityById, checkParticipation, unparticipateActivity, participateActivity, getEventComments, addEventComment, getSimilarEvents } from "../api/activities.js";
 import { addFavourite, removeFavourite, checkFavourite, getParticipatedActivities, getFavourites } from "../api/user.js";
 import { CDN_DOMAIN } from "../config.js";
-import { t, getLang, applyTranslation } from "../lib/i18n.js";
+import { t, getLang, applyTranslation, getCategoryName } from "../lib/i18n.js";
 import { isAuthenticated, getUser, isProfileComplete, isStudentVerified, hasUserCompletedQuiz } from "../lib/session.js";
 import { formatDate, capitalize, timeAgo, isToday, isPastDate, getEventStatus } from "../lib/utils.js";
 import { openPostModal } from "./postModal.js";
@@ -635,7 +635,7 @@ function buildPopupHTML(a, backText) {
     const heldDate = formatDate(a.heldDate);
     const endDateFormatted = a.heldDateEnd ? formatDate(a.heldDateEnd) : null;
     const deadlineFormatted = a.applicationDeadline ? formatDate(a.applicationDeadline) : null;
-    const type = capitalize(String(a.type || "Activity"));
+    const type = getCategoryName(a.category || a.type || "Activity");
     const hasCoords = a.locationLat && a.locationLng;
     const googleMapsLink = hasCoords
         ? `https://www.google.com/maps?q=${a.locationLat},${a.locationLng}`

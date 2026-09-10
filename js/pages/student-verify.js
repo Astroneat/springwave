@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     btn.classList.add('bg-amber-600');
 
                     setTimeout(() => {
-                        alert(res.message || "Hồ sơ của bạn đã được gửi và đang chờ Admin duyệt.");
+                        alert(res.message || t("student_verify.submit_success_alert", "Your verification request has been submitted and is awaiting Admin review."));
                         window.location.href = "/profile.html";
                     }, 1200);
                     return;

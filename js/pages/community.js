@@ -1006,6 +1006,17 @@ function renderDiscussionPagination(totalItems, totalPages, category) {
   });
 }
 
+function getForumCategoryLabel(category) {
+  const cat = (category || "general").toLowerCase();
+  const map = {
+    general: t("community.general_chat", "General Chat"),
+    event: t("community.event_discussions", "Event Discussions"),
+    uni: t("community.uni_communities", "University Communities"),
+    org: t("community.org_communities", "Organizations"),
+  };
+  return map[cat] || capitalize(cat);
+}
+
 function buildDiscussionCardHTML(d) {
   const eventRef = d.relatedEvent ? renderEventRef(d.relatedEvent, { ...d._event, certificateCode: d.certificateCode }) : "";
   const imageAttachments = renderDiscussionImages(d.images);
@@ -1027,7 +1038,7 @@ function buildDiscussionCardHTML(d) {
       ${imageAttachments}
       ${eventRef}
       <div class="forum-discussion-meta">
-        <span class="forum-category-badge forum-category-${d.category || "general"}">${capitalize(d.category || "general")}</span>
+        <span class="forum-category-badge forum-category-${d.category || "general"}">${getForumCategoryLabel(d.category)}</span>
         <div class="forum-discussion-tags">
           ${(Array.isArray(d.tags) ? d.tags : []).map((t) => renderTag(t)).join("")}
         </div>
@@ -1037,11 +1048,11 @@ function buildDiscussionCardHTML(d) {
         <div class="forum-discussion-stats">
           <button class="forum-discussion-stat forum-reply-btn" data-discussion-id="${d.id || d._id}">
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
-            ${Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0)} replies
+            ${t("common.replies_count", { n: Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0) })}
           </button>
           <span class="forum-discussion-stat forum-view-stat">
             <span class="material-symbols-outlined text-sm">visibility</span>
-            ${d.views || 0} views
+            ${t("common.views_count", { n: d.views || 0 })}
           </span>
         </div>
         <div class="forum-discussion-actions">
@@ -1410,7 +1421,7 @@ async function openDiscussionDetail(id, targetCommentId = null) {
   }
 
   if (!discussion) {
-    container.innerHTML = `<div class="popup-loading text-slate-500">Discussion not found</div>`;
+    container.innerHTML = `<div class="popup-loading text-slate-500">${t("community.discussion_not_found")}</div>`;
     return;
   }
 
@@ -1458,7 +1469,7 @@ async function openDiscussionDetail(id, targetCommentId = null) {
     }
 
     const countEl = container.querySelector(".forum-comments-count");
-    if (countEl) countEl.textContent = `${comments.length} comment${comments.length !== 1 ? "s" : ""}`;
+    if (countEl) countEl.textContent = t("common.comments_count", { n: comments.length }, `${comments.length} comment${comments.length !== 1 ? "s" : ""}`);
 
     const statsEl = container.querySelector(".forum-discussion-stats .forum-discussion-stat");
     if (statsEl) {
@@ -2063,9 +2074,9 @@ function buildEmptyState() {
           <circle cx="48" cy="54" r="6" fill="#e2e8f0"/>
         </svg>
       </div>
-      <h3>No comments yet</h3>
-      <p>Be the first to start the conversation.</p>
-      ${user ? `<button class="forum-comment-start-btn" style="margin-top:12px;padding:8px 20px;background:#23499b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Write a comment</button>` : ""}
+      <h3>${t("community.no_comments_title")}</h3>
+      <p>${t("community.no_comments_desc")}</p>
+      ${user ? `<button class="forum-comment-start-btn" style="margin-top:12px;padding:8px 20px;background:#23499b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${t("community.write_a_comment")}</button>` : ""}
     </div>`;
 }
 
@@ -2077,8 +2088,8 @@ function buildDiscussionDetailHTML(d, comments) {
   const isAdmin = user && user.role === "admin";
   const topActions = `
     <div class="top-actions">
-      <button class="icon-btn" id="discussion-share-btn"><span class="material-symbols-outlined text-base">share</span> Share</button>
-      ${isOwner || isAdmin ? `<button class="delete-btn" id="discussion-delete-btn"><span class="material-symbols-outlined text-base">delete</span> Delete</button>` : ""}
+      <button class="icon-btn" id="discussion-share-btn"><span class="material-symbols-outlined text-base">share</span> ${t("org_profile.share_btn")}</button>
+      ${isOwner || isAdmin ? `<button class="delete-btn" id="discussion-delete-btn"><span class="material-symbols-outlined text-base">delete</span> ${t("common.delete")}</button>` : ""}
     </div>
   `;
   const commentsCount = comments ? comments.length : (Number.isFinite(Number(d.replies)) ? Number(d.replies) : (Number.isFinite(Number(d.replyCount)) ? Number(d.replyCount) : 0));
@@ -2091,7 +2102,7 @@ function buildDiscussionDetailHTML(d, comments) {
   return `
     <div class="container discussion-detail">
       <div class="top-bar">
-        <button class="back-btn" id="discussion-back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="back-btn" id="discussion-back-btn"><i class="fa-solid fa-arrow-left"></i> ${t("common.back")}</button>
         ${topActions}
       </div>
       
@@ -2113,7 +2124,7 @@ function buildDiscussionDetailHTML(d, comments) {
           ${imageAttachments}
           <div id="discussion-event-ref-wrap">${eventRef}</div>
           <div class="forum-discussion-meta">
-            <span class="forum-category-badge forum-category-${d.category}">${capitalize(d.category)}</span>
+            <span class="forum-category-badge forum-category-${d.category}">${getForumCategoryLabel(d.category)}</span>
             <div class="forum-discussion-tags">
             ${(Array.isArray(d.tags) ? d.tags : []).map((t) => `<span class="forum-tag">${t}</span>`).join("")}
             </div>
@@ -2121,21 +2132,21 @@ function buildDiscussionDetailHTML(d, comments) {
           <div class="forum-discussion-stats">
             <span class="forum-discussion-stat">
               <span class="material-symbols-outlined text-sm">chat_bubble</span>
-              ${commentsCount} replies
+              ${t("common.replies_count", { n: commentsCount })}
             </span>
             <span class="forum-discussion-stat forum-detail-view-stat">
               <span class="material-symbols-outlined text-sm">visibility</span>
-              ${d.views || 0} views
+              ${t("common.views_count", { n: d.views || 0 })}
             </span>
           </div>
         </div>
         
         <div class="forum-comments-header">
-          <span class="forum-comments-count">${commentsCount} comment${commentsCount !== 1 ? "s" : ""}</span>
+          <span class="forum-comments-count">${t("common.comments_count", { n: commentsCount })}</span>
           <select class="forum-comments-sort" id="forum-comments-sort">
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-            <option value="relevant">Most Relevant</option>
+            <option value="newest">${t("community.sort_newest", "Newest")}</option>
+            <option value="oldest">${t("community.sort_oldest", "Oldest")}</option>
+            <option value="relevant">${t("community.sort_relevant", "Most Relevant")}</option>
           </select>
         </div>
         
@@ -2149,9 +2160,9 @@ function buildDiscussionDetailHTML(d, comments) {
         <div class="discussion-replying-banner" id="discussion-replying-banner" style="display:none;">
           <span class="text-xs text-slate-600 font-medium flex items-center gap-1">
             <span class="material-symbols-outlined text-sm text-primary">reply</span>
-            Replying to <b class="text-primary font-bold" id="replying-to-name">@User</b>
+            ${t("community.replying_to")} <b class="text-primary font-bold" id="replying-to-name">@User</b>
           </span>
-          <button type="button" class="replying-cancel-btn" id="cancel-reply-btn" title="Cancel reply">
+          <button type="button" class="replying-cancel-btn" id="cancel-reply-btn" title="${t("community.cancel_reply")}">
             <span class="material-symbols-outlined text-xs">close</span>
           </button>
         </div>
@@ -2159,9 +2170,9 @@ function buildDiscussionDetailHTML(d, comments) {
           <div class="forum-comment-avatar forum-my-avatar" style="background: #23499b;">
             ${renderAvatar(user?.avatar, user?.fullname || user?.username)}
           </div>
-          <input type="text" id="discussion-input" class="forum-comment-input" placeholder="Write a comment... (Press Enter to post)" data-reply-to-id="" />
+          <input type="text" id="discussion-input" class="forum-comment-input" placeholder="${t("community.write_comment_placeholder")}" data-reply-to-id="" />
           <button class="forum-comment-submit" id="discussion-submit-btn" type="button">
-            <span class="material-symbols-outlined text-sm">send</span> Post
+            <span class="material-symbols-outlined text-sm">send</span> ${t("community.post")}
           </button>
         </div>
       </div>
@@ -2202,16 +2213,16 @@ function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtm
           <p class="forum-comment-text">${replyToHtml}${c.content}</p>
         </div>
         <div class="forum-comment-footer">
-          <button type="button" class="forum-comment-like-btn ${liked ? 'liked' : ''}" data-comment-id="${cId}" title="Like">
+          <button type="button" class="forum-comment-like-btn ${liked ? 'liked' : ''}" data-comment-id="${cId}" title="${t("common.like", "Like")}">
             <span class="material-symbols-outlined text-xs">thumb_up</span>
             <span class="like-count">${c.likes || 0}</span>
           </button>
-          <button type="button" class="forum-comment-reply-btn" data-comment-id="${cId}" data-author="${authorName}" title="Reply">
+          <button type="button" class="forum-comment-reply-btn" data-comment-id="${cId}" data-author="${authorName}" title="${t("community.reply", "Reply")}">
             <span class="material-symbols-outlined text-xs">reply</span>
-            <span>Reply</span>
+            <span>${t("community.reply", "Reply")}</span>
           </button>
           ${canDelete ? `
-          <button type="button" class="forum-comment-delete-btn" data-comment-id="${cId}" title="Delete comment">
+          <button type="button" class="forum-comment-delete-btn" data-comment-id="${cId}" title="${t("community.delete_comment", "Delete comment")}">
             <span class="material-symbols-outlined text-xs">delete</span>
           </button>` : ""}
         </div>
@@ -2222,14 +2233,14 @@ function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtm
           </div>
           <div class="forum-comment-inline-body">
             <div class="flex items-center gap-1 text-[11px] text-slate-500 font-medium mb-1">
-              <span>Replying to</span>
+              <span>${t("community.replying_to", "Replying to")}</span>
               <span class="text-primary font-bold">@${authorName}</span>
             </div>
-            <input type="text" class="forum-comment-inline-input" placeholder="Write a reply... (Press Enter to post)" data-reply-to-id="${cId}" />
+            <input type="text" class="forum-comment-inline-input" placeholder="${t("community.write_reply_placeholder", "Write a reply... (Press Enter to post)")}" data-reply-to-id="${cId}" />
             <div class="forum-comment-inline-actions">
-              <button type="button" class="forum-comment-inline-cancel">Cancel</button>
+              <button type="button" class="forum-comment-inline-cancel">${t("common.cancel", "Cancel")}</button>
               <button type="button" class="forum-comment-inline-submit">
-                <span class="material-symbols-outlined text-sm">send</span> Reply
+                <span class="material-symbols-outlined text-sm">send</span> ${t("community.reply", "Reply")}
               </button>
             </div>
           </div>
@@ -2243,8 +2254,8 @@ function buildCommentHTML(c, currentUser, repliesHtml = "", depth = 0, hiddenHtm
             ${hiddenHtml}
           </div>
           <button type="button" class="forum-comment-expand-btn" data-comment-id="${cId}" data-hidden-count="${hiddenCount}">
-            <span class="forum-comment-expand-text">View ${hiddenCount} more ${hiddenCount === 1 ? "reply" : "replies"}</span>
-            <span class="forum-comment-expand-text-hide" style="display:none">Show less</span>
+            <span class="forum-comment-expand-text">${t("community.view_more_replies", { n: hiddenCount })}</span>
+            <span class="forum-comment-expand-text-hide" style="display:none">${t("community.show_less", "Show less")}</span>
           </button>` : ""}
         </div>` : ""}
       </div>
@@ -2280,8 +2291,8 @@ async function renderUniGrid() {
     container.innerHTML = `
       <div class="forum-empty" style="grid-column:1/-1;">
         <span class="material-symbols-outlined forum-empty-icon">account_balance</span>
-        <p class="forum-empty-title">No university communities</p>
-        <p class="forum-empty-desc">University communities are not available yet. Check back later!</p>
+        <p class="forum-empty-title">${t("community.empty_uni_communities_title")}</p>
+        <p class="forum-empty-desc">${t("community.empty_uni_communities_desc")}</p>
       </div>
     `;
     return;
@@ -2348,7 +2359,7 @@ async function renderUniGrid() {
       if (btn.classList.contains("joined")) {
         await leaveUniversity(id);
         btn.classList.remove("joined");
-        btn.textContent = "Join Community";
+        btn.textContent = t("community.join_community", "Join Community");
         updateMemberCount(card, -1);
       } else {
         const res = await joinUniversity(id);
@@ -2357,7 +2368,7 @@ async function renderUniGrid() {
           if (prevJoined) updateMemberCount(prevJoined.closest(".forum-uni-card"), -1);
           document.querySelectorAll(".forum-uni-join-btn").forEach(b => {
             b.classList.remove("joined");
-            b.textContent = "Join Community";
+            b.textContent = t("community.join_community", "Join Community");
           });
           btn.classList.add("joined");
           btn.textContent = "✓ Joined";
@@ -2441,8 +2452,8 @@ async function renderTopicGrid() {
     container.innerHTML = `
       <div class="forum-empty" style="grid-column:1/-1;">
         <span class="material-symbols-outlined forum-empty-icon">school</span>
-        <p class="forum-empty-title">No skill topics yet</p>
-        <p class="forum-empty-desc">Skill discussion topics are being curated. Stay tuned!</p>
+        <p class="forum-empty-title">${t("community.empty_skill_topics_title")}</p>
+        <p class="forum-empty-desc">${t("community.empty_skill_topics_desc")}</p>
       </div>
     `;
     return;
@@ -2566,7 +2577,7 @@ function openUniDialog(editData, callback) {
   loadSchoolsIntoSelect(nameInput, editData);
 
   if (editData) {
-    title.textContent = "Edit University";
+    title.textContent = t("community.edit_uni_title");
     nameInput.value = editData.name || "";
     descInput.value = editData.description || "";
     if (domainsInput) domainsInput.value = (editData.domains || []).join(", ");
@@ -2794,7 +2805,7 @@ function initPostModal() {
     const events = await getEvents();
     _allEvents = events || [];
     if (!events || events.length === 0) {
-      postEventCards.innerHTML = '<div class="forum-post-empty-events">No upcoming events</div>';
+      postEventCards.innerHTML = `<div class="forum-post-empty-events">${t("org_profile.no_upcoming")}</div>`;
       return;
     }
     renderEventCards(events.slice(0, 5));
@@ -2830,7 +2841,7 @@ function initPostModal() {
     if (postEventCards) postEventCards.style.display = isEvent ? "" : "none";
     if (postEventLabel) {
       postEventLabel.style.display = isEvent ? "" : "none";
-      postEventLabel.textContent = "Related Event (optional)";
+      postEventLabel.textContent = t("community.related_event");
     }
     if (postEventSearch) postEventSearch.style.display = isEvent ? "" : "none";
 
@@ -3176,12 +3187,12 @@ function showUniMembersModal(uniName, members) {
   modal.innerHTML = `
     <div class="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-hidden shadow-2xl mx-4">
       <div class="flex items-center justify-between p-5 border-b border-slate-200">
-        <h3 class="text-lg font-semibold text-slate-800">${uniName} Members</h3>
+        <h3 class="text-lg font-semibold text-slate-800">${t("community.uni_members_title", { name: uniName })}</h3>
         <button class="text-slate-400 hover:text-slate-600 text-2xl leading-none" id="uniMembersClose">&times;</button>
       </div>
       <div class="p-4 overflow-y-auto max-h-[55vh]">
         ${members.length === 0
-          ? '<p class="text-slate-500 text-center py-8">No members yet</p>'
+          ? `<p class="text-slate-500 text-center py-8">${t("community.no_members_yet")}</p>`
           : members.map(m => `
             <div class="flex items-center gap-3 py-3 px-2 hover:bg-slate-50 rounded-lg">
               <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
@@ -3247,8 +3258,8 @@ async function renderOrgGrid() {
     container.innerHTML = `
       <div class="forum-empty" style="grid-column:1/-1;">
         <span class="material-symbols-outlined forum-empty-icon">groups</span>
-        <p class="forum-empty-title">No organizations found</p>
-        <p class="forum-empty-desc">Check back later for newly approved organizations!</p>
+        <p class="forum-empty-title">${t("community.no_orgs_found_title")}</p>
+        <p class="forum-empty-desc">${t("community.no_orgs_found_desc")}</p>
       </div>
     `;
     return;
@@ -3263,7 +3274,7 @@ async function renderOrgGrid() {
     } catch {}
 
     const isPast = events.length > 0 && new Date(events[0].heldDate || events[0].createdAt) < new Date();
-    const eventsTitle = events.length === 0 ? "Upcoming Events" : (isPast ? "Latest Events" : "Upcoming Events");
+    const eventsTitle = events.length === 0 ? t("org_profile.upcoming") : (isPast ? t("community.latest_events") : t("org_profile.upcoming"));
 
     const eventsListHtml = events.length > 0 
       ? events.map(e => `
@@ -3276,11 +3287,11 @@ async function renderOrgGrid() {
               </p>
             </div>
             <button type="button" onclick="openEventPopup('${e._id}')" class="text-[10px] text-primary font-bold hover:underline shrink-0 flex items-center gap-0.5">
-              Detail <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+              ${t("common.detail")} <span class="material-symbols-outlined text-[10px]">chevron_right</span>
             </button>
           </div>
         `).join("")
-      : `<p class="text-xs text-[#94a3b8] italic text-center py-2">No events</p>`;
+      : `<p class="text-xs text-[#94a3b8] italic text-center py-2">${t("org_profile.no_events")}</p>`;
 
     const avatarUrl = org.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(org.name)}`;
 
@@ -3294,12 +3305,12 @@ async function renderOrgGrid() {
               <h3 class="font-bold text-[#191b22] text-base truncate hover:text-primary transition-colors cursor-pointer" onclick="window.location.href='/org-profile.html?orgId=${org._id}'">${org.name}</h3>
               <p class="text-xs text-[#64748b] flex items-center gap-1 mt-0.5">
                 <span class="material-symbols-outlined text-[12px] text-primary">groups</span>
-                <span class="followers-count font-semibold">${org.followersCount || 0}</span> followers
+                <span class="followers-count font-semibold">${org.followersCount || 0}</span> ${t("org_profile.followers").toLowerCase()}
               </p>
             </div>
           </div>
           <!-- Description -->
-          <p class="text-xs text-[#64748b] line-clamp-2 mb-4 h-8">${org.description || "No description provided."}</p>
+          <p class="text-xs text-[#64748b] line-clamp-2 mb-4 h-8">${org.description || t("community.no_description")}</p>
           
           <!-- Upcoming Events -->
           <div class="mb-4">
@@ -3316,10 +3327,10 @@ async function renderOrgGrid() {
         <!-- Follow CTA -->
         <div class="pt-2 border-t border-[#ecedfa] flex items-center justify-between gap-3">
           <a href="/org-profile.html?orgId=${org._id}" class="px-3 py-2 rounded-xl bg-[#f8f9fc] hover:bg-[#ecedfa] border border-[#ecedfa] text-xs font-semibold text-[#191b22] text-center flex-1 transition-colors">
-            Profile
+            ${t("user.profile")}
           </a>
           <button class="follow-org-btn px-3 py-2 rounded-xl text-xs font-bold text-center flex-1 transition-all ${org.isFollowing ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-primary text-white hover:bg-primary/90'}" data-org-id="${org._id}">
-            ${org.isFollowing ? '✓ Following' : 'Follow'}
+            ${org.isFollowing ? '✓ ' + t("org_profile.following_btn") : t("org_profile.follow_btn")}
           </button>
         </div>
       </div>
@@ -3348,10 +3359,10 @@ async function renderOrgGrid() {
         
         // Update button text and style
         if (result.isFollowing) {
-          btn.textContent = "✓ Following";
+          btn.textContent = "✓ " + t("org_profile.following_btn");
           btn.className = "follow-org-btn px-3 py-2 rounded-xl text-xs font-bold text-center flex-1 transition-all bg-gray-100 text-gray-500 hover:bg-gray-200";
         } else {
-          btn.textContent = "Follow";
+          btn.textContent = t("org_profile.follow_btn");
           btn.className = "follow-org-btn px-3 py-2 rounded-xl text-xs font-bold text-center flex-1 transition-all bg-primary text-white hover:bg-primary/90";
         }
 

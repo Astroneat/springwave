@@ -137,13 +137,18 @@ export async function populateUniversitySelect(selectElOrId, selectedValue = '')
  * @param {string} [selectedValue] - Pre-select by ID or name
  * @param {string} [defaultOptionText] - Custom label for the free/unaffiliated option
  */
-export async function populateOrgUniversitySelect(selectElOrId, selectedValue = '', defaultOptionText = 'Tự do / Không thuộc trường nào (Independent)') {
+export async function populateOrgUniversitySelect(selectElOrId, selectedValue = '', defaultOptionText = '') {
   const selectEl = typeof selectElOrId === 'string' ? document.getElementById(selectElOrId) : selectElOrId;
   if (!selectEl) return;
 
   const universities = await getUniversities();
 
-  selectEl.innerHTML = `<option value="">${defaultOptionText}</option>`;
+  const fallbackText = (typeof window !== 'undefined' && window.t)
+    ? window.t("register_host.university_independent", "Independent / Not affiliated with any university")
+    : 'Tự do / Không thuộc trường nào (Independent)';
+  const firstOptionLabel = defaultOptionText || fallbackText;
+
+  selectEl.innerHTML = `<option value="">${firstOptionLabel}</option>`;
 
   universities.forEach(u => {
     const opt = document.createElement('option');

@@ -1,6 +1,6 @@
 import "../../src/style.css";
 import { CDN_DOMAIN } from "../config.js";
-import { t, getLang, applyTranslation } from "../lib/i18n.js";
+import { t, getLang, applyTranslation, getCategoryName } from "../lib/i18n.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar } from "../components/navbar.js";
@@ -611,7 +611,7 @@ function renderEventsTable() {
       </td>
       <td class="py-3.5 px-4 text-[#64748b] hidden md:table-cell text-xs">${dateDisplay}</td>
       <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell font-medium">${e.participants?.length || 0}</td>
-      <td class="py-3.5 px-4 text-[#64748b] hidden lg:table-cell text-xs font-medium">${capitalize(e.type || "")}</td>
+      <td class="py-3.5 px-4 text-[#64748b] hidden lg:table-cell text-xs font-medium">${getCategoryName(e.category || e.type || "")}</td>
       <td class="py-3.5 px-4">
         <div class="flex flex-wrap items-center gap-1.5">
           ${timelineBadge}
@@ -705,7 +705,7 @@ async function openEventDetailModal(eventId) {
   const expired = isEventExpired(event.heldDate);
   const canEdit = canEditEvent(event.heldDate);
   const type = capitalize(event.type || "Event");
-  const categoryName = event.category?.name || type;
+  const categoryName = getCategoryName(event.category || type);
   const hostOrgName = typeof event.organization === 'object' ? event.organization?.name : null;
   const source = hostOrgName || event.hostName || event.createdByName || "Unknown";
 
@@ -3626,11 +3626,11 @@ function initQRScan() {
       defaultView.classList.remove("hidden");
       container.classList.add("border-slate-200/60", "bg-slate-50");
       const textEl = defaultView.querySelector("p");
-      if (textEl) textEl.textContent = message || (state === "loading" ? "Processing check-in..." : "Position the attendee's ticket QR code or barcode inside the camera viewfinder.");
+      if (textEl) textEl.textContent = message || (state === "loading" ? t("attendance.scan_loading") : t("attendance.scan_placeholder"));
 
       const formatLabelEl = document.getElementById("scan-feedback-format");
       if (formatLabelEl) {
-        formatLabelEl.textContent = "QR or Barcode";
+        formatLabelEl.textContent = t("attendance.format_qr_barcode");
         formatLabelEl.className = "text-[9px] font-semibold text-slate-400 uppercase tracking-wider";
       }
 
@@ -3663,7 +3663,7 @@ function initQRScan() {
 
       if (formatLabel) {
         const isBarcode = scanType === 'barcode';
-        formatLabel.textContent = isBarcode ? 'Barcode (ID Card)' : 'QR Ticket';
+        formatLabel.textContent = isBarcode ? t("attendance.format_barcode") : t("attendance.format_qr");
         formatLabel.className = `text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${
           isBarcode
             ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
@@ -3680,10 +3680,10 @@ function initQRScan() {
       if (codeEl) codeEl.textContent = ticketCode ? ticketCode.toUpperCase() : "N/A";
       if (statusLabel) {
         if (isLate) {
-          statusLabel.textContent = "Checked in (Late)";
+          statusLabel.textContent = t("attendance.checked_in_late");
           statusLabel.className = "text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full";
         } else {
-          statusLabel.textContent = "Checked in";
+          statusLabel.textContent = t("attendance.checked_in");
           statusLabel.className = "text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full";
         }
       }
@@ -4329,7 +4329,7 @@ function renderCertBgPanel(event) {
     }
     if (placeholder) placeholder.classList.add("hidden");
     if (badge) {
-      badge.textContent = "Custom Background";
+      badge.textContent = t("cert_designer.custom_bg_badge");
       badge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200";
     }
     if (resetBtn) resetBtn.classList.remove("hidden");
@@ -4340,7 +4340,7 @@ function renderCertBgPanel(event) {
     }
     if (placeholder) placeholder.classList.remove("hidden");
     if (badge) {
-      badge.textContent = "Default Royal Theme";
+      badge.textContent = t("cert_designer.default_royal_theme");
       badge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200";
     }
     if (resetBtn) resetBtn.classList.add("hidden");
@@ -6632,14 +6632,14 @@ function initSettingsForm() {
           avatarPreview.src = res.avatar;
         }
         if (avatarStatus) {
-          avatarStatus.textContent = "Avatar updated successfully!";
+          avatarStatus.textContent = t("org_dashboard.avatar_updated_success");
           avatarStatus.className = "text-xs text-green-600 font-medium";
           setTimeout(() => avatarStatus.classList.add("hidden"), 3000);
         }
         await loadOrgs();
       } catch (err) {
         if (avatarStatus) {
-          avatarStatus.textContent = err.message || "Upload failed";
+          avatarStatus.textContent = err.message || t("org_dashboard.upload_failed");
           avatarStatus.className = "text-xs text-red-600 font-medium";
         }
       }

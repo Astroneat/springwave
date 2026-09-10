@@ -404,7 +404,7 @@ function initModals() {
       if (tkt) {
         tkt.review = { rating: selectedRating, content };
       }
-      showToast(t("my_events.rate_success", "Cảm ơn bạn đã gửi đánh giá!"), "success");
+      showToast(t("my_events.rate_success", "Thank you for submitting your review!"), "success");
       renderEvents();
     } catch (err) {
       showToast(err.message || t("my_events.rate_modal_failed", "Failed to submit review"), "error");

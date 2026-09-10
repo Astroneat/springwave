@@ -87,7 +87,7 @@ async function ensurePostModalElements() {
     publishBtn?.addEventListener("click", async () => {
         const check = canPerformAction('createDiscussion');
         if (!check.allowed) {
-            alert(`Please wait ${check.remaining} seconds before posting.`);
+            alert(t("post_modal.throttle_wait", { remaining: check.remaining }, `Please wait ${check.remaining} seconds before posting.`));
             return;
         }
         markActionPerformed('createDiscussion');
@@ -108,7 +108,7 @@ async function ensurePostModalElements() {
             });
 
             if (!result) {
-                alert("Failed to post discussion. Please try again.");
+                alert(t("post_modal.post_failed", "Failed to post discussion. Please try again."));
                 return;
             }
 
@@ -127,7 +127,7 @@ async function ensurePostModalElements() {
             };
             if (!result.tags) result.tags = (tagsInput.value || "").split(",").map(t => t.trim()).filter(Boolean);
             if (!result.category) result.category = "event";
-            if (!result.lastActivity) result.lastActivity = "Just now";
+            if (!result.lastActivity) result.lastActivity = t("post_modal.just_now", "Just now");
             if (!result.replies) result.replies = 0;
             result.id = result.id || result._id;
 
@@ -155,7 +155,7 @@ async function ensurePostModalElements() {
                 });
             }
         } catch (err) {
-            alert(err?.message || "Failed to post discussion. Please try again.");
+            alert(err?.message || t("post_modal.post_failed", "Failed to post discussion. Please try again."));
         } finally {
             publishBtn.disabled = false;
         }

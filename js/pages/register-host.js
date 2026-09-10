@@ -198,9 +198,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>${file.name}</span>`;
                 }
             } else {
-                label.textContent = "Click to upload or drag and drop";
+                label.textContent = t("register_host.upload_cccd_label");
                 icon.textContent = "cloud_upload";
-                hint.textContent = "PNG, JPG or PDF up to 10MB";
+                hint.textContent = t("register_host.upload_cccd_hint");
                 preview.classList.add("hidden");
             }
         });
@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (credInput.files.length > 10) {
                 const more = document.createElement("span");
                 more.className = "text-xs text-outline ml-1";
-                more.textContent = `+${credInput.files.length - 10} more`;
+                more.textContent = t("register_host.more_files", { n: credInput.files.length - 10 });
                 preview.appendChild(more);
             }
         });
@@ -235,7 +235,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const btn = e.target.querySelector('button[type="submit"]');
         const originalText = btn.innerHTML;
 
-        btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> <span>Processing...</span>';
+        btn.innerHTML = `<span class="material-symbols-outlined animate-spin">refresh</span> <span>${t("register_host.processing")}</span>`;
         btn.classList.add('opacity-80', 'pointer-events-none');
 
         const formData = new FormData(form);

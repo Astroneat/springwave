@@ -5,7 +5,7 @@ import { showNoticeBox } from "../components/noticeBox.js";
 import { getUser, isAuthenticated } from "../lib/session.js";
 import { get } from "../api/client.js";
 import { searchActivities } from "../api/activities.js";
-import { t, getLang } from "../lib/i18n.js";
+import { t, getLang, getCategoryName } from "../lib/i18n.js";
 import { HERO_SLIDES } from "../config/heroSlides.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -196,7 +196,7 @@ function initHeroSlider() {
       dot.type = "button";
       dot.className = `hero-dot${idx === 0 ? " active" : ""}`;
       dot.setAttribute("role", "tab");
-      dot.setAttribute("aria-label", `Chuyển tới ảnh nền ${idx + 1}`);
+      dot.setAttribute("aria-label", t("index.slide_goto", { n: idx + 1 }, `Slide ${idx + 1}`));
       dot.setAttribute("aria-selected", idx === 0 ? "true" : "false");
       dot.addEventListener("click", (e) => {
         e.preventDefault();
@@ -413,45 +413,6 @@ function renderTickerItems(track, items) {
 // ----------------------------------------------------
 let currentEventTab = "upcoming";
 const eventCache = {};
-
-function getCategoryName(category) {
-  if (!category) return "";
-  const name = category.name || "";
-  const lang = getLang();
-
-  const normalized = (category.slug || name).toLowerCase().trim().replace(/[^a-z0-9]/g, "");
-
-  const categoryMap = {
-    technology: { vi: "Công nghệ", en: "Technology" },
-    tech: { vi: "Công nghệ", en: "Technology" },
-    congnghe: { vi: "Công nghệ", en: "Technology" },
-    sport: { vi: "Thể thao", en: "Sports" },
-    sports: { vi: "Thể thao", en: "Sports" },
-    thethao: { vi: "Thể thao", en: "Sports" },
-    music: { vi: "Âm nhạc", en: "Music" },
-    amnhac: { vi: "Âm nhạc", en: "Music" },
-    education: { vi: "Giáo dục", en: "Education" },
-    giaoduc: { vi: "Giáo dục", en: "Education" },
-    volunteering: { vi: "Tình nguyện", en: "Volunteering" },
-    volunteer: { vi: "Tình nguyện", en: "Volunteering" },
-    tinhnguyen: { vi: "Tình nguyện", en: "Volunteering" },
-    social: { vi: "Xã hội", en: "Social" },
-    socialactivity: { vi: "Xã hội", en: "Social" },
-    xahoi: { vi: "Xã hội", en: "Social" },
-    art: { vi: "Nghệ thuật", en: "Arts" },
-    arts: { vi: "Nghệ thuật", en: "Arts" },
-    nghethuat: { vi: "Nghệ thuật", en: "Arts" },
-    workshop: { vi: "Workshop", en: "Workshop" },
-    seminar: { vi: "Hội thảo", en: "Seminar" },
-    hoithao: { vi: "Hội thảo", en: "Seminar" }
-  };
-
-  const match = categoryMap[normalized];
-  if (match) {
-    return lang === "vi" ? match.vi : match.en;
-  }
-  return name;
-}
 
 function initEventHub() {
   const tabButtons = document.querySelectorAll(".event-tab-btn");

@@ -193,10 +193,10 @@ export function normalizeToMBTI(key) {
 
 // 16 MBTI Personas grouped by 4 classical temperaments
 const TEMPERAMENT_PALETTES = {
-  analysts: { temperament: "analysts", temperamentTitle: "Nhà Phân Tích (Analysts)", solidColor: "#23499b", textColor: "#23499b", bgSoft: "#f8fafc", icon: "psychology" },
-  diplomats: { temperament: "diplomats", temperamentTitle: "Nhà Ngoại Giao (Diplomats)", solidColor: "#23499b", textColor: "#23499b", bgSoft: "#f8fafc", icon: "diversity_3" },
-  sentinels: { temperament: "sentinels", temperamentTitle: "Người Bảo Hộ (Sentinels)", solidColor: "#23499b", textColor: "#23499b", bgSoft: "#f8fafc", icon: "shield" },
-  explorers: { temperament: "explorers", temperamentTitle: "Nhà Thám Hiểm (Explorers)", solidColor: "#23499b", textColor: "#23499b", bgSoft: "#f8fafc", icon: "explore" },
+  analysts: { temperament: "analysts", temperamentTitle: getLang() === "vi" ? "Nhà Phân Tích (Analysts)" : "Analysts", solidColor: "#23499b", textColor: "#23499b", bgSoft: "#f8fafc", icon: "psychology" },
+  diplomats: { temperament: "diplomats", temperamentTitle: getLang() === "vi" ? "Nhà Ngoại Giao (Diplomats)" : "Diplomats", solidColor: "#23499b", textColor: "#23499b", bgSoft: "#f8fafc", icon: "diversity_3" },
+  sentinels: { temperament: "sentinels", temperamentTitle: getLang() === "vi" ? "Người Bảo Hộ (Sentinels)" : "Sentinels", solidColor: "#23499b", textColor: "#23499b", bgSoft: "#f8fafc", icon: "shield" },
+  explorers: { temperament: "explorers", temperamentTitle: getLang() === "vi" ? "Nhà Thám Hiểm (Explorers)" : "Explorers", solidColor: "#23499b", textColor: "#23499b", bgSoft: "#f8fafc", icon: "explore" },
 };
 
 const PERSONA_CONFIGS = {
