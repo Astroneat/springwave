@@ -34,6 +34,7 @@
     "no_notifications": "Chưa có thông báo nào",
     "notifications": "Thông báo",
     "mark_all_read": "Đánh dấu đã đọc",
+    "badge_earned_msg": "Bạn đã đạt được huy hiệu \"{{badge}}\"!",
     "just_now": "Vừa xong",
     "m_ago": "{{n}}p trước",
     "h_ago": "{{n}}g trước",

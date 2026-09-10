@@ -5,6 +5,10 @@
  */
 
 import { t } from "../lib/i18n.js";
+import { getUser, hasUserCompletedQuiz } from "../lib/session.js";
+import { getUserContribution, getFavourites, getMyTickets } from "../api/user.js";
+import { getMyCertificates } from "../api/certificates.js";
+import { addBadgeNotification } from "../lib/notifications.js";
 
 export const BADGE_DEFINITIONS = [
   // ── Tier 1: Newbie (Common / Introductory) ──
@@ -896,6 +900,23 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
   playCelebrationChime(badge.tier);
   launchConfettiBurst(badge.tier);
 
+  // When genuinely earned (not just inspect), dispatch badge notification and sync cache
+  if (!isInspect) {
+    addBadgeNotification(badge.key, badge.label);
+    const user = getUser();
+    if (user) {
+      const userId = user._id || user.id || "guest";
+      const badgeStorageKey = `springwave_badges_${userId}`;
+      try {
+        const stored = JSON.parse(localStorage.getItem(badgeStorageKey) || "[]");
+        if (!stored.includes(badge.key)) {
+          stored.push(badge.key);
+          localStorage.setItem(badgeStorageKey, JSON.stringify(stored));
+        }
+      } catch {}
+    }
+  }
+
   // Event handlers
   const closeBtn = modalOverlay.querySelector(".badge-modal-close");
   const backdrop = modalOverlay.querySelector(".badge-modal-backdrop");
@@ -960,6 +981,7 @@ export function checkPendingBadgeCelebrations() {
  */
 export function initBadgeCelebration() {
   checkPendingBadgeCelebrations();
+  syncOfflineBadgeNotifications();
 
   // Listen for custom badge unlocked event globally
   window.addEventListener("badge-unlocked", (e) => {
@@ -972,5 +994,163 @@ export function initBadgeCelebration() {
   // Expose globally for instant testing or inline triggers
   window.triggerBadgeCelebration = triggerBadgeCelebration;
   window.queueBadgeCelebration = queueBadgeCelebration;
+  window.syncOfflineBadgeNotifications = syncOfflineBadgeNotifications;
+}
+
+export function computeLocalBadges(user, c = {}, favoritesCount = 0, participationsCount = 0) {
+  const badges = [];
+  if (user) badges.push("hello_world");
+  if ((c.repliesGiven || 0) >= 1) badges.push("talk_is_silver");
+  if ((c.discussionsStarted || 0) >= 1) badges.push("so_it_begins");
+  if (hasUserCompletedQuiz(user)) {
+    badges.push("self_discovery");
+    try {
+      localStorage.setItem("springwave_quiz_completed", "true");
+    } catch {}
+  }
+  if ((c.discussionsStarted || 0) >= 5) badges.push("conversation_starter");
+  if ((c.repliesGiven || 0) >= 10) badges.push("helper");
+  if ((c.repliesGiven || 0) >= 50) badges.push("chatterbox");
+  if ((c.likesReceived || 0) >= 20) badges.push("respected");
+  if ((c.likesReceived || 0) >= 50) badges.push("the_oracle");
+  if ((c.discussionsStarted || 0) >= 20) badges.push("trendsetter");
+  if ((c.score || 0) >= 100) badges.push("community_star");
+  if ((c.repliesGiven || 0) >= 100) badges.push("keyboard_warrior");
+  if ((c.score || 0) >= 1000) badges.push("mentor");
+  if ((c.score || 0) >= 2000) badges.push("the_sage");
+  if ((c.repliesGiven || 0) > (c.discussionsStarted || 0) * 10 && (c.discussionsStarted || 0) > 0) badges.push("one_man_show");
+  if ((c.discussionsStarted || 0) <= 3 && (c.discussionsStarted || 0) > 0 && (c.likesReceived || 0) >= (c.discussionsStarted || 0) * 5) badges.push("quality_over_quantity");
+
+  // Activity & Event Gamification
+  if (favoritesCount >= 5) badges.push("active_explorer");
+  if (participationsCount >= 1) badges.push("event_goer");
+  if (user && user.role === "host") {
+    badges.push("rising_host");
+    if ((c.score || 0) >= 100 || favoritesCount >= 5) {
+      badges.push("grand_host");
+    }
+  }
+
+  // Knowledge & Certificates Gamification
+  if ((c.certificatesEarned || 0) >= 1) badges.push("certified_novice");
+  if ((c.certificatesEarned || 0) >= 5) badges.push("certified_expert");
+  if ((c.certificatesEarned || 0) >= 10) badges.push("certified_master");
+
+  return badges;
+}
+
+let isSyncingBadges = false;
+
+/**
+ * Synchronize and detect badges earned while offline or in background
+ */
+export async function syncOfflineBadgeNotifications() {
+  if (isSyncingBadges) return;
+  const user = getUser();
+  if (!user) return;
+  const userId = user._id || user.id || "guest";
+  if (userId === "guest") return;
+
+  isSyncingBadges = true;
+  try {
+    const badgeStorageKey = `springwave_badges_${userId}`;
+    const contribStorageKey = `springwave_contrib_${userId}`;
+    const countsStorageKey = `springwave_counts_${userId}`;
+
+    const savedBadgesRaw = localStorage.getItem(badgeStorageKey);
+    const isFirstTime = savedBadgesRaw === null;
+    const storedBadges = savedBadgesRaw ? JSON.parse(savedBadgesRaw) : [];
+
+    const [contribResult, favsResult, ticketsResult, certsResult] = await Promise.allSettled([
+      getUserContribution(),
+      getFavourites(),
+      getMyTickets(),
+      getMyCertificates()
+    ]);
+
+    let c = {};
+    if (contribResult.status === "fulfilled" && contribResult.value?.contribution) {
+      c = contribResult.value.contribution;
+      try {
+        localStorage.setItem(contribStorageKey, JSON.stringify(c));
+      } catch {}
+    } else {
+      try {
+        const cached = localStorage.getItem(contribStorageKey);
+        if (cached) c = JSON.parse(cached);
+      } catch {}
+    }
+
+    let favoritesCount = 0;
+    if (favsResult.status === "fulfilled" && favsResult.value?.activities) {
+      favoritesCount = favsResult.value.activities.length;
+    } else {
+      try {
+        const cachedCounts = JSON.parse(localStorage.getItem(countsStorageKey) || "{}");
+        favoritesCount = cachedCounts.favoritesCount || 0;
+      } catch {}
+    }
+
+    let participationsCount = 0;
+    if (ticketsResult.status === "fulfilled" && ticketsResult.value?.tickets) {
+      const tickets = ticketsResult.value.tickets || [];
+      const checkedInTickets = tickets.filter(t => t.ticketStatus === "checked_in" && t.event && t.event.organization);
+      participationsCount = checkedInTickets.length;
+    } else {
+      try {
+        const cachedCounts = JSON.parse(localStorage.getItem(countsStorageKey) || "{}");
+        participationsCount = cachedCounts.participationsCount || 0;
+      } catch {}
+    }
+
+    // Resilient certificate count detection across all API representations
+    let certificatesEarned = c.certificatesEarned || 0;
+    if (certsResult.status === "fulfilled" && certsResult.value) {
+      const certList = Array.isArray(certsResult.value)
+        ? certsResult.value
+        : (certsResult.value.certificates || []);
+      if (certList.length > certificatesEarned) {
+        certificatesEarned = certList.length;
+      }
+    }
+    if (ticketsResult.status === "fulfilled" && ticketsResult.value?.tickets) {
+      const certTickets = ticketsResult.value.tickets.filter((t) => t.certificate || t.certificateCode);
+      if (certTickets.length > certificatesEarned) {
+        certificatesEarned = certTickets.length;
+      }
+    }
+    c.certificatesEarned = certificatesEarned;
+
+    try {
+      localStorage.setItem(countsStorageKey, JSON.stringify({ favoritesCount, participationsCount }));
+    } catch {}
+
+    const serverBadges = c.badges || [];
+    const localBadges = computeLocalBadges(user, c, favoritesCount, participationsCount);
+    const currentBadges = [...new Set([...storedBadges, ...serverBadges, ...localBadges])];
+
+    if (isFirstTime) {
+      for (const badgeKey of currentBadges) {
+        const badgeDef = BADGE_DEFINITIONS.find((b) => b.key === badgeKey);
+        const badgeLabel = badgeDef ? badgeDef.label : badgeKey.replace(/_/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase());
+        addBadgeNotification(badgeKey, badgeLabel);
+      }
+      localStorage.setItem(badgeStorageKey, JSON.stringify(currentBadges));
+    } else {
+      const newBadges = currentBadges.filter((b) => !storedBadges.includes(b));
+      if (newBadges.length > 0) {
+        for (const badgeKey of newBadges) {
+          const badgeDef = BADGE_DEFINITIONS.find((b) => b.key === badgeKey);
+          const badgeLabel = badgeDef ? badgeDef.label : badgeKey.replace(/_/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase());
+          addBadgeNotification(badgeKey, badgeLabel);
+        }
+        localStorage.setItem(badgeStorageKey, JSON.stringify(currentBadges));
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to sync offline badges:", err);
+  } finally {
+    isSyncingBadges = false;
+  }
 }
 

@@ -34,6 +34,7 @@
     "no_notifications": "No notifications yet",
     "notifications": "Notifications",
     "mark_all_read": "Mark all read",
+    "badge_earned_msg": "You earned the \"{{badge}}\" badge!",
     "just_now": "Just now",
     "m_ago": "{{n}}m ago",
     "h_ago": "{{n}}h ago",

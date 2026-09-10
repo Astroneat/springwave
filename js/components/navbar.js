@@ -3,7 +3,7 @@ import { getNotifications, getUnreadCount, markRead, markAllRead, startNotificat
 import { fetchContent } from "../lib/utils.js";
 import { initI18n, setLang, getLang, t, applyTranslation } from "../lib/i18n.js";
 import { initPageTransition } from "./pageLoader.js";
-import { initBadgeCelebration } from "./badgeCelebration.js";
+import { initBadgeCelebration, syncOfflineBadgeNotifications, BADGE_DEFINITIONS } from "./badgeCelebration.js";
 import { showToast } from "./toast.js";
 
 export function populateUserChip(user, activeSection) {
@@ -531,11 +531,13 @@ function initNotifications() {
     if (!bell || !dropdown) return;
 
     startNotificationPolling();
+    syncOfflineBadgeNotifications();
 
     const setNotifOpen = (open) => {
         dropdown.classList.toggle("active", open);
         bell.setAttribute("aria-expanded", open ? "true" : "false");
         if (open) {
+            syncOfflineBadgeNotifications();
             const userMenu = document.querySelector(".user-menu");
             if (userMenu) {
                 userMenu.classList.remove("active");
@@ -563,6 +565,12 @@ function initNotifications() {
     document.addEventListener("click", (e) => {
         if (!dropdown.contains(e.target) && e.target !== bell && !bell.contains(e.target)) {
             dropdown.classList.remove("active");
+        }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            syncOfflineBadgeNotifications();
         }
     });
 
@@ -636,18 +644,28 @@ function renderNotifDropdown() {
                 ${unreadCount > 0 ? `<button class="notif-mark-all" id="notif-mark-all" data-i18n="user.mark_all_read">Mark all read</button>` : ""}
             </div>
             <div class="notif-list">
-                ${all.map((n) => `
+                ${all.map((n) => {
+                    const isBadge = n.type === 'badge';
+                    const iconClass = isBadge ? "notif-item-icon badge-notif" : `notif-item-icon ${n.read ? "" : "unread"}`;
+                    let displayMsg = n.message;
+                    if (isBadge && n.badgeKey) {
+                        const badgeDef = BADGE_DEFINITIONS.find(b => b.key === n.badgeKey);
+                        const fallbackLabel = badgeDef ? badgeDef.label : (n.badgeLabel || n.badgeKey);
+                        const localizedBadge = t(`badges.list.${n.badgeKey}.label`, fallbackLabel);
+                        displayMsg = t("user.badge_earned_msg", { badge: localizedBadge });
+                    }
+                    return `
                     <div class="notif-item ${n.read ? "" : "unread"}" data-notif-id="${n.id}">
-                        <div class="notif-item-icon ${n.read ? "" : "unread"}">
+                        <div class="${iconClass}">
                             <span class="material-symbols-outlined">${getNotifIcon(n.type)}</span>
                         </div>
                         <div class="notif-item-body">
-                            <span class="notif-item-msg">${n.message}</span>
+                            <span class="notif-item-msg">${displayMsg}</span>
                             <span class="notif-item-time">${timeAgo(n.createdAt)}</span>
                         </div>
                         ${n.read ? "" : '<span class="notif-unread-dot"></span>'}
                     </div>
-                `).join("")}
+                `;}).join("")}
             </div>
         </div>
     `;
