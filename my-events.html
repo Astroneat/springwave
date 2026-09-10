@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>My Events - SpringWave</title>
+  <title>My Events and Tickets - SpringWave</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -21,20 +21,34 @@
         <span class="material-symbols-outlined">event</span>
       </span>
       <div>
-        <h1 class="text-2xl font-bold text-[#191b22]" data-i18n="my_events.title">My Events</h1>
-        <p class="text-sm text-[#64748b]" data-i18n="my_events.subtitle">Events you've participated in</p>
+        <h1 class="text-2xl font-bold text-[#191b22]" data-i18n="my_events.title">My Events and Tickets</h1>
+        <p class="text-sm text-[#64748b]" data-i18n="my_events.subtitle">Manage your registered events, QR check-in codes, and certificates.</p>
       </div>
     </div>
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 hidden" id="filter-bar">
-      <div class="flex items-center gap-2">
-        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/50" id="active-count-badge">0 Active</span>
-        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/50" id="inactive-count-badge">0 Past</span>
+      <div class="inline-flex items-center p-1 bg-slate-100 rounded-xl gap-1 flex-wrap" role="tablist">
+        <button id="tab-all" role="tab" aria-selected="true" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-white text-[#1755ba] shadow-sm">
+          <span data-i18n="my_events.filter_all">All</span>
+          <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-[#1755ba]/10 text-[#1755ba]" id="count-all">0</span>
+        </button>
+        <button id="tab-upcoming" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+          <span data-i18n="my_events.filter_upcoming">Upcoming</span>
+          <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-upcoming">0</span>
+        </button>
+        <button id="tab-checked-in" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+          <span data-i18n="my_events.filter_checked_in">Checked In</span>
+          <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-checked-in">0</span>
+        </button>
+        <button id="tab-expired" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+          <span data-i18n="my_events.filter_expired">Expired</span>
+          <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-expired">0</span>
+        </button>
       </div>
-      <button id="toggle-expired-btn" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:scale-[0.98] text-sm font-semibold text-slate-700 transition-all shadow-sm cursor-pointer">
-        <span class="material-symbols-outlined text-lg" id="toggle-expired-icon">visibility</span>
-        <span id="toggle-expired-text" data-i18n="my_events.show_past_btn">Show Past Events</span>
-      </button>
+      <div class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-[16px] text-slate-400">confirmation_number</span>
+        <span id="registered-summary-text">0 registered events</span>
+      </div>
     </div>
 
     <div id="events-list" class="space-y-4">
@@ -51,6 +65,13 @@
       <div class="text-center mt-2">
         <h4 id="rate-modal-title" class="font-bold text-lg text-slate-900 mb-2" data-i18n="my_events.rate_modal_title">Rate Event</h4>
         <p class="text-sm text-slate-500 mb-4" id="rate-modal-event-name">Event Name</p>
+        <div id="rate-modal-cert-notice" class="hidden mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs text-left flex items-start gap-2.5 shadow-sm">
+          <span class="material-symbols-outlined text-[20px] text-amber-600 shrink-0 mt-0.5">workspace_premium</span>
+          <div class="flex-grow">
+            <span class="font-bold block text-amber-800" data-i18n="my_events.cert_modal_title">Certificate</span>
+            <span data-i18n="my_events.rate_modal_unlock_notice">Rate this event to unlock and receive your official certificate!</span>
+          </div>
+        </div>
         <div class="flex justify-center gap-2 mb-6" id="star-rating" role="radiogroup" aria-label="Rating">
           <button type="button" class="star cursor-pointer text-3xl text-slate-200 hover:text-yellow-400 transition-colors" data-rating="1" aria-label="1 star" role="radio" aria-checked="false">★</button>
           <button type="button" class="star cursor-pointer text-3xl text-slate-200 hover:text-yellow-400 transition-colors" data-rating="2" aria-label="2 stars" role="radio" aria-checked="false">★</button>
@@ -85,6 +106,8 @@
         </a>
       </div>
     </div>
+  </div>
+
   <!-- QR Zoom Modal -->
   <div id="qr-modal" hidden class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300" role="dialog" aria-modal="true" aria-labelledby="modal-event-title">
     <div id="qr-modal-content" class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl scale-95 transition-transform duration-300 relative text-center">

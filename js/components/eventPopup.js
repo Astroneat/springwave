@@ -797,12 +797,12 @@ function buildPopupHTML(a, backText) {
 
                     <!-- Secondary Actions (Discuss, Share, Favorite) -->
                     <div class="event-secondary-actions-panel">
-                        <button class="event-secondary-btn discuss discuss-btn" data-event-id="${a.activityID || a._id}" data-event-title="${a.title}" type="button">
+                        <button class="event-secondary-btn discuss-btn" data-event-id="${a.activityID || a._id}" data-event-title="${a.title}" type="button">
                             <i class="fa-solid fa-comments"></i>
                             <span>${t("explore.discuss", "Discuss")}</span>
                         </button>
 
-                        <button class="event-secondary-btn event-share-btn icon-btn" type="button" title="Share event">
+                        <button class="event-secondary-btn event-share-btn" type="button" title="Share event">
                             <i class="fa-solid fa-share-nodes"></i>
                             <span>${t("explore.share") || "Share"}</span>
                         </button>
@@ -934,12 +934,12 @@ function buildPopupHTML(a, backText) {
 
                     <!-- Secondary Actions (Discuss, Share, Favorite) -->
                     <div class="event-secondary-actions-panel">
-                        <button class="event-secondary-btn discuss discuss-btn" data-event-id="${a.activityID || a._id}" data-event-title="${a.title}" type="button">
+                        <button class="event-secondary-btn discuss-btn" data-event-id="${a.activityID || a._id}" data-event-title="${a.title}" type="button">
                             <i class="fa-solid fa-comments"></i>
                             <span>${t("explore.discuss", "Discuss")}</span>
                         </button>
 
-                        <button class="event-secondary-btn event-share-btn icon-btn" type="button" title="Share event">
+                        <button class="event-secondary-btn event-share-btn" type="button" title="Share event">
                             <i class="fa-solid fa-share-nodes"></i>
                             <span>${t("explore.share") || "Share"}</span>
                         </button>

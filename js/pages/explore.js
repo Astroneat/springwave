@@ -1404,7 +1404,7 @@ function buildPopupHTML(a, backText) {
                         <button class="action-btn discuss discuss-btn" data-event-id="${escapeAttr(a.activityID)}" data-event-title="${escapeAttr(a.title)}" type="button">
                             <i class="fa-solid fa-comments"></i>
                             <div>
-                                <h4>DISCUSS</h4>
+                                <h4>${t("explore.discuss", "Discuss")}</h4>
                                 <p>Join the thread</p>
                             </div>
                         </button>

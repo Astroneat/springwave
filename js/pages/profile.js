@@ -930,16 +930,57 @@ async function renderAIProfile() {
         ${displayNarrative ? `
           <div class="ai-profile-field">
             <span class="ai-profile-label" data-i18n="profile.ai_narrative">${t("profile.ai_narrative", "Bản sắc cá nhân")}</span>
-            <p class="ai-profile-desc leading-relaxed">${escapeHtml(displayNarrative)}</p>
+            <div>
+              <p id="ai-narrative-text" class="ai-profile-desc leading-relaxed is-clamped">${escapeHtml(displayNarrative)}</p>
+              <button type="button" id="ai-narrative-toggle" class="ai-profile-see-more-btn hidden" aria-expanded="false">
+                <span id="ai-narrative-toggle-text" data-i18n="profile.ai_see_more">${t("profile.ai_see_more", "See more")}</span>
+                <span id="ai-narrative-toggle-icon" class="material-symbols-outlined">expand_more</span>
+              </button>
+            </div>
           </div>
         ` : (displayDesc ? `
           <div class="ai-profile-field">
             <span class="ai-profile-label" data-i18n="profile.ai_about">${t("profile.ai_about", "About")}</span>
-            <p class="ai-profile-desc">${escapeHtml(displayDesc)}</p>
+            <div>
+              <p id="ai-narrative-text" class="ai-profile-desc leading-relaxed is-clamped">${escapeHtml(displayDesc)}</p>
+              <button type="button" id="ai-narrative-toggle" class="ai-profile-see-more-btn hidden" aria-expanded="false">
+                <span id="ai-narrative-toggle-text" data-i18n="profile.ai_see_more">${t("profile.ai_see_more", "See more")}</span>
+                <span id="ai-narrative-toggle-icon" class="material-symbols-outlined">expand_more</span>
+              </button>
+            </div>
           </div>
         ` : '')}
       </div>
     `;
+
+    const narrativeEl = container.querySelector("#ai-narrative-text");
+    const toggleBtn = container.querySelector("#ai-narrative-toggle");
+    if (narrativeEl && toggleBtn) {
+      const targetText = (displayNarrative || displayDesc || "").trim();
+      const shouldClamp = targetText.length > 130 || (narrativeEl.scrollHeight > narrativeEl.clientHeight + 4);
+      if (shouldClamp) {
+        toggleBtn.classList.remove("hidden");
+        let isExpanded = false;
+        toggleBtn.addEventListener("click", () => {
+          isExpanded = !isExpanded;
+          narrativeEl.classList.toggle("is-clamped", !isExpanded);
+          toggleBtn.setAttribute("aria-expanded", String(isExpanded));
+          const textEl = toggleBtn.querySelector("#ai-narrative-toggle-text");
+          const iconEl = toggleBtn.querySelector("#ai-narrative-toggle-icon");
+          if (textEl) {
+            const key = isExpanded ? "profile.ai_see_less" : "profile.ai_see_more";
+            const fallback = isExpanded ? "See less" : "See more";
+            textEl.setAttribute("data-i18n", key);
+            textEl.textContent = t(key, fallback);
+          }
+          if (iconEl) {
+            iconEl.textContent = isExpanded ? "expand_less" : "expand_more";
+          }
+        });
+      } else {
+        narrativeEl.classList.remove("is-clamped");
+      }
+    }
   } catch (error) {
     console.error("Failed to load AI profile:", error);
     if (verified) {

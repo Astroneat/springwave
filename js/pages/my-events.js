@@ -11,7 +11,7 @@ import { t, applyTranslation, getLang } from "../lib/i18n.js";
 import { showToast } from "../components/toast.js";
 
 let allTickets = [];
-let showPast = false;
+let currentFilter = 'all'; // 'all' | 'checked_in' | 'expired'
 let currentRateEventId = null;
 let selectedRating = 0;
 
@@ -33,10 +33,23 @@ function isEventExpired(t) {
   return Date.now() > endDate;
 }
 
+function getEffectiveStatus(tkt) {
+  if ((tkt.checkIn && tkt.checkIn.status === 'present') || getTicketStatus(tkt) === 'checked_in') {
+    return 'checked_in';
+  }
+  if (getTicketStatus(tkt) === 'cancelled') {
+    return 'cancelled';
+  }
+  if (getTicketStatus(tkt) === 'expired' || isEventExpired(tkt)) {
+    return 'expired';
+  }
+  return 'active';
+}
+
 function statusBadgeHTML(status) {
   const map = {
     active: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
-    checked_in: 'bg-sky-50 text-sky-700 border-sky-200/50',
+    checked_in: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
     expired: 'bg-amber-50 text-amber-700 border-amber-200/50',
     cancelled: 'bg-rose-50 text-rose-700 border-rose-200/50',
   };
@@ -70,92 +83,155 @@ function renderEvents() {
   if (!list) return;
 
   const validTickets = allTickets.filter(t => t && t.event && (t.event._id || t.event.title));
-  const activeEvents = validTickets.filter(t => !isInactive(t) && !isEventExpired(t));
-  const pastEvents = validTickets.filter(t => isInactive(t) || isEventExpired(t));
 
-  const activeBadge = document.getElementById("active-count-badge");
-  const inactiveBadge = document.getElementById("inactive-count-badge");
-  if (activeBadge) activeBadge.textContent = `${activeEvents.length} ${t('my_events.active_tab', 'Active')}`;
-  if (inactiveBadge) inactiveBadge.textContent = `${pastEvents.length} ${t('my_events.past_tab', 'Past')}`;
+  const countAllEl = document.getElementById("count-all");
+  const countUpcomingEl = document.getElementById("count-upcoming");
+  const countCheckedInEl = document.getElementById("count-checked-in");
+  const countExpiredEl = document.getElementById("count-expired");
+  const summaryEl = document.getElementById("registered-summary-text");
 
-  const eventsToDisplay = showPast ? validTickets : activeEvents;
+  const upcomingCount = validTickets.filter(t => getEffectiveStatus(t) === 'active').length;
+  const checkedInCount = validTickets.filter(t => getEffectiveStatus(t) === 'checked_in').length;
+  const expiredCount = validTickets.filter(t => getEffectiveStatus(t) === 'expired' || getEffectiveStatus(t) === 'cancelled').length;
 
-  if (!eventsToDisplay || eventsToDisplay.length === 0) {
+  if (countAllEl) countAllEl.textContent = validTickets.length;
+  if (countUpcomingEl) countUpcomingEl.textContent = upcomingCount;
+  if (countCheckedInEl) countCheckedInEl.textContent = checkedInCount;
+  if (countExpiredEl) countExpiredEl.textContent = expiredCount;
+  if (summaryEl) {
+    summaryEl.textContent = t('my_events.registered_events_count', `${validTickets.length} registered events`).replace('{{n}}', validTickets.length);
+  }
+
+  if (validTickets.length === 0) {
     list.innerHTML = `
       <div class="text-center py-16 bg-white border border-[#ecedfa] rounded-2xl">
         <span class="material-symbols-outlined text-5xl text-[#64748b] mb-4">event_busy</span>
-        <p class="text-lg font-semibold text-[#191b22]">${t('my_events.no_events', 'No events found')}</p>
-        <p class="text-sm text-[#64748b] mt-1">${showPast ? t('my_events.no_events_desc_past', "You haven't participated in any events yet.") : t('my_events.no_events_desc_active', "You don't have any active events right now.")}</p>
+        <p class="text-lg font-semibold text-[#191b22]">${t('my_events.no_registered_events', 'No registered events yet')}</p>
+        <p class="text-sm text-[#64748b] mt-1">${t('my_events.no_registered_events_desc', "You haven't registered for any events yet.")}</p>
         <a href="/explore.html" class="inline-block mt-5 px-6 py-2.5 rounded-xl bg-[#1755ba] text-white text-sm font-medium hover:bg-[#1755ba]/90 transition-all shadow-sm">${t('my_events.explore_btn', 'Explore Events')}</a>
       </div>`;
     return;
   }
 
+  let eventsToDisplay = validTickets;
+  if (currentFilter === 'upcoming') {
+    eventsToDisplay = validTickets.filter(t => getEffectiveStatus(t) === 'active');
+  } else if (currentFilter === 'checked_in') {
+    eventsToDisplay = validTickets.filter(t => getEffectiveStatus(t) === 'checked_in');
+  } else if (currentFilter === 'expired') {
+    eventsToDisplay = validTickets.filter(t => getEffectiveStatus(t) === 'expired' || getEffectiveStatus(t) === 'cancelled');
+  }
+
+  if (eventsToDisplay.length === 0) {
+    let emptyMsg = t('my_events.no_filtered_events', 'No events in this category');
+    let emptyDesc = '';
+    if (currentFilter === 'upcoming') {
+      emptyDesc = t('my_events.no_events_desc_upcoming', "You don't have any upcoming tickets right now.");
+    } else if (currentFilter === 'checked_in') {
+      emptyDesc = t('my_events.no_events_desc_checked_in', "You haven't checked into any events yet.");
+    } else if (currentFilter === 'expired') {
+      emptyDesc = t('my_events.no_events_desc_expired', "No expired events found.");
+    }
+
+    list.innerHTML = `
+      <div class="text-center py-12 bg-white border border-[#ecedfa] rounded-2xl">
+        <span class="material-symbols-outlined text-4xl text-[#64748b] mb-3">filter_list_off</span>
+        <p class="text-base font-semibold text-[#191b22]">${emptyMsg}</p>
+        ${emptyDesc ? `<p class="text-sm text-[#64748b] mt-1">${emptyDesc}</p>` : ''}
+      </div>`;
+    return;
+  }
+
   list.innerHTML = eventsToDisplay.map(tkt => {
+    const effectiveStatus = getEffectiveStatus(tkt);
     const event = tkt.event || {};
     const eventDate = event.heldDate ? formatDate(event.heldDate) : "TBD";
-    const status = getTicketStatus(tkt);
-    const expired = isEventExpired(tkt);
 
     let checkInInfo = '';
     if (tkt.checkIn && tkt.checkIn.status === 'present') {
       const time = tkt.checkIn.checkedInAt ? formatDate(tkt.checkIn.checkedInAt) : '';
       checkInInfo = `
-        <div class="flex items-center gap-1.5 text-xs text-emerald-600">
+        <div class="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
           <span class="material-symbols-outlined text-[16px]">check_circle</span>
-          <span class="font-medium">${t('my_events.checked_in', 'Checked in')}</span>
-          ${time ? `<span class="text-slate-400">• ${time}</span>` : ''}
+          <span>${t('my_events.checked_in', 'Checked in')}</span>
+          ${time ? `<span class="text-slate-400 font-normal">• ${time}</span>` : ''}
         </div>`;
     }
 
     const canRate = canRateEvent(tkt);
     const hasCertificate = !!tkt.certificate;
+    const hasReview = !!tkt.review;
+    const isCertUnlocked = hasCertificate && hasReview && !!tkt.certificate?.certificateCode;
     const eventId = event._id || '';
     const eventTitle = event.title || 'Unknown Event';
     const safeTitle = eventTitle.replace(/'/g, "\\'");
 
     let actionButtons = '';
-    if (expired || isInactive(tkt)) {
+    if (effectiveStatus !== 'active') {
       if (canRate) {
         actionButtons += `
-          <button class="rate-event-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1755ba] bg-[#1755ba]/10 hover:bg-[#1755ba]/25 transition-all" data-event-id="${eventId}" data-event-title="${safeTitle}">
-            <i class="fa-regular fa-star mr-1"></i>${t('my_events.rate_event', 'Rate Event')}
+          <button class="rate-event-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1755ba] bg-[#1755ba]/10 hover:bg-[#1755ba]/25 transition-all cursor-pointer inline-flex items-center gap-1.5" data-event-id="${eventId}" data-event-title="${safeTitle}">
+            <i class="fa-regular fa-star"></i>
+            <span>${t('my_events.rate_event', 'Rate Event')}</span>
           </button>`;
-      } else if (tkt.review) {
+      } else if (hasReview) {
         actionButtons += `
           <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50">
             <i class="fa-solid fa-star text-amber-500"></i> ${tkt.review.rating}/5
           </span>`;
       }
       if (hasCertificate) {
-        actionButtons += `
-          <button class="view-cert-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-all" data-cert-code="${tkt.certificate.certificateCode}" data-event-title="${safeTitle}">
-            <i class="fa-solid fa-award mr-1"></i>${t('my_events.certificate', 'Certificate')}
-          </button>`;
+        if (isCertUnlocked) {
+          actionButtons += `
+            <button class="view-cert-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-all cursor-pointer inline-flex items-center gap-1.5" data-cert-code="${tkt.certificate.certificateCode}" data-event-title="${safeTitle}" data-event-id="${eventId}">
+              <i class="fa-solid fa-award"></i>
+              <span>${t('my_events.certificate', 'Certificate')}</span>
+            </button>`;
+        } else {
+          actionButtons += `
+            <button class="locked-cert-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-800 bg-amber-50/90 hover:bg-amber-100 border border-amber-200/80 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-sm" data-event-id="${eventId}" data-event-title="${safeTitle}" title="${t('my_events.rate_first_to_unlock_tooltip', 'Please rate this event to receive your certificate')}">
+              <i class="fa-solid fa-lock text-amber-600 text-[11px]"></i>
+              <span>${t('my_events.certificate', 'Certificate')}</span>
+              <span class="text-[10px] font-bold text-amber-700 bg-amber-200/70 px-1.5 py-0.5 rounded">${t('my_events.rate_first', 'Rate to receive')}</span>
+            </button>`;
+        }
       }
     }
 
-    const statusBottomText = status === 'checked_in' 
+    const statusBottomText = effectiveStatus === 'checked_in' 
       ? t('my_events.attended', 'Attended') 
-      : (status === 'cancelled' ? t('my_events.status_cancelled', 'Cancelled') : t('my_events.ended', 'Ended'));
+      : (effectiveStatus === 'cancelled' ? t('my_events.status_cancelled', 'Cancelled') : t('my_events.ended', 'Ended'));
+
+    const statusIcon = effectiveStatus === 'checked_in'
+      ? 'check_circle'
+      : (effectiveStatus === 'cancelled' ? 'cancel' : 'event_busy');
+
+    let statusBadgeTag = '';
+    if (effectiveStatus === 'checked_in') {
+      statusBadgeTag = `<span class="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 font-medium">${t('my_events.attended', 'Attended')}</span>`;
+    } else if (effectiveStatus === 'expired') {
+      statusBadgeTag = `<span class="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 font-medium">${t('my_events.event_ended', 'Event ended')}</span>`;
+    }
+
+    const showQR = effectiveStatus === 'active' && !!tkt.qrImageUrl;
 
     return `
-      <div id="ticket-card-${eventId}" data-event-id="${eventId}" data-activity-id="${event.activityID || ''}" data-ticket-id="${tkt._id || ''}" class="ticket-card-item group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${expired || isInactive(tkt) ? "opacity-80" : ""}">
+      <div id="ticket-card-${eventId}" data-event-id="${eventId}" data-activity-id="${event.activityID || ''}" data-ticket-id="${tkt._id || ''}" class="ticket-card-item group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
         <div class="relative w-full md:w-48 h-36 md:h-auto min-h-[144px] flex-shrink-0 bg-slate-100 overflow-hidden cursor-pointer event-card-preview" data-event-id="${eventId}">
           <img src="${event.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" 
                alt="${eventTitle}" 
                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent md:hidden"></div>
           <div class="absolute top-3 left-3 md:hidden">
-            ${statusBadgeHTML(status)}
+            ${statusBadgeHTML(effectiveStatus)}
           </div>
         </div>
 
         <div class="flex-grow p-5 flex flex-col justify-between min-w-0">
           <div class="min-w-0">
             <div class="hidden md:flex items-center justify-between gap-2 mb-2">
-              ${statusBadgeHTML(status)}
-              ${expired ? `<span class="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 font-medium">${t('my_events.event_ended', 'Event ended')}</span>` : ''}
+              ${statusBadgeHTML(effectiveStatus)}
+              ${statusBadgeTag}
             </div>
             <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2 cursor-pointer event-card-preview" data-event-id="${eventId}" title="${eventTitle}">${eventTitle}</h3>
             
@@ -176,11 +252,11 @@ function renderEvents() {
           ${actionButtons ? `
           <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 flex-wrap">
             ${actionButtons}
-          </div>` : `
+          </div>` : (effectiveStatus === 'active' ? `
           <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-400">
             <span class="material-symbols-outlined text-[16px]">info</span>
             <span>${t('my_events.unlock_features', 'Participate and check in to unlock features')}</span>
-          </div>`}
+          </div>` : '')}
         </div>
 
         <div class="hidden md:flex flex-col justify-between items-center py-3 my-2 flex-shrink-0 w-[1px]">
@@ -193,8 +269,7 @@ function renderEvents() {
         </div>
 
         <div class="w-full md:w-44 p-5 flex flex-col items-center justify-center bg-slate-50/50 md:bg-transparent flex-shrink-0">
-          ${tkt.qrImageUrl && status === 'active'
-            ? `
+          ${showQR ? `
             <div class="relative group/qr cursor-zoom-in qr-zoom-btn" data-qr-url="${tkt.qrImageUrl}" data-event-title="${(event.title || 'Event').replace(/"/g, '&quot;')}" data-qr-code="${tkt.qrCode || ''}">
               <img src="${tkt.qrImageUrl}" alt="QR Code" class="w-24 h-24 rounded-xl border border-slate-200 bg-white p-1 hover:shadow-md transition-all duration-300" />
               <div class="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover/qr:opacity-100 flex items-center justify-center transition-opacity duration-200">
@@ -205,14 +280,12 @@ function renderEvents() {
             <a href="${tkt.qrImageUrl}" download="ticket_${tkt.qrCode || 'qr'}.png" target="_blank" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1755ba] hover:underline">
               <span class="material-symbols-outlined text-[14px]">download</span> ${t('my_events.download_qr', 'Download QR')}
             </a>
-            `
-            : `
-            <div class="w-24 h-24 rounded-xl bg-slate-100 border border-slate-200 flex flex-col items-center justify-center text-slate-400 gap-1 select-none">
-              <span class="material-symbols-outlined text-3xl">${status === 'checked_in' ? 'check_circle' : 'event_busy'}</span>
+          ` : `
+            <div class="w-24 h-24 rounded-xl ${effectiveStatus === 'checked_in' ? 'bg-emerald-50 border border-emerald-200/60 text-emerald-600' : (effectiveStatus === 'cancelled' ? 'bg-rose-50 border border-rose-200/60 text-rose-600' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex flex-col items-center justify-center gap-1 select-none">
+              <span class="material-symbols-outlined text-3xl">${statusIcon}</span>
               <span class="text-[9px] font-bold uppercase tracking-wider">${statusBottomText}</span>
             </div>
-            `
-          }
+          `}
         </div>
       </div>
     `;
@@ -244,24 +317,47 @@ function renderEvents() {
     });
   });
 
-  // Certificate buttons
+  // Certificate buttons (unlocked)
   document.querySelectorAll(".view-cert-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const certCode = btn.dataset.certCode;
       const eventTitle = btn.dataset.eventTitle;
-      openCertModal(certCode, eventTitle);
+      const eventId = btn.dataset.eventId;
+      openCertModal(certCode, eventTitle, eventId);
+    });
+  });
+
+  // Locked Certificate buttons (require rating)
+  document.querySelectorAll(".locked-cert-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const eventId = btn.dataset.eventId;
+      const eventTitle = btn.dataset.eventTitle;
+      showToast(t('my_events.rate_first_to_get_cert', 'Please rate this event first to unlock and receive your certificate!'), 'info');
+      openRateModal(eventId, eventTitle, { unlockCert: true });
     });
   });
 }
 
 // ─── Rate Modal ───
 
-function openRateModal(eventId, eventTitle) {
+function openRateModal(eventId, eventTitle, options = {}) {
   currentRateEventId = eventId;
   selectedRating = 0;
   document.getElementById("rate-modal-event-name").textContent = eventTitle;
   document.getElementById("rate-review-content").value = "";
   document.getElementById("submit-rate-btn").disabled = true;
+
+  const certNotice = document.getElementById("rate-modal-cert-notice");
+  if (certNotice) {
+    const tkt = allTickets.find(t => t?.event && String(t.event._id) === String(eventId));
+    const willUnlockCert = options.unlockCert || (tkt && !!tkt.certificate && !tkt.review);
+    if (willUnlockCert) {
+      certNotice.classList.remove("hidden");
+    } else {
+      certNotice.classList.add("hidden");
+    }
+  }
+
   document.querySelectorAll("#star-rating .star").forEach(s => {
     s.classList.remove("text-yellow-400");
     s.classList.add("text-slate-200");
@@ -292,7 +388,20 @@ function closeRateModal() {
 
 // ─── Certificate Modal ───
 
-function openCertModal(certCode, eventTitle) {
+function openCertModal(certCode, eventTitle, eventId) {
+  // Guard: if user has not reviewed the event, redirect to rate modal
+  const targetTkt = allTickets.find(t => {
+    if (eventId && t?.event && String(t.event._id) === String(eventId)) return true;
+    if (certCode && t?.certificate?.certificateCode === certCode) return true;
+    return false;
+  });
+
+  if (targetTkt && !targetTkt.review) {
+    showToast(t('my_events.rate_first_to_get_cert', 'Please rate this event first to unlock and receive your certificate!'), 'warning');
+    openRateModal(targetTkt.event?._id || eventId, eventTitle, { unlockCert: true });
+    return;
+  }
+
   document.getElementById("cert-modal-event-name").textContent = eventTitle;
   document.getElementById("cert-modal-code").textContent = certCode;
   document.getElementById("cert-verify-link").href = `/certificate.html?code=${encodeURIComponent(certCode)}`;
@@ -394,18 +503,48 @@ function initModals() {
     const btn = document.getElementById("submit-rate-btn");
     btn.disabled = true;
     btn.textContent = t("my_events.rate_modal_submitting", "Submitting...");
+    const ratedEventId = currentRateEventId;
     try {
-      await addEventReview(currentRateEventId, selectedRating, content);
+      await addEventReview(ratedEventId, selectedRating, content);
       closeRateModal();
-      const tkt = allTickets.find(t => {
-        const ev = t.event || {};
-        return ev._id === currentRateEventId;
-      });
-      if (tkt) {
-        tkt.review = { rating: selectedRating, content };
+
+      // Refresh tickets from server to get updated review and unlocked certificate
+      try {
+        const { tickets } = await getMyTickets();
+        if (Array.isArray(tickets)) {
+          allTickets = tickets.filter(t => t && t.event && (t.event._id || t.event.title));
+        }
+      } catch (refErr) {
+        console.warn("Failed to re-fetch tickets, updating in-memory:", refErr);
+        const tkt = allTickets.find(t => {
+          const ev = t.event || {};
+          return String(ev._id) === String(ratedEventId);
+        });
+        if (tkt) {
+          tkt.review = { rating: selectedRating, content };
+        }
       }
-      showToast(t("my_events.rate_success", "Thank you for submitting your review!"), "success");
+
       renderEvents();
+
+      // Check if this event unlocked a certificate
+      const updatedTkt = allTickets.find(t => {
+        const ev = t.event || {};
+        return String(ev._id) === String(ratedEventId);
+      });
+
+      if (updatedTkt && updatedTkt.certificate && updatedTkt.certificate.certificateCode) {
+        showToast(t("my_events.rate_success_cert_unlocked", "Thank you for your review! Your certificate has been unlocked 🎉"), "success");
+        setTimeout(() => {
+          openCertModal(
+            updatedTkt.certificate.certificateCode,
+            updatedTkt.event?.title || "Event",
+            ratedEventId
+          );
+        }, 350);
+      } else {
+        showToast(t("my_events.rate_success", "Thank you for submitting your review!"), "success");
+      }
     } catch (err) {
       showToast(err.message || t("my_events.rate_modal_failed", "Failed to submit review"), "error");
     } finally {
@@ -529,6 +668,41 @@ export function highlightTicket(targetEventId) {
   }, 250);
 }
 
+function setFilter(filter) {
+  currentFilter = filter;
+
+  const tabs = {
+    all: document.getElementById("tab-all"),
+    upcoming: document.getElementById("tab-upcoming"),
+    checked_in: document.getElementById("tab-checked-in"),
+    expired: document.getElementById("tab-expired"),
+  };
+
+  Object.entries(tabs).forEach(([key, btn]) => {
+    if (!btn) return;
+    const isSelected = key === filter;
+    btn.setAttribute("aria-selected", isSelected ? "true" : "false");
+    const countBadge = btn.querySelector("span:last-child");
+
+    if (isSelected) {
+      btn.className = "filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-white text-[#1755ba] shadow-sm";
+      if (countBadge) countBadge.className = "ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-[#1755ba]/10 text-[#1755ba]";
+    } else {
+      btn.className = "filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900";
+      if (countBadge) countBadge.className = "ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600";
+    }
+  });
+
+  renderEvents();
+}
+
+function setupFilterTabs() {
+  document.getElementById("tab-all")?.addEventListener("click", () => setFilter('all'));
+  document.getElementById("tab-upcoming")?.addEventListener("click", () => setFilter('upcoming'));
+  document.getElementById("tab-checked-in")?.addEventListener("click", () => setFilter('checked_in'));
+  document.getElementById("tab-expired")?.addEventListener("click", () => setFilter('expired'));
+}
+
 function checkAndHighlightTicket() {
   const urlParams = new URLSearchParams(window.location.search);
   const targetId = urlParams.get("event") 
@@ -542,21 +716,17 @@ function checkAndHighlightTicket() {
     sessionStorage.removeItem("lastRegisteredEventId");
   } catch {}
 
-  // Check if target ticket is in past events and auto-expand past events if needed
-  const pastEvents = allTickets.filter(t => isInactive(t) || isEventExpired(t));
-  const isTargetPast = pastEvents.some(t => String(t.event?._id) === String(targetId) || String(t.event?.activityID) === String(targetId));
-  if (isTargetPast && !showPast) {
-    showPast = true;
-    const toggleIcon = document.getElementById("toggle-expired-icon");
-    const toggleText = document.getElementById("toggle-expired-text");
-    const toggleBtn = document.getElementById("toggle-expired-btn");
-    if (toggleIcon) toggleIcon.textContent = "visibility_off";
-    if (toggleText) toggleText.textContent = t("my_events.hide_past_btn", "Hide Past Events");
-    if (toggleBtn) toggleBtn.classList.add("bg-slate-100");
-    renderEvents();
-  }
+  const validTickets = allTickets.filter(t => t && t.event && (t.event._id || t.event.title));
+  const targetTicket = validTickets.find(t => String(t.event?._id) === String(targetId) || String(t.event?.activityID) === String(targetId) || String(t._id) === String(targetId));
 
-  highlightTicket(targetId);
+  if (targetTicket) {
+    const effectiveStatus = getEffectiveStatus(targetTicket);
+    const targetFilter = effectiveStatus === 'active' ? 'upcoming' : effectiveStatus;
+    if (currentFilter !== 'all' && currentFilter !== targetFilter) {
+      setFilter('all');
+    }
+    highlightTicket(targetId);
+  }
 
   // Clean URL query param cleanly without reloading
   if (urlParams.has("event") || urlParams.has("highlight") || urlParams.has("id")) {
@@ -580,6 +750,7 @@ async function loadPage() {
   await loadSharedNavbar();
   initBasicScroll();
   initModals();
+  setupFilterTabs();
 
   const list = document.getElementById("events-list");
   if (!list) return;
@@ -588,43 +759,14 @@ async function loadPage() {
     const { tickets } = await getMyTickets();
     allTickets = (tickets || []).filter(t => t && t.event && (t.event._id || t.event.title));
 
-    if (allTickets.length === 0) {
-      list.innerHTML = `
-        <div class="text-center py-16 bg-white border border-[#ecedfa] rounded-2xl">
-          <span class="material-symbols-outlined text-5xl text-[#64748b] mb-4">event_busy</span>
-          <p class="text-lg font-semibold text-[#191b22]">${t("my_events.no_events_yet", "No events yet")}</p>
-          <p class="text-sm text-[#64748b] mt-1">${t("my_events.no_events_yet_desc", "Participate in an event to get started.")}</p>
-          <a href="/explore.html" class="inline-block mt-5 px-6 py-2.5 rounded-xl bg-[#1755ba] text-white text-sm font-medium hover:bg-[#1755ba]/90 transition-all shadow-sm">${t("my_events.explore_btn", "Explore Events")}</a>
-        </div>`;
-      return;
-    }
+    const validTickets = allTickets.filter(t => t && t.event && (t.event._id || t.event.title));
 
     const filterBar = document.getElementById("filter-bar");
-    const toggleBtn = document.getElementById("toggle-expired-btn");
-    const toggleIcon = document.getElementById("toggle-expired-icon");
-    const toggleText = document.getElementById("toggle-expired-text");
-
-    if (filterBar) filterBar.classList.remove("hidden");
-
-    const pastEvents = allTickets.filter(t => isInactive(t) || isEventExpired(t));
-    if (toggleBtn) {
-      if (pastEvents.length === 0) {
-        toggleBtn.classList.add("hidden");
+    if (filterBar) {
+      if (validTickets.length > 0) {
+        filterBar.classList.remove("hidden");
       } else {
-        toggleBtn.classList.remove("hidden");
-        toggleBtn.addEventListener("click", () => {
-          showPast = !showPast;
-          if (showPast) {
-            toggleIcon.textContent = "visibility_off";
-            toggleText.textContent = t("my_events.hide_past_btn", "Hide Past Events");
-            toggleBtn.classList.add("bg-slate-100");
-          } else {
-            toggleIcon.textContent = "visibility";
-            toggleText.textContent = t("my_events.show_past_btn", "Show Past Events");
-            toggleBtn.classList.remove("bg-slate-100");
-          }
-          renderEvents();
-        });
+        filterBar.classList.add("hidden");
       }
     }
 
@@ -638,10 +780,6 @@ async function loadPage() {
 
 window.addEventListener("language-changed", () => {
   applyTranslation();
-  const toggleText = document.getElementById("toggle-expired-text");
-  if (toggleText) {
-    toggleText.textContent = showPast ? t("my_events.hide_past_btn", "Hide Past Events") : t("my_events.show_past_btn", "Show Past Events");
-  }
   renderEvents();
 });
 

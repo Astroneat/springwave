@@ -357,7 +357,7 @@ function updateCertScale() {
   const availH = Math.max(260, window.innerHeight - headerH - footerH - padY);
 
   const certW = 1200;
-  const certH = certNode.offsetHeight || 750;
+  const certH = parseFloat(certNode.style.height) || certNode.offsetHeight || 850;
 
   // Optimal scale: fit both width and height cleanly
   const scaleW = availW / certW;
@@ -374,6 +374,7 @@ function updateCertScale() {
 
   wrapper.style.width = `${certW}px`;
   wrapper.style.height = `${certH}px`;
+  wrapper.style.flexShrink = "0";
   wrapper.style.marginBottom = "0px";
 
   if (container) {
@@ -416,10 +417,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await setupCertificateDOM(cert, currentCertStatus);
     renderDynamicTexts();
-    updateCertScale();
 
     loadingEl.classList.add("hidden");
     containerEl.classList.remove("hidden");
+    updateCertScale();
   } catch (err) {
     console.error("Certificate verify error:", err);
     loadingEl.classList.add("hidden");
@@ -690,6 +691,9 @@ async function setupCertificateDOM(cert, status) {
     // 2. Custom Background & Contrast Auto-Detection
     if (bgUrl && bgUrl.trim() !== '') {
       certNode.style.backgroundImage = `url('${bgUrl}')`;
+      certNode.style.backgroundSize = 'cover';
+      certNode.style.backgroundPosition = 'center';
+      certNode.style.backgroundRepeat = 'no-repeat';
       certNode.style.backgroundColor = '#0f172a';
       if (watermark) watermark.style.display = 'none';
 
