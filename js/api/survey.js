@@ -4,8 +4,8 @@ export function getSurveyQuestions() {
     return get("/survey/questions");
 }
 
-export function submitSurvey(answers) {
-    return post("/survey/submit", { answers });
+export function submitSurvey(answers, quizVersion = "mbti_v2") {
+    return post("/survey/submit", { answers, quizVersion });
 }
 
 export function getSurveyResult() {

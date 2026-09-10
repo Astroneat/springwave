@@ -3,7 +3,7 @@ import { isAuthenticated, getUser, setUser, isStudentVerified } from "../lib/ses
 import { getCurrentUser } from "../api/auth.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent } from "../lib/utils.js";
-import { submitSurvey, getSurveyQuestions, getSurveyResult } from "../api/survey.js";
+import { submitSurvey, getSurveyResult } from "../api/survey.js";
 import { generateProfile, getMyProfile } from "../api/profile.js";
 import { initI18n, getLang, setLang, t, applyTranslation } from "../lib/i18n.js";
 import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
@@ -163,6 +163,8 @@ const HARDCODED_QUESTIONS = [
   },
 ];
 
+const AI_QUIZ_VERSION = "mbti_v2";
+
 let QUESTIONS = [...HARDCODED_QUESTIONS];
 
 export const MBTI_TYPES = [
@@ -277,7 +279,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const verified = await checkStudentVerification();
   if (!verified) return;
 
-  await loadQuestions();
   await checkExistingResult();
   initQuiz();
 });
@@ -476,27 +477,6 @@ async function checkExistingResult() {
     }
   } catch {
     // No existing result
-  }
-}
-
-async function loadQuestions() {
-  try {
-    const data = await getSurveyQuestions();
-    if (data?.questions?.length === HARDCODED_QUESTIONS.length) {
-      QUESTIONS = HARDCODED_QUESTIONS.map((hq, idx) => {
-        const remoteQ = data.questions[idx];
-        return {
-          ...hq,
-          question: remoteQ?.question || hq.question,
-          answers: hq.answers.map((ha, aIdx) => ({
-            ...ha,
-            label: remoteQ?.answers?.[aIdx]?.label || ha.label,
-          })),
-        };
-      });
-    }
-  } catch {
-    console.log("Using hardcoded questions");
   }
 }
 
@@ -720,28 +700,22 @@ async function finishQuiz() {
     answerIndex: selectedIndices,
   }));
 
+  const selectedLabel = (questionIndex) => HARDCODED_QUESTIONS[questionIndex]?.answers[answers[questionIndex]?.[0]]?.label || "";
   const semanticTraits = {
-    mbtiType: clientEval.mbtiType,
-    energyTendency: clientEval.traits.energy,
-    informationTendency: clientEval.traits.information,
-    decisionTendency: clientEval.traits.decision,
-    lifestyleTendency: clientEval.traits.lifestyle,
-    // Detailed responses for deep AI context:
-    weeklyMotivation: HARDCODED_QUESTIONS[0]?.answers[answers[0]?.[0]]?.label || "",
-    campusEventStyle: HARDCODED_QUESTIONS[1]?.answers[answers[1]?.[0]]?.label || "",
-    stressReliefApproach: HARDCODED_QUESTIONS[2]?.answers[answers[2]?.[0]]?.label || "",
-    topicEngagement: HARDCODED_QUESTIONS[3]?.answers[answers[3]?.[0]]?.label || "",
-    peerIdeaEvaluation: HARDCODED_QUESTIONS[4]?.answers[answers[4]?.[0]]?.label || "",
-    projectStrengths: HARDCODED_QUESTIONS[5]?.answers[answers[5]?.[0]]?.label || "",
-    teamConflictPriority: HARDCODED_QUESTIONS[6]?.answers[answers[6]?.[0]]?.label || "",
-    eventSuccessMetric: HARDCODED_QUESTIONS[7]?.answers[answers[7]?.[0]]?.label || "",
-    peerSupportStyle: HARDCODED_QUESTIONS[8]?.answers[answers[8]?.[0]]?.label || "",
-    deadlinePacingStyle: HARDCODED_QUESTIONS[9]?.answers[answers[9]?.[0]]?.label || "",
-    workspaceDiscipline: HARDCODED_QUESTIONS[10]?.answers[answers[10]?.[0]]?.label || "",
-    spontaneityAdaptation: HARDCODED_QUESTIONS[11]?.answers[answers[11]?.[0]]?.label || "",
+    facingChallenges: selectedLabel(6),
+    coreInterest: selectedLabel(3),
+    activityPreference: selectedLabel(1),
+    teamRole: selectedLabel(8),
+    learningStyle: selectedLabel(5),
+    primaryGoal: selectedLabel(0),
+    obstacle: selectedLabel(2),
+    flowState: selectedLabel(10),
+    meaningfulPride: selectedLabel(7),
+    motivator: selectedLabel(9),
   };
 
   let profilesByLang = {};
+  let persistedQuiz = false;
 
   if (isAuthenticated()) {
     let user = getUser();
@@ -759,13 +733,9 @@ async function finishQuiz() {
 
     if (isStudentVerified(user)) {
       try {
-        const surveyPromise = submitSurvey(answerData).catch((err) => {
-          console.warn("Survey submission failed:", err);
-          return null;
-        });
-
+        const surveyRes = await submitSurvey(answerData, AI_QUIZ_VERSION);
+        persistedQuiz = Boolean(surveyRes?.scores);
         const currentLang = getLang();
-        console.log("[Quiz] Requesting AI profile generation with MBTI traits (lang=" + currentLang + "):", semanticTraits);
         // Wait up to 35s for AI evaluation response (LLMs usually take 6-15s)
         const profilePromise = generateProfile(answerData, resolvedPersona, semanticTraits, currentLang).catch((err) => {
           console.error("[Quiz] AI Profile evaluation error:", err);
@@ -773,10 +743,7 @@ async function finishQuiz() {
         });
         const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 35000));
         
-        const [surveyRes, profileRes] = await Promise.all([
-          surveyPromise,
-          Promise.race([profilePromise, timeoutPromise]),
-        ]);
+        const profileRes = await Promise.race([profilePromise, timeoutPromise]);
 
         if (surveyRes?.newBadges && Array.isArray(surveyRes.newBadges)) {
           newBadges.push(...surveyRes.newBadges);
@@ -786,8 +753,6 @@ async function finishQuiz() {
         }
         newBadges = [...new Set(newBadges)];
         
-        console.log("[Quiz] AI profile response received:", profileRes);
-
         if (profileRes?.profile) {
           generatedProfile = profileRes.profile;
           if (profileRes.profile.translations) {
@@ -811,9 +776,11 @@ async function finishQuiz() {
   }
 
   resolvedPersona = normalizeToMBTI(resolvedPersona || clientEval?.personaKey || "INTJ");
-  localStorage.setItem("springwave_quiz_completed", "true");
-  localStorage.setItem("springwave_persona_key", resolvedPersona);
-  localStorage.setItem("springwave_mbti_type", resolvedPersona);
+  if (persistedQuiz) {
+    localStorage.setItem("springwave_quiz_completed", "true");
+    localStorage.setItem("springwave_persona_key", resolvedPersona);
+    localStorage.setItem("springwave_mbti_type", resolvedPersona);
+  }
 
   const resultData = {
     personaKey: resolvedPersona,
@@ -1121,4 +1088,3 @@ function renderResults(rawPersonaKey, resultData = {}) {
     resultData.newBadges = resultData.newBadges.filter((b) => b !== "self_discovery");
   }
 }
-
