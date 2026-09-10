@@ -21143,26 +21143,94 @@ body {
 .badge-modal-overlay.active {
   opacity: 1 !important;
   visibility: visible !important;
-  animation: epicModalScreenShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) !important;
 }
 
-@keyframes epicModalScreenShake {
+/* Screen Shakes per Tier (Escalating Impact) */
+.badge-modal-overlay.active.tier-newbie {
+  animation: modalScreenShakeNewbie 0.32s cubic-bezier(0.36, 0.07, 0.19, 0.97) !important;
+}
+
+.badge-modal-overlay.active.tier-explorer {
+  animation: modalScreenShakeExplorer 0.38s cubic-bezier(0.36, 0.07, 0.19, 0.97) !important;
+}
+
+.badge-modal-overlay.active.tier-contributor {
+  animation: modalScreenShakeContributor 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) !important;
+}
+
+.badge-modal-overlay.active.tier-legendary {
+  animation: modalScreenShakeLegendary 0.58s cubic-bezier(0.36, 0.07, 0.19, 0.97) !important;
+}
+
+@keyframes modalScreenShakeNewbie {
   0%, 100% { transform: translate(0, 0); }
-  15% { transform: translate(-3px, 2px); }
-  30% { transform: translate(3px, -2px); }
-  45% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 1px); }
-  75% { transform: translate(-1px, 0); }
+  25% { transform: translate(-1.5px, 1px); }
+  50% { transform: translate(1.5px, -1px); }
+  75% { transform: translate(-0.5px, 0.5px); }
 }
 
+@keyframes modalScreenShakeExplorer {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-2.5px, 2px); }
+  40% { transform: translate(2.5px, -2px); }
+  60% { transform: translate(-1.5px, 1px); }
+  80% { transform: translate(1px, -0.5px); }
+}
+
+@keyframes modalScreenShakeContributor {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-3.5px, 2.5px); }
+  30% { transform: translate(3.5px, -3px); }
+  45% { transform: translate(-2.5px, -2px); }
+  60% { transform: translate(2.5px, 1.5px); }
+  75% { transform: translate(-1px, 1px); }
+}
+
+@keyframes modalScreenShakeLegendary {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5px, 4px) rotate(-0.5deg); }
+  25% { transform: translate(5px, -4px) rotate(0.5deg); }
+  40% { transform: translate(-4px, -3px) rotate(-0.3deg); }
+  55% { transform: translate(4px, 3px) rotate(0.2deg); }
+  70% { transform: translate(-2px, 1px); }
+  85% { transform: translate(1px, -1px); }
+}
+
+/* Cinematic Atmospheric Backdrops per Tier */
 .badge-modal-backdrop {
   position: absolute !important;
   inset: 0 !important;
-  background: rgba(15, 23, 42, 0.75) !important;
+  background: rgba(15, 23, 42, 0.72) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  transition: all 0.3s ease !important;
+}
+
+.badge-modal-overlay.tier-newbie .badge-modal-backdrop {
+  background: radial-gradient(circle at 50% 45%, rgba(30, 58, 138, 0.35) 0%, rgba(15, 23, 42, 0.75) 80%) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.badge-modal-overlay.tier-explorer .badge-modal-backdrop {
+  background: radial-gradient(circle at 50% 45%, rgba(6, 78, 59, 0.42) 0%, rgba(15, 23, 42, 0.78) 80%) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.badge-modal-overlay.tier-contributor .badge-modal-backdrop {
+  background: radial-gradient(circle at 50% 45%, rgba(76, 29, 149, 0.48) 0%, rgba(15, 23, 42, 0.82) 80%) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
+.badge-modal-overlay.tier-legendary .badge-modal-backdrop {
+  background: radial-gradient(circle at 50% 42%, rgba(180, 83, 9, 0.55) 0%, rgba(120, 53, 15, 0.35) 45%, rgba(15, 23, 42, 0.88) 85%) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+/* Card Showcase Container */
 .badge-modal-card {
   position: relative !important;
   background: #ffffff !important;
@@ -21172,7 +21240,9 @@ body {
   max-width: 440px !important;
   text-align: center !important;
   overflow: hidden !important;
+  transform: scale(0.92) translateY(16px);
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  z-index: 2 !important;
 }
 
 .badge-modal-card.slam-replay {
@@ -21185,43 +21255,105 @@ body {
   100% { transform: scale(1); }
 }
 
-/* Tier Card Entrances */
+/* Internal Card Ambient Glow */
+.badge-card-ambient-glow {
+  position: absolute !important;
+  top: -70px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 320px !important;
+  height: 180px !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+  opacity: 0.7 !important;
+  filter: blur(35px) !important;
+}
+
+.tier-newbie .badge-card-ambient-glow {
+  background: radial-gradient(ellipse, rgba(56, 189, 248, 0.28) 0%, rgba(23, 85, 186, 0.12) 50%, transparent 75%) !important;
+}
+
+.tier-explorer .badge-card-ambient-glow {
+  background: radial-gradient(ellipse, rgba(52, 211, 153, 0.35) 0%, rgba(5, 150, 105, 0.15) 50%, transparent 75%) !important;
+}
+
+.tier-contributor .badge-card-ambient-glow {
+  background: radial-gradient(ellipse, rgba(167, 139, 250, 0.42) 0%, rgba(124, 58, 237, 0.18) 50%, transparent 75%) !important;
+}
+
+.tier-legendary .badge-card-ambient-glow {
+  background: radial-gradient(ellipse, rgba(251, 191, 36, 0.5) 0%, rgba(245, 158, 11, 0.25) 50%, transparent 75%) !important;
+}
+
+/* Tier Card Entrances & Elevated Prestigious Shadows */
 .badge-modal-card.tier-newbie {
-  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.16) !important;
-  border: 1.5px solid #bfdbfe !important;
-  animation: newbieCardIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+  box-shadow: 0 20px 45px -10px rgba(23, 85, 186, 0.2), 0 0 0 1.5px #bfdbfe, 0 8px 16px -4px rgba(15, 23, 42, 0.06) !important;
+  border: 1px solid rgba(191, 219, 254, 0.7) !important;
+  animation: newbieCardIn 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
 }
 
 .badge-modal-card.tier-explorer {
-  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.16) !important;
-  border: 1.5px solid #a7f3d0 !important;
-  animation: newbieCardIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+  box-shadow: 0 24px 50px -10px rgba(5, 150, 105, 0.25), 0 0 25px rgba(52, 211, 153, 0.22), 0 0 0 2px #a7f3d0 !important;
+  border: 1px solid rgba(110, 231, 183, 0.8) !important;
+  animation: explorerCardIn 0.46s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
 }
 
 .badge-modal-card.tier-contributor {
-  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.16) !important;
-  border: 1.5px solid #ddd6fe !important;
-  animation: newbieCardIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+  box-shadow: 0 28px 65px -10px rgba(124, 58, 237, 0.35), 0 0 35px rgba(167, 139, 250, 0.3), 0 0 0 2px #ddd6fe, inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(196, 181, 253, 0.85) !important;
+  animation: contributorCardIn 0.52s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
 }
 
 .badge-modal-card.tier-legendary {
-  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.16) !important;
-  border: 1.5px solid #fde68a !important;
-  animation: newbieCardIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+  box-shadow: 0 32px 80px -10px rgba(217, 119, 6, 0.55), 0 0 50px rgba(251, 191, 36, 0.45), 0 0 0 2.5px #fde68a, 0 0 0 6px rgba(245, 158, 11, 0.18), inset 0 2px 0 rgba(255, 255, 255, 1) !important;
+  border: 1px solid rgba(253, 230, 138, 0.95) !important;
+  animation: legendaryCardIn 0.62s cubic-bezier(0.22, 1, 0.36, 1) forwards, legendaryCardPulse 3.6s ease-in-out 0.62s infinite !important;
 }
 
 @keyframes newbieCardIn {
-  0% { transform: scale(0.85) translateY(20px); opacity: 0; }
-  65% { transform: scale(1.03) translateY(-4px); }
+  0% { transform: scale(0.9) translateY(18px); opacity: 0; }
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
+@keyframes explorerCardIn {
+  0% { transform: scale(0.82) translateY(24px); opacity: 0; }
+  60% { transform: scale(1.04) translateY(-4px); }
+  85% { transform: scale(0.98) translateY(2px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes contributorCardIn {
+  0% { transform: perspective(850px) rotateX(18deg) scale(0.78) translateY(32px); opacity: 0; filter: brightness(1.2); }
+  55% { transform: perspective(850px) rotateX(-5deg) scale(1.05) translateY(-5px); filter: brightness(1.05); }
+  80% { transform: perspective(850px) rotateX(2deg) scale(0.98) translateY(1px); }
+  100% { transform: perspective(850px) rotateX(0deg) scale(1) translateY(0); opacity: 1; filter: brightness(1); }
+}
+
+@keyframes legendaryCardIn {
+  0% { transform: perspective(1000px) rotateX(26deg) scale(0.68) translateY(40px); opacity: 0; filter: brightness(1.4) drop-shadow(0 0 30px rgba(251, 191, 36, 0.8)); }
+  45% { transform: perspective(1000px) rotateX(-8deg) scale(1.08) translateY(-6px); filter: brightness(1.15); }
+  70% { transform: perspective(1000px) rotateX(3deg) scale(0.97) translateY(2px); }
+  88% { transform: perspective(1000px) rotateX(-1deg) scale(1.01) translateY(-1px); }
+  100% { transform: perspective(1000px) rotateX(0deg) scale(1) translateY(0); opacity: 1; filter: brightness(1); }
+}
+
+@keyframes legendaryCardPulse {
+  0%, 100% {
+    box-shadow: 0 32px 80px -10px rgba(217, 119, 6, 0.55), 0 0 50px rgba(251, 191, 36, 0.45), 0 0 0 2.5px #fde68a, 0 0 0 6px rgba(245, 158, 11, 0.18), inset 0 2px 0 rgba(255, 255, 255, 1) !important;
+  }
+  50% {
+    box-shadow: 0 36px 90px -10px rgba(217, 119, 6, 0.65), 0 0 65px rgba(251, 191, 36, 0.6), 0 0 0 3px #fbbf24, 0 0 0 9px rgba(245, 158, 11, 0.26), inset 0 2px 0 rgba(255, 255, 255, 1) !important;
+  }
+}
+
+/* Close Button */
 .badge-modal-close {
   position: absolute !important;
   top: 16px !important;
   right: 16px !important;
-  width: 32px !important;
-  height: 32px !important;
+  width: 34px !important;
+  height: 34px !important;
   border-radius: 50% !important;
   background: #f1f5f9 !important;
   border: none !important;
@@ -21231,15 +21363,16 @@ body {
   color: #64748b !important;
   cursor: pointer !important;
   z-index: 10 !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .badge-modal-close:hover {
   background: #e2e8f0 !important;
   color: #0f172a !important;
-  transform: scale(1.08) !important;
+  transform: scale(1.1) rotate(90deg) !important;
 }
 
+/* Modal Top Bar */
 .badge-modal-top {
   display: flex !important;
   align-items: center !important;
@@ -21280,9 +21413,38 @@ body {
   align-items: center !important;
   white-space: nowrap !important;
   flex-shrink: 0 !important;
+  transition: all 0.2s ease !important;
 }
 
-/* 3D Emblem Wrap & Decorative Animations */
+.tier-legendary .badge-modal-tier-pill {
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25) !important;
+}
+
+.tier-legendary .badge-modal-xp-pill {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
+  border: 1px solid #fde68a !important;
+  color: #b45309 !important;
+}
+
+.tier-contributor .badge-modal-xp-pill {
+  background: linear-gradient(135deg, #f5f3ff, #ede9fe) !important;
+  border: 1px solid #ddd6fe !important;
+  color: #6d28d9 !important;
+}
+
+.tier-explorer .badge-modal-xp-pill {
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5) !important;
+  border: 1px solid #a7f3d0 !important;
+  color: #047857 !important;
+}
+
+.tier-newbie .badge-modal-xp-pill {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe) !important;
+  border: 1px solid #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+/* 3D Emblem Wrap & Decorative FX Anchor */
 .badge-modal-emblem-wrap {
   position: relative !important;
   display: inline-flex !important;
@@ -21290,8 +21452,10 @@ body {
   justify-content: center !important;
   margin-bottom: 22px !important;
   margin-top: 6px !important;
+  z-index: 3 !important;
 }
 
+/* 3D Medallion Emblem */
 .badge-modal-emblem {
   width: 98px !important;
   height: 98px !important;
@@ -21300,41 +21464,41 @@ body {
   align-items: center !important;
   justify-content: center !important;
   position: relative !important;
-  z-index: 3 !important;
+  z-index: 4 !important;
   overflow: hidden !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+  transition: transform 0.3s ease !important;
 }
 
 .badge-modal-emblem.tier-newbie {
-  background: #eff6ff !important;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
   color: #1755ba !important;
   border: 2.5px solid #bfdbfe !important;
-  box-shadow: 0 8px 20px rgba(23, 85, 186, 0.15) !important;
-  animation: emblemDropSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, emblemFloat 3.2s ease-in-out 0.5s infinite !important;
+  box-shadow: 0 10px 24px rgba(23, 85, 186, 0.18), inset 0 2px 4px rgba(255, 255, 255, 0.9) !important;
+  animation: emblemDropSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
 }
 
 .badge-modal-emblem.tier-explorer {
-  background: #ecfdf5 !important;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 60%, #a7f3d0 100%) !important;
   color: #059669 !important;
-  border: 2.5px solid #6ee7b7 !important;
-  box-shadow: 0 8px 20px rgba(5, 150, 105, 0.15) !important;
-  animation: emblemDropSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, emblemFloat 3.2s ease-in-out 0.5s infinite !important;
+  border: 2.5px solid #34d399 !important;
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.28), inset 0 2px 4px rgba(255, 255, 255, 0.9) !important;
+  animation: emblemDropSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, emblemFloat 3s ease-in-out 0.5s infinite !important;
 }
 
 .badge-modal-emblem.tier-contributor {
-  background: #f5f3ff !important;
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #ddd6fe 100%) !important;
   color: #7c3aed !important;
   border: 2.5px solid #a78bfa !important;
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.15) !important;
-  animation: emblemDropSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, emblemFloat 3.2s ease-in-out 0.5s infinite !important;
+  box-shadow: 0 14px 34px rgba(124, 58, 237, 0.35), 0 0 22px rgba(167, 139, 250, 0.3), inset 0 2px 6px rgba(255, 255, 255, 0.95) !important;
+  animation: emblemDropSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, emblemFloat 2.6s ease-in-out 0.5s infinite !important;
 }
 
 .badge-modal-emblem.tier-legendary {
-  background: #fffbeb !important;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 45%, #fde68a 100%) !important;
   color: #b45309 !important;
   border: 3px solid #f59e0b !important;
-  box-shadow: 0 8px 20px rgba(217, 119, 6, 0.2) !important;
-  animation: emblemDropSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, emblemFloat 3.2s ease-in-out 0.5s infinite !important;
+  box-shadow: 0 16px 42px rgba(217, 119, 6, 0.45), 0 0 35px rgba(251, 191, 36, 0.55), inset 0 2px 8px rgba(255, 255, 255, 1), inset 0 -2px 6px rgba(217, 119, 6, 0.25) !important;
+  animation: emblemDropSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, emblemFloat 2.2s ease-in-out 0.5s infinite !important;
 }
 
 @keyframes emblemDropSpring {
@@ -21346,34 +21510,124 @@ body {
 
 @keyframes emblemFloat {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  50% { transform: translateY(-6px); }
 }
 
 .badge-modal-icon {
   font-size: 48px !important;
   position: relative !important;
-  z-index: 4 !important;
+  z-index: 5 !important;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.12)) !important;
 }
 
-/* Radiant Radial Flash Halo */
+/* Radiant Radial Flash Halo (Burst on Appearance) */
 .badge-radial-flash {
-  display: none !important;
+  position: absolute !important;
+  width: 140px !important;
+  height: 140px !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) scale(0.2);
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+.tier-newbie .badge-radial-flash {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.75) 0%, rgba(23, 85, 186, 0.35) 45%, transparent 75%) !important;
+  animation: radialHaloBloom 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.tier-explorer .badge-radial-flash {
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.85) 0%, rgba(5, 150, 105, 0.45) 45%, transparent 75%) !important;
+  animation: radialHaloBloom 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.tier-contributor .badge-radial-flash {
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.9) 0%, rgba(124, 58, 237, 0.5) 45%, transparent 75%) !important;
+  animation: radialHaloBloom 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.tier-legendary .badge-radial-flash {
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.95) 0%, rgba(245, 158, 11, 0.6) 40%, transparent 75%) !important;
+  animation: radialHaloBloom 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 @keyframes radialHaloBloom {
   0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
   35% { transform: translate(-50%, -50%) scale(1.4); opacity: 1; filter: blur(4px); }
-  100% { transform: translate(-50%, -50%) scale(1.9); opacity: 0; filter: blur(14px); }
+  100% { transform: translate(-50%, -50%) scale(2.0); opacity: 0; filter: blur(14px); }
 }
 
-/* Newbie Pulse Glow */
+/* Newbie Gentle Pulse Glow */
 .badge-newbie-pulse {
-  display: none !important;
+  position: absolute !important;
+  width: 114px !important;
+  height: 114px !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1 !important;
+  border-radius: 34px !important;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, transparent 72%) !important;
+  animation: glowPulse 2.8s ease-in-out infinite !important;
+}
+
+/* Explorer Soft Glow Ring */
+.badge-glow-ring {
+  position: absolute !important;
+  width: 124px !important;
+  height: 124px !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1 !important;
+  border-radius: 36px !important;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.5) 0%, rgba(52, 211, 153, 0.22) 50%, transparent 72%) !important;
+  animation: glowPulse 2.2s ease-in-out infinite !important;
+}
+
+@keyframes glowPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.45; }
+  50% { transform: translate(-50%, -50%) scale(1.18); opacity: 0.85; }
+}
+
+/* Cosmic Rotating Aura (Contributor Tier) */
+.badge-rotating-aura {
+  position: absolute !important;
+  width: 130px !important;
+  height: 130px !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1 !important;
+  border-radius: 42px !important;
+  background: conic-gradient(from 0deg, #7c3aed, #c084fc, #38bdf8, #ec4899, #7c3aed) !important;
+  filter: blur(12px) !important;
+  opacity: 0.7 !important;
+  animation: auraSpin 3.5s linear infinite !important;
+}
+
+@keyframes auraSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 /* Godrays Sunburst Beams (Legendary Tier) */
 .badge-godrays {
-  display: none !important;
+  position: absolute !important;
+  width: 250px !important;
+  height: 250px !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+  border-radius: 50% !important;
+  background: repeating-conic-gradient(from 0deg, rgba(251, 191, 36, 0.38) 0deg 12deg, transparent 12deg 24deg) !important;
+  animation: godraysSpin 14s linear infinite !important;
+  mask-image: radial-gradient(circle, rgba(0,0,0,1) 32%, transparent 72%) !important;
+  -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 32%, transparent 72%) !important;
 }
 
 @keyframes godraysSpin {
@@ -21384,11 +21638,11 @@ body {
 /* Floating Crown Crest (Legendary Tier) */
 .badge-crown-crest {
   position: absolute !important;
-  top: -18px !important;
-  font-size: 26px !important;
+  top: -20px !important;
+  font-size: 28px !important;
   z-index: 6 !important;
-  filter: drop-shadow(0 4px 10px rgba(217, 119, 6, 0.5)) !important;
-  animation: crownFloat 2s ease-in-out infinite !important;
+  filter: drop-shadow(0 4px 10px rgba(217, 119, 6, 0.6)) drop-shadow(0 0 12px rgba(251, 191, 36, 0.5)) !important;
+  animation: crownFloat 2.2s ease-in-out infinite !important;
 }
 
 @keyframes crownFloat {
@@ -21396,59 +21650,56 @@ body {
   50% { transform: translateY(-5px) scale(1.12); }
 }
 
-/* Cosmic Rotating Aura (Contributor Tier) */
-.badge-rotating-aura {
-  display: none !important;
-}
-
-@keyframes auraSpin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* Explorer Soft Glow Ring */
-.badge-glow-ring {
-  display: none !important;
-}
-
-@keyframes glowPulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.45; }
-  50% { transform: translate(-50%, -50%) scale(1.18); opacity: 0.85; }
-}
-
 /* Holographic Sheen Sweep (Contributor & Legendary) */
 .badge-modal-emblem.tier-contributor .badge-emblem-sheen,
 .badge-modal-emblem.tier-legendary .badge-emblem-sheen {
-  display: none !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  z-index: 5 !important;
+  background: linear-gradient(115deg, transparent 25%, rgba(255, 255, 255, 0.85) 50%, transparent 75%) !important;
+  transform: translateX(-140%) !important;
+  animation: sheenSweep 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+}
+
+.badge-modal-emblem.tier-legendary .badge-emblem-sheen {
+  background: linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0.95) 45%, rgba(254, 240, 138, 0.8) 55%, transparent 80%) !important;
+  animation: sheenSweep 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
 }
 
 @keyframes sheenSweep {
-  0% { transform: translateX(-120%); }
-  45%, 100% { transform: translateX(120%); }
+  0% { transform: translateX(-140%); }
+  45%, 100% { transform: translateX(140%); }
 }
 
-/* Orbiting Sparkles */
+/* Orbiting Glowing Star Crystals */
 .badge-orbit-sparkle {
   position: absolute !important;
   pointer-events: none !important;
   z-index: 5 !important;
   font-weight: bold !important;
+  line-height: 1 !important;
+  user-select: none !important;
 }
 
 .tier-legendary .badge-orbit-sparkle {
-  color: #f59e0b !important;
+  color: #fbbf24 !important;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.9), 0 0 16px rgba(245, 158, 11, 0.6) !important;
 }
 
 .tier-contributor .badge-orbit-sparkle {
-  color: #a78bfa !important;
+  color: #c084fc !important;
+  text-shadow: 0 0 8px rgba(167, 139, 250, 0.9), 0 0 16px rgba(124, 58, 237, 0.5) !important;
 }
 
 .tier-explorer .badge-orbit-sparkle {
   color: #34d399 !important;
+  text-shadow: 0 0 6px rgba(52, 211, 153, 0.8) !important;
 }
 
 .tier-newbie .badge-orbit-sparkle {
   color: #38bdf8 !important;
+  text-shadow: 0 0 6px rgba(56, 189, 248, 0.7) !important;
 }
 
 .badge-orbit-sparkle.s1 { top: -4px !important; right: -6px !important; font-size: 16px !important; animation: sparkleTwinkle 1.8s ease-in-out infinite !important; }
@@ -21468,8 +21719,8 @@ body {
   position: absolute !important;
   bottom: -8px !important;
   right: -24px !important;
-  padding: 4px 13px !important;
-  border-radius: 7px !important;
+  padding: 4.5px 13px !important;
+  border-radius: 8px !important;
   font-family: "Plus Jakarta Sans", sans-serif !important;
   font-size: 10.5px !important;
   font-weight: 900 !important;
@@ -21479,59 +21730,99 @@ body {
   opacity: 0 !important;
   pointer-events: none !important;
   z-index: 7 !important;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
 }
 
 .badge-graffiti-stamp.tier-newbie {
   background: #1755ba !important;
   color: #ffffff !important;
   border: 2px dashed #ffffff !important;
-  animation: newbieStampIn 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s forwards !important;
+  box-shadow: 0 4px 12px rgba(23, 85, 186, 0.3) !important;
+  animation: newbieStampIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards !important;
 }
 
 .badge-graffiti-stamp.tier-explorer {
-  background: #059669 !important;
+  background: linear-gradient(135deg, #059669, #10b981) !important;
   color: #ffffff !important;
   border: 2px dashed #ffffff !important;
-  animation: newbieStampIn 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s forwards !important;
+  box-shadow: 0 5px 15px rgba(5, 150, 105, 0.4) !important;
+  animation: explorerStampIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) 0.18s forwards !important;
 }
 
 .badge-graffiti-stamp.tier-contributor {
-  background: #7c3aed !important;
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6) !important;
   color: #ffffff !important;
   border: 2px dashed #ffffff !important;
-  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.45) !important;
-  animation: newbieStampIn 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s forwards !important;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5), 0 0 10px rgba(167, 139, 250, 0.4) !important;
+  animation: contributorStampIn 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards !important;
 }
 
 .badge-graffiti-stamp.tier-legendary {
-  background: #d97706 !important;
+  background: linear-gradient(135deg, #b45309 0%, #d97706 40%, #f59e0b 100%) !important;
   color: #ffffff !important;
   border: 2px solid #fffbeb !important;
-  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35) !important;
-  animation: newbieStampIn 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s forwards !important;
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.6), 0 0 18px rgba(251, 191, 36, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  animation: legendaryStampSlam 0.48s cubic-bezier(0.34, 1.56, 0.64, 1) 0.22s forwards !important;
 }
 
 @keyframes newbieStampIn {
-  0% { transform: rotate(-20deg) scale(2); opacity: 0; }
-  60% { transform: rotate(-10deg) scale(1.12); }
+  0% { transform: rotate(-20deg) scale(1.6); opacity: 0; }
+  60% { transform: rotate(-10deg) scale(1.08); }
   100% { transform: rotate(-14deg) scale(1); opacity: 1; }
+}
+
+@keyframes explorerStampIn {
+  0% { transform: rotate(-28deg) scale(2.2); opacity: 0; }
+  60% { transform: rotate(-10deg) scale(1.15); }
+  85% { transform: rotate(-16deg) scale(0.96); }
+  100% { transform: rotate(-14deg) scale(1); opacity: 1; }
+}
+
+@keyframes contributorStampIn {
+  0% { transform: rotate(-35deg) scale(2.6); opacity: 0; filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.8)); }
+  55% { transform: rotate(-8deg) scale(1.22); }
+  80% { transform: rotate(-16deg) scale(0.95); }
+  100% { transform: rotate(-14deg) scale(1); opacity: 1; filter: drop-shadow(0 0 0px transparent); }
+}
+
+@keyframes legendaryStampSlam {
+  0% { transform: rotate(-45deg) scale(3.2); opacity: 0; filter: drop-shadow(0 0 25px #fbbf24) brightness(1.4); }
+  50% { transform: rotate(-8deg) scale(1.28); filter: drop-shadow(0 0 15px #f59e0b) brightness(1.2); }
+  75% { transform: rotate(-16deg) scale(0.92); }
+  90% { transform: rotate(-13deg) scale(1.04); }
+  100% { transform: rotate(-14deg) scale(1); opacity: 1; filter: drop-shadow(0 0 0px transparent) brightness(1); }
 }
 
 /* Titles */
 .badge-modal-title {
-  font-size: 20px !important;
+  font-size: 21px !important;
   font-weight: 800 !important;
   color: #0f172a !important;
   margin-bottom: 6px !important;
+  letter-spacing: -0.01em !important;
+}
+
+.badge-modal-title.tier-newbie {
+  color: #0f172a !important;
+}
+
+.badge-modal-title.tier-explorer {
+  background: linear-gradient(135deg, #064e3b 0%, #059669 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 .badge-modal-title.tier-contributor {
-  color: #7c3aed !important;
+  background: linear-gradient(135deg, #1e1b4b 0%, #6d28d9 50%, #a855f7 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 .badge-modal-title.tier-legendary {
-  color: #b45309 !important;
+  background: linear-gradient(135deg, #78350f 0%, #d97706 25%, #fbbf24 50%, #b45309 75%, #d97706 100%) !important;
+  background-size: 200% auto !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  animation: textGoldShimmer 3.2s linear infinite !important;
 }
 
 @keyframes textGoldShimmer {
@@ -21540,25 +21831,46 @@ body {
 }
 
 .badge-modal-desc {
-  font-size: 13px !important;
+  font-size: 13.5px !important;
   color: #64748b !important;
-  line-height: 1.5 !important;
+  line-height: 1.55 !important;
   margin-bottom: 14px !important;
 }
 
+/* Badge Meta Row */
 .badge-modal-meta-row {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 8px !important;
-  font-size: 11px !important;
-  color: #94a3b8 !important;
-  padding: 8px 12px !important;
+  font-size: 11.5px !important;
+  color: #64748b !important;
+  padding: 8px 14px !important;
   background: #f8fafc !important;
-  border-radius: 10px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
   margin-bottom: 20px !important;
 }
 
+.tier-legendary .badge-modal-meta-row {
+  background: rgba(254, 243, 199, 0.45) !important;
+  border-color: rgba(253, 230, 138, 0.7) !important;
+  color: #92400e !important;
+}
+
+.tier-contributor .badge-modal-meta-row {
+  background: rgba(245, 243, 255, 0.55) !important;
+  border-color: rgba(221, 214, 254, 0.7) !important;
+  color: #5b21b6 !important;
+}
+
+.tier-explorer .badge-modal-meta-row {
+  background: rgba(236, 253, 245, 0.55) !important;
+  border-color: rgba(167, 243, 208, 0.7) !important;
+  color: #065f46 !important;
+}
+
+/* Action Buttons */
 .badge-modal-actions {
   display: flex !important;
   gap: 10px !important;
@@ -21570,47 +21882,61 @@ body {
   align-items: center !important;
   justify-content: center !important;
   gap: 6px !important;
-  padding: 11px 14px !important;
-  border-radius: 12px !important;
-  font-size: 12.5px !important;
+  padding: 12px 14px !important;
+  border-radius: 14px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
   text-decoration: none !important;
   cursor: pointer !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   border: none !important;
 }
 
 .badge-modal-btn.replay-btn {
   background: #f1f5f9 !important;
   color: #334155 !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 .badge-modal-btn.replay-btn:hover {
   background: #e2e8f0 !important;
   color: #0f172a !important;
+  transform: translateY(-1px) !important;
+}
+
+.badge-modal-btn.replay-btn:active {
+  transform: scale(0.97) !important;
 }
 
 .badge-modal-btn.primary-btn {
   background: #1755ba !important;
   color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(23, 85, 186, 0.25) !important;
 }
 
 .badge-modal-btn.primary-btn.tier-explorer {
-  background: #059669 !important;
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
 }
 
 .badge-modal-btn.primary-btn.tier-contributor {
-  background: #7c3aed !important;
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6) !important;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4) !important;
 }
 
 .badge-modal-btn.primary-btn.tier-legendary {
-  background: #d97706 !important;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25) !important;
+  background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%) !important;
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.5), 0 0 15px rgba(251, 191, 36, 0.35) !important;
+  border: 1px solid rgba(254, 243, 199, 0.4) !important;
 }
 
 .badge-modal-btn.primary-btn:hover {
-  filter: brightness(1.08) !important;
-  transform: translateY(-1px) !important;
+  filter: brightness(1.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+.badge-modal-btn.primary-btn:active {
+  transform: scale(0.98) !important;
 }
 
 /* ==========================================

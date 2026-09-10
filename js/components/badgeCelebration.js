@@ -829,13 +829,14 @@ export function triggerBadgeCelebration(badgeKeyOrObj, options = {}) {
 
   const modalOverlay = document.createElement("div");
   modalOverlay.id = "badge-celebration-modal";
-  modalOverlay.className = "badge-modal-overlay active";
+  modalOverlay.className = `badge-modal-overlay active tier-${badge.tier}`;
   modalOverlay.setAttribute("role", "dialog");
   modalOverlay.setAttribute("aria-modal", "true");
 
   modalOverlay.innerHTML = `
     <div class="badge-modal-backdrop"></div>
     <div class="badge-modal-card tier-${badge.tier}">
+      <div class="badge-card-ambient-glow" aria-hidden="true"></div>
       <button class="badge-modal-close" aria-label="${closeAria}">
         <span class="material-symbols-outlined text-lg">close</span>
       </button>
