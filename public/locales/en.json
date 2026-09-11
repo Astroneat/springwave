@@ -2836,7 +2836,10 @@
     "format_filter_all": "All Formats",
     "format_filter_online": "Online",
     "format_filter_offline": "In-Person (Offline)",
-    "no_events_desc_format": "No tickets match the selected format."
+    "no_events_desc_format": "No tickets match the selected format.",
+    "online_checkin_title": "Online Check-In",
+    "online_checkin_desc": "Enter PIN from Host",
+    "enter_pin_btn": "Enter PIN"
   },
   "org_profile": {
     "tab_all": "All",

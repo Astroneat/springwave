@@ -1016,15 +1016,16 @@ async function applyFiltersAndSort() {
 
     if (currentFormat === "online") {
         filtered = filtered.filter(a => {
-            if (a.format) return a.format === 'online';
+            if (a.format === 'online') return true;
             const loc = (a.location || '').toLowerCase();
             return loc.includes('online') || loc.includes('zoom') || loc.includes('meet') || (!a.location && a.isNonPartner);
         });
     } else if (currentFormat === "offline") {
         filtered = filtered.filter(a => {
-            if (a.format) return a.format === 'offline';
+            if (a.format === 'online') return false;
             const loc = (a.location || '').toLowerCase();
-            return !loc.includes('online') && !loc.includes('zoom') && !loc.includes('meet') && (!!a.location || !a.isNonPartner);
+            if (loc.includes('online') || loc.includes('zoom') || loc.includes('meet') || (!a.location && a.isNonPartner)) return false;
+            return true;
         });
     }
 

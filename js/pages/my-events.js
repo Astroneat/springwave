@@ -1,7 +1,7 @@
 import "../../src/style.css";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { getMyTickets } from "../api/user.js";
-import { addEventReview } from "../api/activities.js";
+import { addEventReview, getActivities } from "../api/activities.js";
 import { getMyCertificates } from "../api/certificates.js";
 import { loadNavbar as loadSharedNavbar, initBasicScroll } from "../components/navbar.js";
 import { formatDate } from "../lib/utils.js";
@@ -16,6 +16,39 @@ let currentFilter = 'all'; // 'all' | 'upcoming' | 'checked_in' | 'expired'
 let currentFormat = 'all'; // 'all' | 'online' | 'offline'
 let currentRateEventId = null;
 let selectedRating = 0;
+let cachedActivitiesMap = null;
+
+async function fetchActivitiesMap() {
+  if (cachedActivitiesMap) return cachedActivitiesMap;
+  try {
+    const res = await getActivities();
+    const list = res?.activities || res?.events || (Array.isArray(res) ? res : []);
+    cachedActivitiesMap = new Map(list.map(a => [String(a._id || a.activityID), a]));
+  } catch (e) {
+    cachedActivitiesMap = new Map();
+  }
+  return cachedActivitiesMap;
+}
+
+function enrichTicketsWithActivities(tickets, actMap) {
+  if (!Array.isArray(tickets)) return [];
+  if (!actMap || actMap.size === 0) return tickets;
+  return tickets.map(t => {
+    if (t.event && t.event._id) {
+      const full = actMap.get(String(t.event._id));
+      if (full) {
+        if (full.heldDateEnd && !t.event.heldDateEnd) t.event.heldDateEnd = full.heldDateEnd;
+        if (full.format && !t.event.format) t.event.format = full.format;
+        if (full.meetingUrl && !t.event.meetingUrl) t.event.meetingUrl = full.meetingUrl;
+        if (full.onlineCheckin && !t.event.onlineCheckin) t.event.onlineCheckin = full.onlineCheckin;
+        if (full.expiredCheckinMinutes !== undefined && t.event.expiredCheckinMinutes === undefined) {
+          t.event.expiredCheckinMinutes = full.expiredCheckinMinutes;
+        }
+      }
+    }
+    return t;
+  });
+}
 
 function getTicketStatus(t) {
   return t.ticketStatus || 'active';
@@ -29,10 +62,14 @@ function isInactive(t) {
 function isEventExpired(t) {
   const event = t.event || {};
   if (!event.heldDate && !event.heldDateEnd) return false;
-  const endDate = event.heldDateEnd
-    ? new Date(event.heldDateEnd).getTime()
-    : new Date(event.heldDate).getTime() + 24 * 60 * 60 * 1000;
-  return Date.now() > endDate;
+  const now = Date.now();
+  if (event.heldDateEnd) {
+    return now > new Date(event.heldDateEnd).getTime();
+  }
+  if (event.expiredCheckinMinutes && Number(event.expiredCheckinMinutes) > 0) {
+    return now > new Date(event.heldDate).getTime() + Number(event.expiredCheckinMinutes) * 60 * 1000;
+  }
+  return now > new Date(event.heldDate).getTime() + 3 * 60 * 60 * 1000;
 }
 
 function getEffectiveStatus(tkt) {
@@ -80,6 +117,16 @@ function getRatingText(tkt) {
   return t('my_events.rate_event', 'Rate Event');
 }
 
+export function isOnlineEvent(event) {
+  if (!event) return false;
+  if (event.format === 'online') return true;
+  const loc = String(event.location || '').trim().toLowerCase();
+  if (loc === 'online' || loc.includes('online') || loc.includes('zoom') || loc.includes('meet') || loc.includes('teams') || loc.includes('webex')) return true;
+  if (event.meetingUrl && String(event.meetingUrl).trim().length > 0) return true;
+  if (event.onlineCheckin && (event.onlineCheckin.isOpen || event.onlineCheckin.code)) return true;
+  return false;
+}
+
 function renderEvents() {
   const list = document.getElementById("events-list");
   if (!list) return;
@@ -95,9 +142,9 @@ function renderEvents() {
   // 1. Filter by format (Online / Offline / All)
   const formatFiltered = validTickets.filter(t => {
     if (currentFormat === 'all') return true;
-    const fmt = (t.event?.format || 'offline').toLowerCase();
-    if (currentFormat === 'online') return fmt === 'online';
-    if (currentFormat === 'offline') return fmt === 'offline';
+    const isOnline = isOnlineEvent(t.event);
+    if (currentFormat === 'online') return isOnline;
+    if (currentFormat === 'offline') return !isOnline;
     return true;
   });
 
@@ -181,16 +228,10 @@ function renderEvents() {
     const safeTitle = eventTitle.replace(/'/g, "\\'");
 
     let actionButtons = '';
-    const isOnline = event.format === 'online';
+    const isOnline = isOnlineEvent(event);
     const hasOnlineCheckinOpen = Boolean(event.onlineCheckin && event.onlineCheckin.isOpen);
     if (effectiveStatus === 'active') {
-      if (isOnline || hasOnlineCheckinOpen) {
-        actionButtons += `
-          <button class="pin-checkin-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs" data-event-id="${eventId}" data-event-title="${safeTitle}">
-            <span class="material-symbols-outlined text-[15px]">dialpad</span>
-            <span>${t('my_events.pin_checkin_btn', 'Điểm danh online (PIN)')}</span>
-          </button>`;
-      }
+      // PIN check-in button is rendered on the right stub
     } else {
       if (canRate) {
         actionButtons += `
@@ -237,7 +278,7 @@ function renderEvents() {
       statusBadgeTag = `<span class="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 font-medium">${t('my_events.event_ended', 'Event ended')}</span>`;
     }
 
-    const isOnlineDisplay = event.format === 'online' || (!event.format && ((event.location || '').toLowerCase().includes('online') || (event.location || '').toLowerCase().includes('zoom') || (event.location || '').toLowerCase().includes('meet')));
+    const isOnlineDisplay = isOnline;
 
     let formatBadgeTag = '';
     if (isOnlineDisplay) {
@@ -246,7 +287,7 @@ function renderEvents() {
       formatBadgeTag = `<span class="inline-flex items-center justify-center h-[26px] text-xs font-semibold text-[#1755ba] bg-blue-50 px-3 rounded-full border border-blue-200/80 shadow-2xs leading-none">${t('my_events.format_offline', 'Trực tiếp')}</span>`;
     }
 
-    const showQR = effectiveStatus === 'active' && !!tkt.qrImageUrl;
+    const showQR = effectiveStatus === 'active' && !isOnline && !!tkt.qrImageUrl;
 
     return `
       <div id="ticket-card-${eventId}" data-event-id="${eventId}" data-activity-id="${event.activityID || ''}" data-ticket-id="${tkt._id || ''}" class="ticket-card-item group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
@@ -316,18 +357,35 @@ function renderEvents() {
         </div>
 
         <div class="w-full md:w-44 p-5 flex flex-col items-center justify-center bg-slate-50/50 md:bg-transparent flex-shrink-0">
-          ${showQR ? `
-            <div class="relative group/qr cursor-zoom-in qr-zoom-btn" data-qr-url="${tkt.qrImageUrl}" data-event-title="${(event.title || 'Event').replace(/"/g, '&quot;')}" data-qr-code="${tkt.qrCode || ''}">
-              <img src="${tkt.qrImageUrl}" alt="QR Code" class="w-24 h-24 rounded-xl border border-slate-200 bg-white p-1 hover:shadow-md transition-all duration-300" />
-              <div class="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover/qr:opacity-100 flex items-center justify-center transition-opacity duration-200">
-                <span class="material-symbols-outlined text-white text-xl">zoom_in</span>
+          ${effectiveStatus === 'active' ? (
+            isOnline ? `
+              <div class="w-24 h-24 rounded-xl border border-emerald-200 bg-white p-2 flex flex-col items-center justify-center shadow-xs cursor-pointer hover:border-emerald-400 hover:shadow-md transition-all pin-checkin-btn group/pin" data-event-id="${eventId}" data-event-title="${safeTitle}" title="${t('my_events.pin_checkin_btn', 'Online PIN Check-in')}">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover/pin:scale-105 group-hover/pin:bg-emerald-100/70 transition-all">
+                  <span class="material-symbols-outlined text-3xl">dialpad</span>
+                </div>
+                <span class="mt-1 text-[9px] font-bold text-emerald-700 uppercase tracking-wider">PIN CODE</span>
               </div>
-            </div>
-            <span class="mt-2 text-[10px] font-mono text-slate-400 uppercase">${tkt.qrCode ? tkt.qrCode.slice(0, 8) : 'N/A'}</span>
-            <a href="${tkt.qrImageUrl}" download="ticket_${tkt.qrCode || 'qr'}.png" target="_blank" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1755ba] hover:underline">
-              <span class="material-symbols-outlined text-[14px]">download</span> ${t('my_events.download_qr', 'Download QR')}
-            </a>
-          ` : `
+              <span class="mt-2 text-[10px] font-mono text-slate-400 uppercase">ONLINE PASS</span>
+            ` : (
+              showQR ? `
+                <div class="relative group/qr cursor-zoom-in qr-zoom-btn" data-qr-url="${tkt.qrImageUrl}" data-event-title="${(event.title || 'Event').replace(/"/g, '&quot;')}" data-qr-code="${tkt.qrCode || ''}">
+                  <img src="${tkt.qrImageUrl}" alt="QR Code" class="w-24 h-24 rounded-xl border border-slate-200 bg-white p-1 hover:shadow-md transition-all duration-300" />
+                  <div class="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover/qr:opacity-100 flex items-center justify-center transition-opacity duration-200">
+                    <span class="material-symbols-outlined text-white text-xl">zoom_in</span>
+                  </div>
+                </div>
+                <span class="mt-2 text-[10px] font-mono text-slate-400 uppercase">${tkt.qrCode ? tkt.qrCode.slice(0, 8) : 'N/A'}</span>
+                <a href="${tkt.qrImageUrl}" download="ticket_${tkt.qrCode || 'qr'}.png" target="_blank" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1755ba] hover:underline">
+                  <span class="material-symbols-outlined text-[14px]">download</span> ${t('my_events.download_qr', 'Download QR')}
+                </a>
+              ` : `
+                <div class="w-24 h-24 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 flex flex-col items-center justify-center gap-1 select-none">
+                  <span class="material-symbols-outlined text-3xl">qr_code_2</span>
+                  <span class="text-[9px] font-bold uppercase tracking-wider">No QR</span>
+                </div>
+              `
+            )
+          ) : `
             <div class="w-24 h-24 rounded-xl ${effectiveStatus === 'checked_in' ? 'bg-emerald-50 border border-emerald-200/60 text-emerald-600' : (effectiveStatus === 'cancelled' ? 'bg-rose-50 border border-rose-200/60 text-rose-600' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex flex-col items-center justify-center gap-1 select-none">
               <span class="material-symbols-outlined text-3xl">${statusIcon}</span>
               <span class="text-[9px] font-bold uppercase tracking-wider">${statusBottomText}</span>
@@ -616,7 +674,11 @@ function initModals() {
       try {
         const { tickets } = await getMyTickets();
         if (Array.isArray(tickets)) {
-          allTickets = tickets.filter(t => t && t.event && (t.event._id || t.event.title));
+          const actMap = await fetchActivitiesMap();
+          allTickets = enrichTicketsWithActivities(
+            tickets.filter(t => t && t.event && (t.event._id || t.event.title)),
+            actMap
+          );
         }
       } catch (refErr) {
         console.warn("Failed to re-fetch tickets, updating in-memory:", refErr);
@@ -720,7 +782,11 @@ function initModals() {
       try {
         const fresh = await getMyTickets();
         if (fresh && fresh.tickets) {
-          allTickets = fresh.tickets.filter(t => t && t.event && (t.event._id || t.event.title));
+          const actMap = await fetchActivitiesMap();
+          allTickets = enrichTicketsWithActivities(
+            fresh.tickets.filter(t => t && t.event && (t.event._id || t.event.title)),
+            actMap
+          );
           renderEvents();
         }
       } catch (e) {
@@ -938,10 +1004,17 @@ async function loadPage() {
   if (!list) return;
 
   try {
-    const { tickets } = await getMyTickets();
-    allTickets = (tickets || []).filter(t => t && t.event && (t.event._id || t.event.title));
+    const actMapPromise = fetchActivitiesMap();
+    const ticketsPromise = getMyTickets();
+    const [{ tickets }, actMap] = await Promise.all([
+      ticketsPromise,
+      actMapPromise
+    ]);
 
-    const validTickets = allTickets.filter(t => t && t.event && (t.event._id || t.event.title));
+    const validRaw = (tickets || []).filter(t => t && t.event && (t.event._id || t.event.title));
+    allTickets = enrichTicketsWithActivities(validRaw, actMap);
+
+    const validTickets = allTickets;
 
     const filterBar = document.getElementById("filter-bar");
     if (filterBar) {
