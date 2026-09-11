@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "SpringWave Frontend — Tech Stack",
+    "output": "springwave-frontend-techstack.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "runtime",
+        "label": "Browser runtime",
+        "focus": ["browser", "pages", "components", "styles", "api-client", "session"],
+        "note": "Follow how the vanilla frontend renders pages, composes UI, and calls the API."
+      },
+      {
+        "id": "build",
+        "label": "Build pipeline",
+        "focus": ["vite", "pages", "components", "styles"],
+        "note": "See the Vite-powered build surface and the frontend modules it bundles."
+      },
+      {
+        "id": "integrations",
+        "label": "External integrations",
+        "focus": ["api-client", "backend", "maps", "oauth", "storage"],
+        "note": "Isolate the frontend integration boundary with SpringWave services and providers."
+      }
+    ]
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [40, 40],
+    "cols": 6,
+    "gapX": 40,
+    "gapY": 40,
+    "cellW": 190,
+    "cellH": 100
+  },
+  "components": [
+    {
+      "id": "browser",
+      "type": "external",
+      "label": "User Browser",
+      "sublabel": "Modern browser runtime",
+      "tag": "HTML / JS / CSS",
+      "pos": [50, 330],
+      "size": [180, 78]
+    },
+    {
+      "id": "vite",
+      "type": "frontend",
+      "label": "Vite Toolchain",
+      "sublabel": "Dev server + production build",
+      "tag": "Vite",
+      "pos": [50, 90],
+      "size": [180, 78]
+    },
+    {
+      "id": "pages",
+      "type": "frontend",
+      "label": "Page Modules",
+      "sublabel": "Vanilla HTML + ES modules",
+      "tag": "20+ pages",
+      "pos": [300, 210],
+      "size": [220, 84]
+    },
+    {
+      "id": "components",
+      "type": "frontend",
+      "label": "UI Components",
+      "sublabel": "Navbar, modals, cards, chatbot",
+      "tag": "Reusable UI",
+      "pos": [300, 370],
+      "size": [220, 84]
+    },
+    {
+      "id": "styles",
+      "type": "frontend",
+      "label": "Design Layer",
+      "sublabel": "Tailwind CSS v4 + custom CSS",
+      "tag": "Responsive UI",
+      "pos": [300, 530],
+      "size": [220, 84]
+    },
+    {
+      "id": "api-client",
+      "type": "security",
+      "label": "API Client",
+      "sublabel": "REST wrapper + request signing",
+      "tag": "JWT / HMAC / uploads / SSE",
+      "pos": [590, 330],
+      "size": [230, 88]
+    },
+    {
+      "id": "session",
+      "type": "security",
+      "label": "Session & i18n",
+      "sublabel": "localStorage session + language state",
+      "tag": "VI / EN",
+      "pos": [590, 120],
+      "size": [230, 82]
+    },
+    {
+      "id": "backend",
+      "type": "backend",
+      "label": "SpringWave REST API",
+      "sublabel": "Express backend",
+      "tag": "api.springwave.io.vn",
+      "pos": [900, 330],
+      "size": [240, 88]
+    },
+    {
+      "id": "maps",
+      "type": "external",
+      "label": "Maps & Geocoding",
+      "sublabel": "MapLibre + OpenFreeMap + Nominatim",
+      "tag": "Location UX",
+      "pos": [900, 90],
+      "size": [240, 82]
+    },
+    {
+      "id": "oauth",
+      "type": "external",
+      "label": "OAuth Providers",
+      "sublabel": "Google Identity + Microsoft MSAL",
+      "tag": "SSO",
+      "pos": [900, 550],
+      "size": [240, 82]
+    },
+    {
+      "id": "storage",
+      "type": "cloud",
+      "label": "Cloudflare Assets",
+      "sublabel": "Pages / CDN / R2-backed media",
+      "tag": "Static + uploads",
+      "pos": [1110, 450],
+      "size": [230, 88]
+    }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Frontend workspace", "wraps": ["vite", "pages", "components", "styles", "api-client", "session"], "pad": 28 },
+    { "kind": "security-group", "label": "Browser trust boundary", "wraps": ["api-client", "session"], "pad": 22 }
+  ],
+  "connections": [
+    { "id": "browser-pages", "from": "browser", "to": "pages", "label": "render", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "vite-pages", "from": "vite", "to": "pages", "label": "bundle", "fromSide": "right", "toSide": "top" },
+    { "id": "pages-components", "from": "pages", "to": "components", "label": "compose", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "components-styles", "from": "components", "to": "styles", "label": "style", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "pages-api", "from": "pages", "to": "api-client", "label": "feature calls", "fromSide": "right", "toSide": "left" },
+    { "id": "session-api", "from": "session", "to": "api-client", "label": "tokens + locale", "fromSide": "bottom", "toSide": "top", "variant": "security", "labelDy": 24 },
+    { "id": "api-backend", "from": "api-client", "to": "backend", "label": "REST / SSE", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "api-maps", "from": "api-client", "to": "maps", "label": "map + geocode", "fromSide": "top", "toSide": "bottom" },
+    { "id": "api-oauth", "from": "api-client", "to": "oauth", "label": "identity token", "fromSide": "bottom", "toSide": "top" },
+    { "id": "backend-storage", "from": "backend", "to": "storage", "label": "media URLs", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 8 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Frontend core", "items": ["Vanilla HTML + JavaScript ES modules", "Vite dev/build workflow", "Tailwind CSS v4 + custom responsive CSS"] },
+    { "dot": "emerald", "title": "Runtime integrations", "items": ["Central REST client for all feature APIs", "JWT session bootstrap and HMAC request signing", "Streaming chatbot via SSE and multipart uploads"] },
+    { "dot": "violet", "title": "Experience stack", "items": ["MapLibre/OpenFreeMap map experience", "Nominatim geocoding", "Google + Microsoft SSO", "Vietnamese / English UI"] }
+  ]
+}

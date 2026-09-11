@@ -1,6 +1,7 @@
 import "../../src/style.css";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { getEvents, getPendingEvents, approveEvent, rejectEvent, deleteEvent, scrapeEvents, updateEvent } from "../api/admin.js";
+import { getEmailSettings, updateEmailSettings, sendTestEmail } from "../api/emailSettings.js";
 import { loadNavbar } from "../components/navbar.js";
 import { initChatbot } from "../components/chatbot.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate } from "../lib/utils.js";
@@ -55,6 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderTable();
     });
 
+    initAdminModules();
     initTabs();
     initSearch();
     initRefresh();
@@ -792,3 +794,287 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// ─── Admin Module Switcher & Email Settings ───
+
+let currentAdminModule = "events";
+
+export function switchAdminModule(moduleName) {
+    currentAdminModule = moduleName;
+    const eventsSec = document.getElementById("section-events");
+    const emailSec = document.getElementById("section-email");
+    const eventsNavBtn = document.getElementById("admin-nav-events");
+    const emailNavBtn = document.getElementById("admin-nav-email");
+
+    if (moduleName === "email") {
+        eventsSec?.classList.add("hidden");
+        emailSec?.classList.remove("hidden");
+
+        eventsNavBtn?.classList.remove("bg-primary", "text-white", "shadow-md");
+        eventsNavBtn?.classList.add("bg-white", "border", "border-[#e2e2eb]", "text-[#64748b]", "hover:bg-[#f1f5f9]");
+
+        emailNavBtn?.classList.remove("bg-white", "border", "border-[#e2e2eb]", "text-[#64748b]", "hover:bg-[#f1f5f9]");
+        emailNavBtn?.classList.add("bg-primary", "text-white", "shadow-md");
+
+        if (window.location.hash !== "#email") {
+            history.replaceState(null, "", "#email");
+        }
+        loadEmailSettings();
+    } else {
+        emailSec?.classList.add("hidden");
+        eventsSec?.classList.remove("hidden");
+
+        emailNavBtn?.classList.remove("bg-primary", "text-white", "shadow-md");
+        emailNavBtn?.classList.add("bg-white", "border", "border-[#e2e2eb]", "text-[#64748b]", "hover:bg-[#f1f5f9]");
+
+        eventsNavBtn?.classList.remove("bg-white", "border", "border-[#e2e2eb]", "text-[#64748b]", "hover:bg-[#f1f5f9]");
+        eventsNavBtn?.classList.add("bg-primary", "text-white", "shadow-md");
+
+        if (window.location.hash === "#email") {
+            history.replaceState(null, "", window.location.pathname);
+        }
+    }
+}
+
+function initAdminModules() {
+    document.getElementById("admin-nav-events")?.addEventListener("click", () => switchAdminModule("events"));
+    document.getElementById("admin-nav-email")?.addEventListener("click", () => switchAdminModule("email"));
+
+    window.addEventListener("hashchange", () => {
+        if (window.location.hash === "#email") {
+            switchAdminModule("email");
+        } else {
+            switchAdminModule("events");
+        }
+    });
+
+    if (window.location.hash === "#email") {
+        switchAdminModule("email");
+    }
+
+    initEmailSettingsEvents();
+}
+
+let emailSettingsLoaded = false;
+async function loadEmailSettings() {
+    try {
+        const { config, diagnostics } = await getEmailSettings();
+        if (!config) return;
+        emailSettingsLoaded = true;
+
+        // Prefill test email input if empty
+        const testEmailInput = document.getElementById("test-email-to");
+        if (testEmailInput && !testEmailInput.value) {
+            const user = getUser();
+            if (user?.email) testEmailInput.value = user.email;
+        }
+
+        // Provider radio & cards
+        const activeProvider = config.activeProvider || "gmail";
+        const gmailRadio = document.getElementById("provider-gmail-radio");
+        const resendRadio = document.getElementById("provider-resend-radio");
+        if (activeProvider === "resend") {
+            if (resendRadio) resendRadio.checked = true;
+            updateProviderCardsUI("resend");
+        } else {
+            if (gmailRadio) gmailRadio.checked = true;
+            updateProviderCardsUI("gmail");
+        }
+
+        // Diagnostics
+        if (diagnostics) {
+            const gmailBadge = document.getElementById("badge-gmail-status");
+            const gmailUser = document.getElementById("diag-gmail-user");
+            const gmailMode = document.getElementById("diag-gmail-mode");
+            if (gmailBadge) {
+                if (diagnostics.gmail?.configured) {
+                    gmailBadge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200";
+                    gmailBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Configured`;
+                } else {
+                    gmailBadge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200";
+                    gmailBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Missing .env`;
+                }
+            }
+            if (gmailUser && diagnostics.gmail?.from) gmailUser.textContent = diagnostics.gmail.from;
+            if (gmailMode) {
+                if (diagnostics.gmail?.mode === 'cloudflare-worker') {
+                    gmailMode.textContent = "Cloudflare Worker (OAuth2)";
+                } else if (diagnostics.gmail?.mode === 'smtp') {
+                    gmailMode.textContent = `SMTP (${diagnostics.gmail.host}:${diagnostics.gmail.port})`;
+                } else {
+                    gmailMode.textContent = "Not configured";
+                }
+            }
+
+            const resendBadge = document.getElementById("badge-resend-status");
+            const resendKey = document.getElementById("diag-resend-key");
+            const resendFrom = document.getElementById("diag-resend-from");
+            if (resendBadge) {
+                if (diagnostics.resend?.hasApiKey) {
+                    resendBadge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200";
+                    resendBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Configured`;
+                } else {
+                    resendBadge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200";
+                    resendBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Missing API Key`;
+                }
+            }
+            if (resendKey) resendKey.textContent = diagnostics.resend?.hasApiKey ? "API Key Set" : "Not configured";
+            if (resendFrom && diagnostics.resend?.from) resendFrom.textContent = diagnostics.resend.from;
+        }
+
+        // Master switch
+        const masterToggle = document.getElementById("email-master-toggle");
+        if (masterToggle) {
+            masterToggle.checked = config.masterEnabled !== false;
+            syncOptionsContainerDisabled(masterToggle.checked);
+        }
+
+        // Sub options
+        const opts = config.options || {};
+        setCheckbox("opt-verificationEmail", opts.verificationEmail !== false);
+        setCheckbox("opt-passwordResetEmail", opts.passwordResetEmail !== false);
+        setCheckbox("opt-ticketConfirmationEmail", opts.ticketConfirmationEmail !== false);
+        setCheckbox("opt-hostNotificationEmail", opts.hostNotificationEmail !== false);
+        setCheckbox("opt-hostApprovalEmail", opts.hostApprovalEmail !== false);
+        setCheckbox("opt-studentVerificationEmail", opts.studentVerificationEmail !== false);
+        setCheckbox("opt-emailChangeOtpEmail", opts.emailChangeOtpEmail !== false);
+    } catch (err) {
+        console.error("Failed to load email settings:", err);
+        showToast(err.message || "Failed to load email settings", "error");
+    }
+}
+
+function setCheckbox(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.checked = Boolean(value);
+}
+
+function syncOptionsContainerDisabled(enabled) {
+    const container = document.getElementById("email-options-container");
+    if (!container) return;
+    if (enabled) {
+        container.classList.remove("opacity-50", "pointer-events-none");
+    } else {
+        container.classList.add("opacity-50", "pointer-events-none");
+    }
+}
+
+function updateProviderCardsUI(selected) {
+    const gmailCard = document.getElementById("card-provider-gmail");
+    const resendCard = document.getElementById("card-provider-resend");
+
+    if (selected === "resend") {
+        resendCard?.classList.add("border-primary", "bg-blue-50/20");
+        resendCard?.classList.remove("border-[#e2e2eb]", "bg-white");
+        gmailCard?.classList.remove("border-primary", "bg-blue-50/20");
+        gmailCard?.classList.add("border-[#e2e2eb]", "bg-white");
+    } else {
+        gmailCard?.classList.add("border-primary", "bg-blue-50/20");
+        gmailCard?.classList.remove("border-[#e2e2eb]", "bg-white");
+        resendCard?.classList.remove("border-primary", "bg-blue-50/20");
+        resendCard?.classList.add("border-[#e2e2eb]", "bg-white");
+    }
+}
+
+function initEmailSettingsEvents() {
+    // Provider card clicking
+    document.getElementById("card-provider-gmail")?.addEventListener("click", () => {
+        const radio = document.getElementById("provider-gmail-radio");
+        if (radio) radio.checked = true;
+        updateProviderCardsUI("gmail");
+    });
+
+    document.getElementById("card-provider-resend")?.addEventListener("click", () => {
+        const radio = document.getElementById("provider-resend-radio");
+        if (radio) radio.checked = true;
+        updateProviderCardsUI("resend");
+    });
+
+    // Master toggle change
+    document.getElementById("email-master-toggle")?.addEventListener("change", (e) => {
+        syncOptionsContainerDisabled(e.target.checked);
+    });
+
+    // Save Settings
+    document.getElementById("save-email-settings-btn")?.addEventListener("click", async () => {
+        const btn = document.getElementById("save-email-settings-btn");
+        const originalText = btn ? btn.innerHTML : "";
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Saving...</span>`;
+        }
+
+        try {
+            const activeProvider = document.querySelector('input[name="email_provider"]:checked')?.value || "gmail";
+            const masterEnabled = document.getElementById("email-master-toggle")?.checked ?? true;
+            const options = {
+                verificationEmail: document.getElementById("opt-verificationEmail")?.checked ?? true,
+                passwordResetEmail: document.getElementById("opt-passwordResetEmail")?.checked ?? true,
+                ticketConfirmationEmail: document.getElementById("opt-ticketConfirmationEmail")?.checked ?? true,
+                hostNotificationEmail: document.getElementById("opt-hostNotificationEmail")?.checked ?? true,
+                hostApprovalEmail: document.getElementById("opt-hostApprovalEmail")?.checked ?? true,
+                studentVerificationEmail: document.getElementById("opt-studentVerificationEmail")?.checked ?? true,
+                emailChangeOtpEmail: document.getElementById("opt-emailChangeOtpEmail")?.checked ?? true,
+            };
+
+            await updateEmailSettings({ activeProvider, masterEnabled, options });
+            showToast(t("admin.email_save_success", "Email settings saved successfully!"), "success");
+            await loadEmailSettings();
+        } catch (err) {
+            showToast(err.message || "Failed to save email settings", "error");
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+    });
+
+    // Send Test Email
+    document.getElementById("send-test-email-btn")?.addEventListener("click", async () => {
+        const toInput = document.getElementById("test-email-to");
+        const providerSelect = document.getElementById("test-email-provider");
+        const statusEl = document.getElementById("test-email-status");
+        const btn = document.getElementById("send-test-email-btn");
+
+        const toEmail = toInput?.value?.trim();
+        if (!toEmail || !toEmail.includes("@")) {
+            showToast(t("admin.email_invalid_recipient", "Please enter a valid recipient email address"), "error");
+            toInput?.focus();
+            return;
+        }
+
+        const provider = providerSelect?.value || null;
+        const originalText = btn ? btn.innerHTML : "";
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Sending...</span>`;
+        }
+
+        if (statusEl) {
+            statusEl.classList.remove("hidden", "text-emerald-600", "text-red-600");
+            statusEl.className = "text-xs font-semibold text-slate-500";
+            statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Testing connection and dispatching email...`;
+        }
+
+        try {
+            const res = await sendTestEmail(toEmail, provider);
+            showToast(t("admin.email_test_success", "Test email sent successfully!"), "success");
+            if (statusEl) {
+                statusEl.className = "text-xs font-semibold text-emerald-600 flex items-center gap-1.5";
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${res.message || "Test email sent successfully!"}`;
+            }
+        } catch (err) {
+            showToast(err.message || "Failed to send test email", "error");
+            if (statusEl) {
+                statusEl.className = "text-xs font-semibold text-red-600 flex items-center gap-1.5";
+                statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${err.message || "Failed to send test email"}`;
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+    });
+}

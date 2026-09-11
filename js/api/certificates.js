@@ -4,8 +4,9 @@ export function getEventCertificates(eventId) {
   return get(`/certificates/events/${eventId}/certificates`);
 }
 
-export function issueCertificates(eventId) {
-  return post(`/certificates/events/${eventId}/certificates/issue`);
+export function issueCertificates(eventId, userIds = null) {
+  const body = Array.isArray(userIds) && userIds.length > 0 ? { userIds } : {};
+  return post(`/certificates/events/${eventId}/certificates/issue`, body);
 }
 
 export function revokeCertificate(certId, reason) {

@@ -6636,27 +6636,87 @@ async function loadCertificates(eventId) {
 
     renderCertBgPanel(event);
 
-    const { certificates = [] } = await getEventCertificates(eventId);
+    const [{ certificates = [] }, attendanceRes] = await Promise.all([
+      getEventCertificates(eventId).catch(() => ({ certificates: [] })),
+      getAttendance(eventId).catch(() => ({ attendance: [] }))
+    ]);
+
+    const attendances = attendanceRes?.attendance || [];
+    const presentAttendees = attendances.filter(a => a.status === 'present' && !a.isExternal && a.user && a.user._id);
+
+    const certByUser = new Map();
+    certificates.forEach(c => {
+      const uId = c.user?._id ? c.user._id.toString() : (c.user?.toString() || '');
+      if (uId) certByUser.set(uId, c);
+    });
+
+    const unissuedPresent = presentAttendees.filter(a => {
+      const uId = a.user._id.toString();
+      return !certByUser.has(uId);
+    });
+
     const tbody = document.getElementById("certs-table-body");
     const empty = document.getElementById("certs-empty");
+    const selectAllCheckbox = document.getElementById("cert-select-all");
 
-    if (!certificates.length) {
+    if (!certificates.length && !unissuedPresent.length) {
+      if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.disabled = true;
+      }
       tbody.innerHTML = "";
       empty.classList.remove("hidden");
       empty.innerHTML = `
         <i class="fa-solid fa-award text-4xl mb-3 block"></i>
-        <p class="text-base font-semibold">No certificates issued yet</p>
-        <p class="text-sm text-[#94a3b8] mt-1">Issue certificates for present participants.</p>
+        <p class="text-base font-semibold" data-i18n="org_dashboard.no_certs_yet">No eligible attendees or certificates found</p>
+        <p class="text-sm text-[#94a3b8] mt-1" data-i18n="org_dashboard.mark_attendance_first_desc">Make sure attendees are marked as present in Attendance.</p>
       `;
       return;
     }
     empty.classList.add("hidden");
 
+    if (selectAllCheckbox) {
+      selectAllCheckbox.disabled = unissuedPresent.length === 0;
+      selectAllCheckbox.checked = unissuedPresent.length > 0;
+    }
+
     const isOwner = isOrgOwner();
 
-    tbody.innerHTML = certificates.map(c => {
+    // 1. Render unissued present attendees first (ready to be issued)
+    const unissuedHtml = unissuedPresent.map(a => {
+      const u = a.user || {};
+      const userName = u.fullname || u.username || "Attendee";
+      const userEmail = u.email || "";
+      return `
+        <tr class="border-b border-[#ecedfa] hover:bg-blue-50/30 transition-colors bg-blue-50/10" data-attendee-user-id="${u._id}">
+          <td class="py-3.5 px-3 sm:px-4 text-center">
+            <input type="checkbox" class="cert-select-item w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer accent-primary align-middle" data-user-id="${u._id}" checked />
+          </td>
+          <td class="py-3.5 px-4">
+            <div class="font-semibold text-slate-900">${userName}</div>
+            <div class="text-[11px] text-slate-400 font-mono">${userEmail}</div>
+          </td>
+          <td class="py-3.5 px-4 text-[#94a3b8] font-mono text-[13px] hidden md:table-cell">—</td>
+          <td class="py-3.5 px-4 text-[#94a3b8] text-xs">—</td>
+          <td class="py-3.5 px-4">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+              <i class="fa-solid fa-user-check text-[10px]"></i> <span data-i18n="org_dashboard.attended_ready">Attended</span>
+            </span>
+          </td>
+          <td class="py-3.5 px-4 text-right">
+            <button class="issue-single-cert-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover shadow-2xs border-none cursor-pointer spring-ease active:scale-95" data-user-id="${u._id}" data-user-name="${userName}">
+              <i class="fa-solid fa-award text-[11px]"></i> <span data-i18n="org_dashboard.issue_single">Issue</span>
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    // 2. Render already issued certificates
+    const issuedHtml = certificates.map(c => {
       const user = c.user || {};
       const userName = user.fullname || c.metadata?.userName || "Unknown";
+      const userEmail = user.email || "";
       const isRevoked = c.status === 'revoked';
       const statusBadge = isRevoked
         ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200" title="Reason: ${c.revocationReason || 'Revoked'}"><i class="fa-solid fa-ban text-[10px]"></i> Revoked</span>`
@@ -6680,9 +6740,12 @@ async function loadCertificates(eventId) {
 
       return `
         <tr class="border-b border-[#ecedfa] hover:bg-slate-50/50 transition-colors">
+          <td class="py-3.5 px-3 sm:px-4 text-center">
+            <input type="checkbox" class="w-4 h-4 rounded border-slate-200 text-slate-300 cursor-not-allowed accent-slate-300 align-middle" disabled title="Certificate already issued" />
+          </td>
           <td class="py-3.5 px-4">
             <div class="font-semibold text-slate-900">${userName}</div>
-            <div class="text-[11px] text-slate-400 font-mono">${user.email || ''}</div>
+            <div class="text-[11px] text-slate-400 font-mono">${userEmail}</div>
           </td>
           <td class="py-3.5 px-4 text-[#64748b] font-mono text-[13px] hidden md:table-cell">${c.certificateCode || "—"}</td>
           <td class="py-3.5 px-4 text-[#64748b] text-xs">${formatDate(c.createdAt)}</td>
@@ -6691,6 +6754,69 @@ async function loadCertificates(eventId) {
         </tr>
       `;
     }).join("");
+
+    tbody.innerHTML = unissuedHtml + issuedHtml;
+
+    // Attach master checkbox change listener
+    if (selectAllCheckbox) {
+      selectAllCheckbox.onchange = (e) => {
+        const checked = e.target.checked;
+        tbody.querySelectorAll(".cert-select-item").forEach(cb => {
+          cb.checked = checked;
+        });
+      };
+    }
+
+    // Attach individual checkbox listeners to sync master checkbox
+    tbody.querySelectorAll(".cert-select-item").forEach(cb => {
+      cb.addEventListener("change", () => {
+        if (!selectAllCheckbox) return;
+        const allItems = Array.from(tbody.querySelectorAll(".cert-select-item"));
+        const allChecked = allItems.length > 0 && allItems.every(i => i.checked);
+        const someChecked = allItems.some(i => i.checked);
+        selectAllCheckbox.checked = allChecked;
+        selectAllCheckbox.indeterminate = !allChecked && someChecked;
+      });
+    });
+
+    // Attach Single Issue action
+    tbody.querySelectorAll(".issue-single-cert-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const userId = btn.dataset.userId;
+        const userName = btn.dataset.userName || "Attendee";
+        if (!userId) return;
+
+        const confirmed = await showConfirmDialog({
+          titleKey: "common.confirm_title",
+          messageKey: "org_dashboard.issue_cert_single_confirm",
+          params: { name: userName },
+          confirmTextKey: "common.confirm_btn",
+          type: "primary"
+        });
+        if (!confirmed) return;
+
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-[11px]"></i> Issuing...`;
+        try {
+          await issueCertificates(eventId, [userId]);
+          await showAlertDialog({
+            titleKey: "org_dashboard.cert_designer.save_success_title",
+            messageKey: "org_dashboard.cert_designer.certs_issued_success",
+            type: "success"
+          });
+          await loadCertificates(eventId);
+        } catch (err) {
+          showAlertDialog({
+            titleKey: "common.error",
+            message: err.message || t("org_dashboard.cert_designer.certs_issued_failed", "Failed to issue certificate"),
+            type: "error"
+          });
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-award text-[11px]"></i> <span data-i18n="org_dashboard.issue_single">Issue</span>`;
+        }
+      });
+    });
 
     // Attach Revoke modal openers
     tbody.querySelectorAll(".revoke-cert-btn").forEach(btn => {
@@ -6775,15 +6901,38 @@ function initIssueCerts() {
       });
       return;
     }
+
+    // Collect all checked eligible attendees
+    const checkedItems = Array.from(document.querySelectorAll("#certs-table-body .cert-select-item:checked"));
+    const selectedUserIds = checkedItems.map(cb => cb.dataset.userId).filter(Boolean);
+
+    if (selectedUserIds.length === 0) {
+      showAlertDialog({
+        titleKey: "common.notice",
+        messageKey: "org_dashboard.no_attendees_selected",
+        type: "warning"
+      });
+      return;
+    }
+
     const confirmed = await showConfirmDialog({
       titleKey: "common.confirm_title",
-      messageKey: "org_dashboard.issue_certs_confirm",
+      messageKey: "org_dashboard.issue_certs_selected_confirm",
+      params: { count: selectedUserIds.length },
       confirmTextKey: "common.confirm_btn",
       type: "primary"
     });
     if (!confirmed) return;
+
+    const issueBtn = document.getElementById("issue-certs-btn");
+    const originalText = issueBtn ? issueBtn.innerHTML : "";
+    if (issueBtn) {
+      issueBtn.disabled = true;
+      issueBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Processing...</span>`;
+    }
+
     try {
-      await issueCertificates(eventId);
+      await issueCertificates(eventId, selectedUserIds);
       await showAlertDialog({
         titleKey: "org_dashboard.cert_designer.save_success_title",
         messageKey: "org_dashboard.cert_designer.certs_issued_success",
@@ -6796,6 +6945,11 @@ function initIssueCerts() {
         message: err.message || t("org_dashboard.cert_designer.certs_issued_failed", "Failed to issue certificates"),
         type: "error"
       });
+    } finally {
+      if (issueBtn) {
+        issueBtn.disabled = false;
+        issueBtn.innerHTML = originalText;
+      }
     }
   });
 

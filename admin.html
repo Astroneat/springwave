@@ -97,9 +97,12 @@
 
         <!-- ADMIN NAV -->
         <div class="admin-tabs-scroll">
-            <a href="/admin.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md shrink-0 whitespace-nowrap">
+            <button type="button" id="admin-nav-events" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-primary text-white shadow-md shrink-0 whitespace-nowrap">
                 <i class="fa-solid fa-calendar-days mr-1.5"></i> <span data-i18n="admin.nav_events">Events</span>
-            </a>
+            </button>
+            <button type="button" id="admin-nav-email" class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-[#e2e2eb] cursor-pointer spring-ease active:scale-95 bg-white text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
+                <i class="fa-solid fa-envelope-gear mr-1.5"></i> <span data-i18n="admin.nav_email">Email Settings</span>
+            </button>
             <a href="/admin-host.html" class="px-5 py-2.5 rounded-xl text-sm font-semibold border-none cursor-pointer spring-ease active:scale-95 bg-white border border-[#e2e2eb] text-[#64748b] hover:bg-[#f1f5f9] shrink-0 whitespace-nowrap">
                 <i class="fa-solid fa-users-gear mr-1.5"></i> <span data-i18n="admin.nav_hosts">Host Registrations</span>
             </a>
@@ -117,63 +120,289 @@
             </a>
         </div>
 
-        <!-- TABS -->
-        <div class="flex gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
-            <button class="tab-btn active" data-tab="pending">
-                <i class="fa-solid fa-clock mr-1.5"></i> <span data-i18n="admin.pending_review">Pending Review</span>
-            </button>
-            <button class="tab-btn" data-tab="published">
-                <i class="fa-solid fa-check-circle mr-1.5"></i> <span data-i18n="admin.published">Published</span>
-            </button>
+        <!-- ==========================================
+             SECTION: EVENTS (Default)
+             ========================================== -->
+        <div id="section-events">
+            <!-- TABS -->
+            <div class="flex gap-1 my-6 bg-white rounded-2xl p-1.5 border border-[#ecedfa] shadow-sm w-fit">
+                <button class="tab-btn active" data-tab="pending">
+                    <i class="fa-solid fa-clock mr-1.5"></i> <span data-i18n="admin.pending_review">Pending Review</span>
+                </button>
+                <button class="tab-btn" data-tab="published">
+                    <i class="fa-solid fa-check-circle mr-1.5"></i> <span data-i18n="admin.published">Published</span>
+                </button>
+            </div>
+
+            <!-- BULK ACTION BAR -->
+            <div class="hidden items-center gap-3 mb-4 px-2" id="bulk-bar">
+                <span class="text-sm font-semibold text-[#191b22]" id="bulk-count">0 selected</span>
+                <button class="py-2 px-4 rounded-xl border-none bg-[#059669] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#047857] active:scale-95 hidden" id="bulk-approve">
+                    <i class="fa-solid fa-check"></i> <span data-i18n="admin.approve_selected">Approve Selected</span>
+                </button>
+                <button class="py-2 px-4 rounded-xl border-none bg-red-500 text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-red-600 active:scale-95 hidden" id="bulk-delete">
+                    <i class="fa-solid fa-trash-can"></i> <span data-i18n="admin.delete_selected">Delete Selected</span>
+                </button>
+                <button class="py-2 px-4 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold cursor-pointer spring-ease hover:bg-[#f8f9fc] active:scale-95" id="bulk-clear" data-i18n="common.clear">Clear</button>
+            </div>
+
+            <!-- TABLE CARD -->
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-[#ecedfa]">
+                    <div class="flex items-center gap-4">
+                        <h2 class="font-headline-md text-xl font-bold text-[#191b22]" id="table-title" data-i18n="admin.pending_review">Pending Review</h2>
+                        <button id="toggle-expired-admin" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] text-xs font-semibold text-[#64748b] transition-all spring-ease cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">visibility</span>
+                            <span data-i18n="admin.show_expired">Show Expired</span>
+                        </button>
+                    </div>
+                    <span class="text-sm text-[#64748b] font-medium" id="table-count">0 events</span>
+                </div>
+                <div class="overflow-x-auto table-responsive-container">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
+                                <th class="text-left py-3.5 px-4 w-12">
+                                    <input type="checkbox" id="select-all" class="w-4 h-4 rounded border-[#c3c6d5] text-primary cursor-pointer accent-primary" />
+                                </th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin.event_col">Event</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell" data-i18n="admin.type_col">Type</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell" data-i18n="admin.source_col">Source</th>
+                                <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden sm:table-cell" data-i18n="admin.date_col">Date</th>
+                                <th class="text-center py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell" data-i18n="admin.views_col">Views</th>
+                                <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin.actions_col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body">
+                        </tbody>
+                    </table>
+                </div>
+                <div id="table-empty" class="hidden text-center py-16 text-[#94a3b8]">
+                    <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
+                    <p class="text-base font-semibold" data-i18n="admin.no_events">No events found</p>
+                    <p class="text-sm mt-1" data-i18n="admin.adjust_search">Try adjusting your search</p>
+                </div>
+            </div>
         </div>
 
-        <!-- BULK ACTION BAR -->
-        <div class="hidden items-center gap-3 mb-4 px-2" id="bulk-bar">
-            <span class="text-sm font-semibold text-[#191b22]" id="bulk-count">0 selected</span>
-            <button class="py-2 px-4 rounded-xl border-none bg-[#059669] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-[#047857] active:scale-95 hidden" id="bulk-approve">
-                <i class="fa-solid fa-check"></i> <span data-i18n="admin.approve_selected">Approve Selected</span>
-            </button>
-            <button class="py-2 px-4 rounded-xl border-none bg-red-500 text-white text-sm font-semibold flex items-center gap-2 cursor-pointer spring-ease hover:bg-red-600 active:scale-95 hidden" id="bulk-delete">
-                <i class="fa-solid fa-trash-can"></i> <span data-i18n="admin.delete_selected">Delete Selected</span>
-            </button>
-            <button class="py-2 px-4 rounded-xl border border-[#e2e2eb] bg-white text-[#64748b] text-sm font-semibold cursor-pointer spring-ease hover:bg-[#f8f9fc] active:scale-95" id="bulk-clear" data-i18n="common.clear">Clear</button>
-        </div>
-
-        <!-- TABLE CARD -->
-        <div class="bg-white rounded-[24px] border border-[#ecedfa] shadow-sm overflow-hidden">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-[#ecedfa]">
-                <div class="flex items-center gap-4">
-                    <h2 class="font-headline-md text-xl font-bold text-[#191b22]" id="table-title" data-i18n="admin.pending_review">Pending Review</h2>
-                    <button id="toggle-expired-admin" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] text-xs font-semibold text-[#64748b] transition-all spring-ease cursor-pointer">
-                        <span class="material-symbols-outlined text-[16px]">visibility</span>
-                        <span data-i18n="admin.show_expired">Show Expired</span>
+        <!-- ==========================================
+             SECTION: EMAIL SYSTEM SETTINGS
+             ========================================== -->
+        <div id="section-email" class="hidden space-y-8 mt-6">
+            <!-- HEADER -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="font-headline-lg text-[28px] md:text-[32px] font-extrabold text-[#191b22]" data-i18n="admin.email_settings_title">Email System Settings</h2>
+                    <p class="text-[#64748b] text-sm mt-1" data-i18n="admin.email_settings_desc">Switch email providers (Gmail / Resend), toggle system-wide email notifications, and test connectivity.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button type="button" id="save-email-settings-btn" class="py-2.5 px-6 rounded-xl bg-primary text-white text-sm font-bold flex items-center gap-2 border-none cursor-pointer spring-ease hover:bg-primary/90 active:scale-95 shadow-sm">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span data-i18n="admin.save_email_settings">Save Changes</span>
                     </button>
                 </div>
-                <span class="text-sm text-[#64748b] font-medium" id="table-count">0 events</span>
             </div>
-            <div class="overflow-x-auto table-responsive-container">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="border-b border-[#ecedfa] bg-[#f8f9fc]">
-                            <th class="text-left py-3.5 px-4 w-12">
-                                <input type="checkbox" id="select-all" class="w-4 h-4 rounded border-[#c3c6d5] text-primary cursor-pointer accent-primary" />
-                            </th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin.event_col">Event</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell" data-i18n="admin.type_col">Type</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden lg:table-cell" data-i18n="admin.source_col">Source</th>
-                            <th class="text-left py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden sm:table-cell" data-i18n="admin.date_col">Date</th>
-                            <th class="text-center py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide hidden md:table-cell" data-i18n="admin.views_col">Views</th>
-                            <th class="text-right py-3.5 px-4 font-semibold text-[#64748b] text-[13px] uppercase tracking-wide" data-i18n="admin.actions_col">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-table-body">
-                    </tbody>
-                </table>
+
+            <!-- CARD 1: PROVIDER SELECTOR -->
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] p-6 md:p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-[#dae1ff] flex items-center justify-center text-primary text-lg">
+                        <i class="fa-solid fa-server"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-[#191b22]" data-i18n="admin.email_provider_title">Email Service Provider</h3>
+                        <p class="text-xs text-[#64748b]" data-i18n="admin.email_provider_desc">Choose which service delivers emails across the SpringWave platform</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- GMAIL PROVIDER CARD -->
+                    <label class="provider-card relative flex flex-col p-5 rounded-2xl border-2 cursor-pointer transition-all border-primary bg-blue-50/20" id="card-provider-gmail">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="email_provider" value="gmail" id="provider-gmail-radio" class="w-4 h-4 text-primary accent-primary cursor-pointer" checked />
+                                <span class="font-bold text-base text-[#191b22]">Gmail (Worker & OAuth2)</span>
+                            </div>
+                            <span id="badge-gmail-status" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Configured
+                            </span>
+                        </div>
+                        <p class="text-xs text-[#64748b] leading-relaxed mb-4">Gửi email thông qua Cloudflare Worker sử dụng Google OAuth2 Refresh Token (hỗ trợ dự phòng SMTP).</p>
+                        <div class="mt-auto pt-3 border-t border-[#ecedfa] text-[11px] text-[#64748b] flex flex-col gap-1">
+                            <div><strong>Delivery Mode:</strong> <span id="diag-gmail-mode" class="font-mono text-primary font-semibold">Cloudflare Worker</span></div>
+                            <div><strong>Sender:</strong> <span id="diag-gmail-user" class="font-mono">noreply@springwave.io.vn</span></div>
+                        </div>
+                    </label>
+
+                    <!-- RESEND PROVIDER CARD -->
+                    <label class="provider-card relative flex flex-col p-5 rounded-2xl border-2 cursor-pointer transition-all border-[#e2e2eb] bg-white hover:bg-slate-50/50" id="card-provider-resend">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="email_provider" value="resend" id="provider-resend-radio" class="w-4 h-4 text-primary accent-primary cursor-pointer" />
+                                <span class="font-bold text-base text-[#191b22]">Resend (REST API)</span>
+                            </div>
+                            <span id="badge-resend-status" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Configured
+                            </span>
+                        </div>
+                        <p class="text-xs text-[#64748b] leading-relaxed mb-4">Enterprise transactional email service via Resend HTTP API. High deliverability and reliable inbox placement.</p>
+                        <div class="mt-auto pt-3 border-t border-[#ecedfa] text-[11px] text-[#64748b] flex flex-col gap-1">
+                            <div><strong>API Status:</strong> <span id="diag-resend-key" class="font-mono">Configured</span></div>
+                            <div><strong>From:</strong> <span id="diag-resend-from" class="font-mono">SpringWave &lt;noreply@springwave.io.vn&gt;</span></div>
+                        </div>
+                    </label>
+                </div>
             </div>
-            <div id="table-empty" class="hidden text-center py-16 text-[#94a3b8]">
-                <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
-                <p class="text-base font-semibold" data-i18n="admin.no_events">No events found</p>
-                <p class="text-sm mt-1" data-i18n="admin.adjust_search">Try adjusting your search</p>
+
+            <!-- CARD 2: SYSTEM-WIDE EMAIL TOGGLES -->
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] p-6 md:p-8 shadow-sm">
+                <!-- MASTER SWITCH -->
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-50/60 to-indigo-50/40 border border-blue-100 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center text-lg shadow-2xs">
+                            <i class="fa-solid fa-power-off"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-sm sm:text-base text-[#191b22]" data-i18n="admin.email_master_title">Master Email Switch (Toàn bộ hệ thống)</h4>
+                            <p class="text-xs text-[#64748b]" data-i18n="admin.email_master_desc">Turn on/off all outgoing emails platform-wide immediately</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="email-master-toggle" class="sr-only peer" checked />
+                        <div class="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="font-bold text-sm text-[#191b22] uppercase tracking-wide text-slate-500 mb-1" data-i18n="admin.email_categories_title">Email Notification Options</h4>
+                    <p class="text-xs text-[#64748b]" data-i18n="admin.email_categories_desc">Enable or disable individual notification types. Disabled types will be skipped gracefully without errors.</p>
+                </div>
+
+                <!-- 7 CATEGORY TOGGLES -->
+                <div id="email-options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Verification Email -->
+                    <div class="p-4 rounded-2xl border border-[#ecedfa] bg-slate-50/40 flex items-center justify-between transition-opacity">
+                        <div class="pr-3">
+                            <div class="font-bold text-xs sm:text-sm text-slate-900" data-i18n="admin.email_opt_verification">Email xác thực đăng ký tài khoản</div>
+                            <div class="text-[11px] text-[#64748b]" data-i18n="admin.email_opt_verification_desc">Gửi link xác minh email khi người dùng đăng ký mới</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" id="opt-verificationEmail" class="email-sub-toggle sr-only peer" checked />
+                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+
+                    <!-- Password Reset Email -->
+                    <div class="p-4 rounded-2xl border border-[#ecedfa] bg-slate-50/40 flex items-center justify-between transition-opacity">
+                        <div class="pr-3">
+                            <div class="font-bold text-xs sm:text-sm text-slate-900" data-i18n="admin.email_opt_pwd_reset">Email đặt lại mật khẩu</div>
+                            <div class="text-[11px] text-[#64748b]" data-i18n="admin.email_opt_pwd_reset_desc">Gửi liên kết đặt lại mật khẩu khi quên mật khẩu</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" id="opt-passwordResetEmail" class="email-sub-toggle sr-only peer" checked />
+                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+
+                    <!-- Ticket Confirmation -->
+                    <div class="p-4 rounded-2xl border border-[#ecedfa] bg-slate-50/40 flex items-center justify-between transition-opacity">
+                        <div class="pr-3">
+                            <div class="font-bold text-xs sm:text-sm text-slate-900" data-i18n="admin.email_opt_ticket">Email xác nhận vé & mã QR check-in</div>
+                            <div class="text-[11px] text-[#64748b]" data-i18n="admin.email_opt_ticket_desc">Gửi thông tin vé và mã QR đính kèm khi đăng ký sự kiện thành công</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" id="opt-ticketConfirmationEmail" class="email-sub-toggle sr-only peer" checked />
+                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+
+                    <!-- Host Notification -->
+                    <div class="p-4 rounded-2xl border border-[#ecedfa] bg-slate-50/40 flex items-center justify-between transition-opacity">
+                        <div class="pr-3">
+                            <div class="font-bold text-xs sm:text-sm text-slate-900" data-i18n="admin.email_opt_host_notify">Email thông báo cho Host khi có người đăng ký</div>
+                            <div class="text-[11px] text-[#64748b]" data-i18n="admin.email_opt_host_notify_desc">Gửi thông báo tới người tổ chức sự kiện khi có người tham gia mới</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" id="opt-hostNotificationEmail" class="email-sub-toggle sr-only peer" checked />
+                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+
+                    <!-- Host Approval / Rejection -->
+                    <div class="p-4 rounded-2xl border border-[#ecedfa] bg-slate-50/40 flex items-center justify-between transition-opacity">
+                        <div class="pr-3">
+                            <div class="font-bold text-xs sm:text-sm text-slate-900" data-i18n="admin.email_opt_host_approval">Email duyệt / từ chối hồ sơ Host</div>
+                            <div class="text-[11px] text-[#64748b]" data-i18n="admin.email_opt_host_approval_desc">Gửi thông báo kết quả duyệt đơn đăng ký tổ chức sự kiện</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" id="opt-hostApprovalEmail" class="email-sub-toggle sr-only peer" checked />
+                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+
+                    <!-- Student Verification -->
+                    <div class="p-4 rounded-2xl border border-[#ecedfa] bg-slate-50/40 flex items-center justify-between transition-opacity">
+                        <div class="pr-3">
+                            <div class="font-bold text-xs sm:text-sm text-slate-900" data-i18n="admin.email_opt_student_verify">Email duyệt / từ chối Thẻ sinh viên</div>
+                            <div class="text-[11px] text-[#64748b]" data-i18n="admin.email_opt_student_verify_desc">Gửi kết quả thẩm định hồ sơ xác thực danh tính sinh viên</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" id="opt-studentVerificationEmail" class="email-sub-toggle sr-only peer" checked />
+                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+
+                    <!-- Email Change OTP & Security Alerts -->
+                    <div class="p-4 rounded-2xl border border-[#ecedfa] bg-slate-50/40 flex items-center justify-between transition-opacity md:col-span-2">
+                        <div class="pr-3">
+                            <div class="font-bold text-xs sm:text-sm text-slate-900" data-i18n="admin.email_opt_otp">Email mã OTP & cảnh báo bảo mật đổi email</div>
+                            <div class="text-[11px] text-[#64748b]" data-i18n="admin.email_opt_otp_desc">Gửi mã OTP xác thực và thông báo cảnh báo bảo mật khi thay đổi email tài khoản</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" id="opt-emailChangeOtpEmail" class="email-sub-toggle sr-only peer" checked />
+                            <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 3: TEST MAIL SUITE -->
+            <div class="bg-white rounded-[24px] border border-[#ecedfa] p-6 md:p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-[#191b22]" data-i18n="admin.email_test_title">Live Test Mail Tool (Kiểm thử gửi thư)</h3>
+                        <p class="text-xs text-[#64748b]" data-i18n="admin.email_test_desc">Send a real sample email to verify credentials, SMTP connections, or Resend API</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5" data-i18n="admin.email_test_recipient">Recipient Email Address (Địa chỉ nhận)</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="email" id="test-email-to" placeholder="e.g. admin@springwave.io.vn" class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-xs sm:text-sm outline-none focus:border-primary transition-colors font-mono" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5" data-i18n="admin.email_test_via">Test Provider</label>
+                        <select id="test-email-provider" class="w-full px-3.5 py-2.5 rounded-xl border border-[#e2e2eb] bg-white text-xs sm:text-sm outline-none focus:border-primary transition-colors font-semibold cursor-pointer">
+                            <option value="">Active Provider (Current)</option>
+                            <option value="gmail">Force Gmail (SMTP)</option>
+                            <option value="resend">Force Resend (API)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                    <button type="button" id="send-test-email-btn" class="py-2.5 px-6 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs sm:text-sm font-bold border-none cursor-pointer spring-ease flex items-center justify-center gap-2 active:scale-95 shadow-sm">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                        <span data-i18n="admin.email_send_test_btn">Send Test Email</span>
+                    </button>
+                    <div id="test-email-status" class="hidden text-xs font-semibold"></div>
+                </div>
             </div>
         </div>
     </main>
