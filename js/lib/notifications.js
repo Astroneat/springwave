@@ -105,6 +105,9 @@ export async function pollServerNotifications() {
         createdAt: n.createdAt,
         read: n.read,
         discussionId: n.discussionId || n.discussion?._id || n.discussion || null,
+        eventId: n.eventId || n.event?._id || n.event || null,
+        certificateId: n.certificateId || n.certificate?._id || n.certificate || null,
+        certificateCode: n.certificateCode || null,
         commentId: n.commentId || n.comment?._id || n.comment || n.replyId || n.reply?._id || n.reply || null,
         actorName: n.actorName,
       }));

@@ -620,12 +620,20 @@ function renderNotifDropdown() {
             case 'new_comment': return 'chat_bubble';
             case 'new_discussion': return 'forum';
             case 'event_review': return 'rate_review';
+            case 'event_ended': return 'event_busy';
+            case 'certificate_issued': return 'workspace_premium';
             case 'badge': return 'military_tech';
             default: return 'notifications';
         }
     }
 
     function getNotifLink(n) {
+        if (n.type === 'certificate_issued') {
+            return n.certificateCode ? `/certificate.html?code=${encodeURIComponent(n.certificateCode)}` : '/my-events.html';
+        }
+        if (n.type === 'event_ended') {
+            return n.eventId ? `/explore.html?id=${encodeURIComponent(n.eventId)}` : '/my-events.html';
+        }
         if (n.type === 'badge') {
             return n.badgeKey ? `/profile.html#badge-${encodeURIComponent(n.badgeKey)}` : '/profile.html#badges-section';
         }
@@ -678,7 +686,19 @@ function renderNotifDropdown() {
                 const n = all.find((x) => x.id === id);
                 if (n) {
                     markRead(id);
-                    if (n.type === 'event_review' && n.eventId) {
+                    if (n.type === 'certificate_issued') {
+                        if (n.certificateCode) {
+                            window.location.href = `/certificate.html?code=${encodeURIComponent(n.certificateCode)}`;
+                        } else {
+                            window.location.href = '/my-events.html';
+                        }
+                    } else if (n.type === 'event_ended') {
+                        if (n.eventId) {
+                            window.location.href = `/explore.html?id=${encodeURIComponent(n.eventId)}`;
+                        } else {
+                            window.location.href = '/my-events.html';
+                        }
+                    } else if (n.type === 'event_review' && n.eventId) {
                         import('./reviewModal.js').then(m => m.openReviewModal(n.eventId, n.message));
                     } else if (n.type === 'badge') {
                         const targetBadgeKey = n.badgeKey;

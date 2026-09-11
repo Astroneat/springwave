@@ -222,6 +222,7 @@ export function isUpcomingDate(dateStr) {
  */
 export function getEventStatus(event) {
     if (!event) return 'registration_open';
+    if (event.isEnded) return 'ended';
     const now = Date.now();
     const startDate = event.heldDate ? new Date(event.heldDate).getTime() : null;
     const endDate = event.heldDateEnd ? new Date(event.heldDateEnd).getTime() : (startDate ? startDate + 24 * 60 * 60 * 1000 : null);

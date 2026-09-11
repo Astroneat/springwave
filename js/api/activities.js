@@ -100,3 +100,7 @@ export async function getHostReviews(orgId) {
     const data = await get(`/host/reviews${orgId ? `?orgId=${orgId}` : ''}`);
     return data;
 }
+
+export function endEvent(id) {
+    return post(`/events/${id}/end`);
+}
