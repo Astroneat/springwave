@@ -5,6 +5,7 @@ import { initI18n, setLang, getLang, t, applyTranslation } from "../lib/i18n.js"
 import { initPageTransition } from "./pageLoader.js";
 import { initBadgeCelebration, syncOfflineBadgeNotifications, BADGE_DEFINITIONS } from "./badgeCelebration.js";
 import { showToast } from "./toast.js";
+import { enhanceAllSelects } from "./customCombobox.js";
 
 export function populateUserChip(user, activeSection) {
     if (!user) return;
@@ -230,6 +231,7 @@ export async function loadNavbar({ activeSection } = {}) {
     initLangSwitcher();
     initSlidingIndicator();
     initBadgeCelebration();
+    enhanceAllSelects();
 
     return document.getElementById("navbar");
 }

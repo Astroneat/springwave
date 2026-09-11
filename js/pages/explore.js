@@ -20,6 +20,7 @@ import { showExploreLoading, hideExploreLoading, bindLoadingLanguage, EXPLORE_SK
 import { getMyUniversity, getUniversities } from "../api/universities.js";
 import { showLoginPrompt } from "../components/authModal.js";
 import { showEventRegisteredToast } from "../components/toast.js";
+import { enhanceSelect } from "../components/customCombobox.js";
 
 let allActivities = [];
 let masterActivitiesList = null;
@@ -1267,10 +1268,13 @@ function initSidebar() {
     });
 
     const formatSelect = document.getElementById("formatSelect");
-    formatSelect?.addEventListener("change", async (e) => {
-        currentFormat = e.target.value || "all";
-        await applyFiltersAndSort();
-    });
+    if (formatSelect) {
+        enhanceSelect(formatSelect);
+        formatSelect.addEventListener("change", async (e) => {
+            currentFormat = e.target.value || "all";
+            await applyFiltersAndSort();
+        });
+    }
 
     initMyUniToggle();
 

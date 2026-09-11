@@ -16,6 +16,7 @@ import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 import { drawStyledQR } from "../lib/qr-styler.js";
 import { showConfirmDialog, showAlertDialog } from "../lib/modal.js";
+import { escapeHtml } from "../lib/sanitize.js";
 
 let currentOrgId = null;
 let currentOrgs = [];
@@ -59,6 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initPdfExportButtons();
   initAttendanceEventSelect();
   initCertEventSelect();
+  initCertSearch();
   initCertBackgroundManager();
   initCertLayoutDesigner();
   initAddParticipantsModal();
@@ -1115,7 +1117,7 @@ function _renderTriggerContent(selectedEvent, placeholder, allowAllOption) {
           </span>
         </div>
       </div>
-      <div class="w-6 h-6 rounded-lg bg-slate-100/80 flex items-center justify-center text-slate-500 shrink-0 ml-1.5 transition-colors">
+      <div class="trigger-chevron-box w-6 h-6 rounded-lg bg-slate-100/80 flex items-center justify-center text-slate-500 shrink-0 ml-1.5 transition-all">
         <span class="material-symbols-outlined text-[18px]">unfold_more</span>
       </div>
     `;
@@ -1134,7 +1136,7 @@ function _renderTriggerContent(selectedEvent, placeholder, allowAllOption) {
           </span>
         </div>
       </div>
-      <div class="w-6 h-6 rounded-lg bg-slate-100/80 flex items-center justify-center text-slate-500 shrink-0 ml-1.5 transition-colors">
+      <div class="trigger-chevron-box w-6 h-6 rounded-lg bg-slate-100/80 flex items-center justify-center text-slate-500 shrink-0 ml-1.5 transition-all">
         <span class="material-symbols-outlined text-[18px]">unfold_more</span>
       </div>
     `;
@@ -1153,7 +1155,7 @@ function _renderTriggerContent(selectedEvent, placeholder, allowAllOption) {
           </span>
         </div>
       </div>
-      <div class="w-6 h-6 rounded-lg bg-slate-100/80 flex items-center justify-center text-slate-500 shrink-0 ml-1.5 transition-colors">
+      <div class="trigger-chevron-box w-6 h-6 rounded-lg bg-slate-100/80 flex items-center justify-center text-slate-500 shrink-0 ml-1.5 transition-all">
         <span class="material-symbols-outlined text-[18px]">unfold_more</span>
       </div>
     `;
@@ -4630,6 +4632,81 @@ function initOnlineCheckinHostModal() {
 // ─── Certificates ───
 
 let selectedCertEventId = null;
+const certState = {
+  eventId: null,
+  unissuedPresent: [],
+  certificates: [],
+  selectedUserIds: new Set(),
+  searchQuery: ""
+};
+
+function normalizeSearchText(str) {
+  return (str || "")
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "d")
+    .trim();
+}
+
+function matchesCertSearch(query, { userName, userEmail, studentId, certCode }) {
+  if (!query) return true;
+  const q = normalizeSearchText(query);
+  const qRaw = query.toLowerCase().trim();
+
+  const normName = normalizeSearchText(userName);
+  const normEmail = (userEmail || "").toLowerCase();
+  const normSid = (studentId || "").toLowerCase();
+  const normCode = (certCode || "").toLowerCase();
+
+  return normName.includes(q) ||
+         (userName || "").toLowerCase().includes(qRaw) ||
+         normEmail.includes(qRaw) ||
+         normSid.includes(qRaw) ||
+         normCode.includes(qRaw);
+}
+
+function setCertSearchEnabled(enabled) {
+  const input = document.getElementById("certs-search-input");
+  if (!input) return;
+  input.disabled = !enabled;
+  if (!enabled) {
+    input.value = "";
+    certState.searchQuery = "";
+    const clearBtn = document.getElementById("certs-search-clear");
+    if (clearBtn) clearBtn.classList.add("hidden");
+  }
+}
+
+function initCertSearch() {
+  const input = document.getElementById("certs-search-input");
+  const clearBtn = document.getElementById("certs-search-clear");
+  if (!input) return;
+
+  input.addEventListener("input", (e) => {
+    certState.searchQuery = e.target.value;
+    if (clearBtn) {
+      if (e.target.value) {
+        clearBtn.classList.remove("hidden");
+      } else {
+        clearBtn.classList.add("hidden");
+      }
+    }
+    renderCertificatesTable();
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+      certState.searchQuery = "";
+      clearBtn.classList.add("hidden");
+      input.focus();
+      renderCertificatesTable();
+    });
+  }
+}
 
 function renderCertBgPanel(event) {
   const panel = document.getElementById("cert-bg-manage-panel");
@@ -6592,18 +6669,29 @@ function initCertEventSelect() {
   wrapper.addEventListener("change", (e) => {
     if (e.target.id === "cert-event-select") {
       selectedCertEventId = e.target.value || null;
+      const searchInput = document.getElementById("certs-search-input");
+      const clearBtn = document.getElementById("certs-search-clear");
+      if (searchInput) searchInput.value = "";
+      if (clearBtn) clearBtn.classList.add("hidden");
+      certState.searchQuery = "";
+      certState.eventId = selectedCertEventId;
       if (e.target.value) {
         loadCertificates(e.target.value);
       } else {
         document.getElementById("certs-table-body").innerHTML = "";
         renderCertBgPanel(null);
+        setCertSearchEnabled(false);
+        const countEl = document.getElementById("certs-count");
+        if (countEl) countEl.textContent = "0 records";
         const empty = document.getElementById("certs-empty");
         if (empty) {
           empty.classList.remove("hidden");
           empty.innerHTML = `
             <i class="fa-solid fa-award text-4xl mb-3 block"></i>
-            <p class="text-base font-semibold">Select an event to view certificates</p>
+            <p class="text-base font-semibold" data-i18n="org_dashboard.select_event_view_certs">Select an event</p>
+            <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto" data-i18n="org_dashboard.select_event_view_certs_desc">Pick an event from the selector to view issued certificates</p>
           `;
+          applyTranslation(empty);
         }
       }
     }
@@ -6614,14 +6702,18 @@ function showCertsNotSupported() {
   const tbody = document.getElementById("certs-table-body");
   const empty = document.getElementById("certs-empty");
   renderCertBgPanel(null);
+  setCertSearchEnabled(false);
+  const countEl = document.getElementById("certs-count");
+  if (countEl) countEl.textContent = "0 records";
   if (tbody) tbody.innerHTML = "";
   if (empty) {
     empty.classList.remove("hidden");
     empty.innerHTML = `
       <i class="fa-solid fa-triangle-exclamation text-4xl mb-3 block text-[#f59e0b]"></i>
-      <p class="text-base font-semibold text-[#64748b]">Certificates not supported for this event</p>
-      <p class="text-sm text-[#94a3b8] mt-1">Enable the certificate option when creating or editing the event.</p>
+      <p class="text-base font-semibold text-[#64748b]" data-i18n="org_dashboard.certs_not_supported">Certificates not supported for this event</p>
+      <p class="text-sm text-[#94a3b8] mt-1" data-i18n="org_dashboard.certs_not_supported_desc">Enable the certificate option when creating or editing the event.</p>
     `;
+    applyTranslation(empty);
   }
 }
 
@@ -6634,6 +6726,7 @@ async function loadCertificates(eventId) {
       return;
     }
 
+    setCertSearchEnabled(true);
     renderCertBgPanel(event);
 
     const [{ certificates = [] }, attendanceRes] = await Promise.all([
@@ -6655,206 +6748,315 @@ async function loadCertificates(eventId) {
       return !certByUser.has(uId);
     });
 
-    const tbody = document.getElementById("certs-table-body");
-    const empty = document.getElementById("certs-empty");
-    const selectAllCheckbox = document.getElementById("cert-select-all");
+    certState.eventId = eventId;
+    certState.unissuedPresent = unissuedPresent;
+    certState.certificates = certificates;
 
-    if (!certificates.length && !unissuedPresent.length) {
-      if (selectAllCheckbox) {
-        selectAllCheckbox.checked = false;
-        selectAllCheckbox.disabled = true;
-      }
-      tbody.innerHTML = "";
+    // By default, select all unissued present attendees
+    certState.selectedUserIds = new Set(unissuedPresent.map(a => a.user._id.toString()));
+
+    const searchInput = document.getElementById("certs-search-input");
+    certState.searchQuery = searchInput ? searchInput.value.trim() : "";
+
+    renderCertificatesTable();
+
+  } catch (err) {
+    console.error("Load certificates error:", err);
+  }
+}
+
+function renderCertificatesTable() {
+  const tbody = document.getElementById("certs-table-body");
+  const empty = document.getElementById("certs-empty");
+  const selectAllCheckbox = document.getElementById("cert-select-all");
+  const countEl = document.getElementById("certs-count");
+  if (!tbody) return;
+
+  const eventId = certState.eventId;
+  const totalCount = certState.unissuedPresent.length + certState.certificates.length;
+  const isVi = getLang() === "vi";
+  const recordsWord = isVi ? "người tham gia" : "records";
+
+  if (totalCount === 0) {
+    if (countEl) countEl.textContent = `0 ${recordsWord}`;
+    tbody.innerHTML = "";
+    if (empty) {
       empty.classList.remove("hidden");
       empty.innerHTML = `
         <i class="fa-solid fa-award text-4xl mb-3 block"></i>
         <p class="text-base font-semibold" data-i18n="org_dashboard.no_certs_yet">No eligible attendees or certificates found</p>
         <p class="text-sm text-[#94a3b8] mt-1" data-i18n="org_dashboard.mark_attendance_first_desc">Make sure attendees are marked as present in Attendance.</p>
       `;
-      return;
+      applyTranslation(empty);
     }
-    empty.classList.add("hidden");
-
     if (selectAllCheckbox) {
-      selectAllCheckbox.disabled = unissuedPresent.length === 0;
-      selectAllCheckbox.checked = unissuedPresent.length > 0;
+      selectAllCheckbox.disabled = true;
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
     }
+    return;
+  }
 
-    const isOwner = isOrgOwner();
+  // Filter based on search query
+  const q = certState.searchQuery ? certState.searchQuery.trim() : "";
+  const filteredUnissued = certState.unissuedPresent.filter(a => {
+    const u = a.user || {};
+    const userName = u.fullname || u.username || "Attendee";
+    const userEmail = u.email || "";
+    const studentId = u.studentId || u.username || "";
+    return matchesCertSearch(q, { userName, userEmail, studentId, certCode: "" });
+  });
 
-    // 1. Render unissued present attendees first (ready to be issued)
-    const unissuedHtml = unissuedPresent.map(a => {
-      const u = a.user || {};
-      const userName = u.fullname || u.username || "Attendee";
-      const userEmail = u.email || "";
-      return `
-        <tr class="border-b border-[#ecedfa] hover:bg-blue-50/30 transition-colors bg-blue-50/10" data-attendee-user-id="${u._id}">
-          <td class="py-3.5 px-3 sm:px-4 text-center">
-            <input type="checkbox" class="cert-select-item w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer accent-primary align-middle" data-user-id="${u._id}" checked />
-          </td>
-          <td class="py-3.5 px-4">
-            <div class="font-semibold text-slate-900">${userName}</div>
-            <div class="text-[11px] text-slate-400 font-mono">${userEmail}</div>
-          </td>
-          <td class="py-3.5 px-4 text-[#94a3b8] font-mono text-[13px] hidden md:table-cell">—</td>
-          <td class="py-3.5 px-4 text-[#94a3b8] text-xs">—</td>
-          <td class="py-3.5 px-4">
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-              <i class="fa-solid fa-user-check text-[10px]"></i> <span data-i18n="org_dashboard.attended_ready">Attended</span>
-            </span>
-          </td>
-          <td class="py-3.5 px-4 text-right">
-            <button class="issue-single-cert-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover shadow-2xs border-none cursor-pointer spring-ease active:scale-95" data-user-id="${u._id}" data-user-name="${userName}">
-              <i class="fa-solid fa-award text-[11px]"></i> <span data-i18n="org_dashboard.issue_single">Issue</span>
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join("");
+  const filteredCerts = certState.certificates.filter(c => {
+    const user = c.user || {};
+    const userName = user.fullname || c.metadata?.userName || "Unknown";
+    const userEmail = user.email || "";
+    const studentId = user.studentId || user.username || "";
+    const certCode = c.certificateCode || "";
+    return matchesCertSearch(q, { userName, userEmail, studentId, certCode });
+  });
 
-    // 2. Render already issued certificates
-    const issuedHtml = certificates.map(c => {
-      const user = c.user || {};
-      const userName = user.fullname || c.metadata?.userName || "Unknown";
-      const userEmail = user.email || "";
-      const isRevoked = c.status === 'revoked';
-      const statusBadge = isRevoked
-        ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200" title="Reason: ${c.revocationReason || 'Revoked'}"><i class="fa-solid fa-ban text-[10px]"></i> Revoked</span>`
-        : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-circle-check text-[10px]"></i> Active</span>`;
+  const filteredTotal = filteredUnissued.length + filteredCerts.length;
 
-      const actionButtons = isRevoked
-        ? (isOwner
-          ? `<button class="restore-cert-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${userName}">
-                 <i class="fa-solid fa-rotate-left"></i> Restore
-               </button>`
-          : `<span class="text-xs text-slate-400 italic">—</span>`)
-        : `<div class="flex items-center justify-end gap-2">
-             <a href="/certificate.html?code=${c.certificateCode}" target="_blank" class="p-1.5 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-50 transition-colors text-xs font-semibold" title="View Certificate">
-               <i class="fa-solid fa-arrow-up-right-from-square"></i>
-             </a>
-             ${isOwner ? `
-             <button class="revoke-cert-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${userName}" data-cert-code="${c.certificateCode}">
-               <i class="fa-solid fa-ban text-[11px]"></i> Revoke
-             </button>` : ''}
-           </div>`;
+  // Update count badge
+  if (countEl) {
+    if (q) {
+      countEl.textContent = `${filteredTotal} / ${totalCount} ${recordsWord}`;
+    } else {
+      countEl.textContent = `${totalCount} ${recordsWord}`;
+    }
+  }
 
-      return `
-        <tr class="border-b border-[#ecedfa] hover:bg-slate-50/50 transition-colors">
-          <td class="py-3.5 px-3 sm:px-4 text-center">
-            <input type="checkbox" class="w-4 h-4 rounded border-slate-200 text-slate-300 cursor-not-allowed accent-slate-300 align-middle" disabled title="Certificate already issued" />
-          </td>
-          <td class="py-3.5 px-4">
-            <div class="font-semibold text-slate-900">${userName}</div>
-            <div class="text-[11px] text-slate-400 font-mono">${userEmail}</div>
-          </td>
-          <td class="py-3.5 px-4 text-[#64748b] font-mono text-[13px] hidden md:table-cell">${c.certificateCode || "—"}</td>
-          <td class="py-3.5 px-4 text-[#64748b] text-xs">${formatDate(c.createdAt)}</td>
-          <td class="py-3.5 px-4">${statusBadge}</td>
-          <td class="py-3.5 px-4 text-right">${actionButtons}</td>
-        </tr>
-      `;
-    }).join("");
-
-    tbody.innerHTML = unissuedHtml + issuedHtml;
-
-    // Attach master checkbox change listener
+  // If search returned 0 items
+  if (filteredTotal === 0) {
+    if (empty) empty.classList.add("hidden");
     if (selectAllCheckbox) {
-      selectAllCheckbox.onchange = (e) => {
-        const checked = e.target.checked;
-        tbody.querySelectorAll(".cert-select-item").forEach(cb => {
-          cb.checked = checked;
-        });
-      };
+      selectAllCheckbox.disabled = true;
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
     }
+    const safeQ = escapeHtml(q);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center py-14 px-4 text-slate-400">
+          <div class="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center mx-auto mb-3 text-lg border border-slate-100">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </div>
+          <p class="text-sm font-bold text-slate-700" data-i18n="org_dashboard.no_participants_found">No participants found</p>
+          <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto" data-i18n="org_dashboard.no_participants_found_desc">No participant matches "${safeQ}".</p>
+        </td>
+      </tr>
+    `;
+    applyTranslation(tbody);
+    return;
+  }
 
-    // Attach individual checkbox listeners to sync master checkbox
-    tbody.querySelectorAll(".cert-select-item").forEach(cb => {
-      cb.addEventListener("change", () => {
-        if (!selectAllCheckbox) return;
-        const allItems = Array.from(tbody.querySelectorAll(".cert-select-item"));
-        const allChecked = allItems.length > 0 && allItems.every(i => i.checked);
-        const someChecked = allItems.some(i => i.checked);
+  if (empty) empty.classList.add("hidden");
+
+  // Update select all checkbox state
+  if (selectAllCheckbox) {
+    if (filteredUnissued.length === 0) {
+      selectAllCheckbox.disabled = true;
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
+    } else {
+      selectAllCheckbox.disabled = false;
+      const allChecked = filteredUnissued.every(a => certState.selectedUserIds.has(a.user._id.toString()));
+      const someChecked = filteredUnissued.some(a => certState.selectedUserIds.has(a.user._id.toString()));
+      selectAllCheckbox.checked = allChecked;
+      selectAllCheckbox.indeterminate = !allChecked && someChecked;
+    }
+  }
+
+  const isOwner = isOrgOwner();
+
+  // 1. Render unissued attendees (ready to be issued)
+  const unissuedHtml = filteredUnissued.map(a => {
+    const u = a.user || {};
+    const uId = u._id ? u._id.toString() : "";
+    const userName = u.fullname || u.username || "Attendee";
+    const userEmail = u.email || "";
+    const isChecked = certState.selectedUserIds.has(uId);
+
+    return `
+      <tr class="border-b border-[#ecedfa] hover:bg-blue-50/30 transition-colors bg-blue-50/10" data-attendee-user-id="${uId}">
+        <td class="py-3.5 px-3 sm:px-4 text-center">
+          <input type="checkbox" class="cert-select-item w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer accent-primary align-middle" data-user-id="${uId}" ${isChecked ? 'checked' : ''} />
+        </td>
+        <td class="py-3.5 px-4">
+          <div class="font-semibold text-slate-900">${escapeHtml(userName)}</div>
+          <div class="text-[11px] text-slate-400 font-mono">${escapeHtml(userEmail)}</div>
+        </td>
+        <td class="py-3.5 px-4 text-[#94a3b8] font-mono text-[13px] hidden md:table-cell">—</td>
+        <td class="py-3.5 px-4 text-[#94a3b8] text-xs">—</td>
+        <td class="py-3.5 px-4">
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+            <i class="fa-solid fa-user-check text-[10px]"></i> <span data-i18n="org_dashboard.attended_ready">Attended</span>
+          </span>
+        </td>
+        <td class="py-3.5 px-4 text-right">
+          <button class="issue-single-cert-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover shadow-2xs border-none cursor-pointer spring-ease active:scale-95" data-user-id="${uId}" data-user-name="${escapeHtml(userName)}">
+            <i class="fa-solid fa-award text-[11px]"></i> <span data-i18n="org_dashboard.issue_single">Issue</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  // 2. Render already issued certificates
+  const issuedHtml = filteredCerts.map(c => {
+    const user = c.user || {};
+    const userName = user.fullname || c.metadata?.userName || "Unknown";
+    const userEmail = user.email || "";
+    const isRevoked = c.status === 'revoked';
+    const statusBadge = isRevoked
+      ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200" title="Reason: ${escapeHtml(c.revocationReason || 'Revoked')}"><i class="fa-solid fa-ban text-[10px]"></i> Revoked</span>`
+      : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-circle-check text-[10px]"></i> Active</span>`;
+
+    const actionButtons = isRevoked
+      ? (isOwner
+        ? `<button class="restore-cert-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${escapeHtml(userName)}">
+               <i class="fa-solid fa-rotate-left"></i> Restore
+             </button>`
+        : `<span class="text-xs text-slate-400 italic">—</span>`)
+      : `<div class="flex items-center justify-end gap-2">
+           <a href="/certificate.html?code=${encodeURIComponent(c.certificateCode)}" target="_blank" class="p-1.5 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-50 transition-colors text-xs font-semibold" title="View Certificate">
+             <i class="fa-solid fa-arrow-up-right-from-square"></i>
+           </a>
+           ${isOwner ? `
+           <button class="revoke-cert-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${escapeHtml(userName)}" data-cert-code="${escapeHtml(c.certificateCode)}">
+             <i class="fa-solid fa-ban text-[11px]"></i> Revoke
+           </button>` : ''}
+         </div>`;
+
+    return `
+      <tr class="border-b border-[#ecedfa] hover:bg-slate-50/50 transition-colors">
+        <td class="py-3.5 px-3 sm:px-4 text-center">
+          <input type="checkbox" class="w-4 h-4 rounded border-slate-200 text-slate-300 cursor-not-allowed accent-slate-300 align-middle" disabled title="Certificate already issued" />
+        </td>
+        <td class="py-3.5 px-4">
+          <div class="font-semibold text-slate-900">${escapeHtml(userName)}</div>
+          <div class="text-[11px] text-slate-400 font-mono">${escapeHtml(userEmail)}</div>
+        </td>
+        <td class="py-3.5 px-4 text-[#64748b] font-mono text-[13px] hidden md:table-cell">${escapeHtml(c.certificateCode || "—")}</td>
+        <td class="py-3.5 px-4 text-[#64748b] text-xs">${formatDate(c.createdAt)}</td>
+        <td class="py-3.5 px-4">${statusBadge}</td>
+        <td class="py-3.5 px-4 text-right">${actionButtons}</td>
+      </tr>
+    `;
+  }).join("");
+
+  tbody.innerHTML = unissuedHtml + issuedHtml;
+  applyTranslation(tbody);
+
+  // Master checkbox change handler
+  if (selectAllCheckbox) {
+    selectAllCheckbox.onchange = (e) => {
+      const checked = e.target.checked;
+      filteredUnissued.forEach(a => {
+        const uId = a.user._id.toString();
+        if (checked) {
+          certState.selectedUserIds.add(uId);
+        } else {
+          certState.selectedUserIds.delete(uId);
+        }
+      });
+      tbody.querySelectorAll(".cert-select-item").forEach(cb => {
+        cb.checked = checked;
+      });
+    };
+  }
+
+  // Individual checkbox change handlers
+  tbody.querySelectorAll(".cert-select-item").forEach(cb => {
+    cb.addEventListener("change", (e) => {
+      const uId = e.target.dataset.userId;
+      if (e.target.checked) {
+        certState.selectedUserIds.add(uId);
+      } else {
+        certState.selectedUserIds.delete(uId);
+      }
+      if (selectAllCheckbox) {
+        const allChecked = filteredUnissued.length > 0 && filteredUnissued.every(a => certState.selectedUserIds.has(a.user._id.toString()));
+        const someChecked = filteredUnissued.some(a => certState.selectedUserIds.has(a.user._id.toString()));
         selectAllCheckbox.checked = allChecked;
         selectAllCheckbox.indeterminate = !allChecked && someChecked;
-      });
+      }
     });
+  });
 
-    // Attach Single Issue action
-    tbody.querySelectorAll(".issue-single-cert-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const userId = btn.dataset.userId;
-        const userName = btn.dataset.userName || "Attendee";
-        if (!userId) return;
+  // Attach Single Issue action
+  tbody.querySelectorAll(".issue-single-cert-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const userId = btn.dataset.userId;
+      const userName = btn.dataset.userName || "Attendee";
+      if (!userId || !eventId) return;
 
-        const confirmed = await showConfirmDialog({
-          titleKey: "common.confirm_title",
-          messageKey: "org_dashboard.issue_cert_single_confirm",
-          params: { name: userName },
-          confirmTextKey: "common.confirm_btn",
-          type: "primary"
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.confirm_title",
+        messageKey: "org_dashboard.issue_cert_single_confirm",
+        params: { name: userName },
+        confirmTextKey: "common.confirm_btn",
+        type: "primary"
+      });
+      if (!confirmed) return;
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-[11px]"></i> Issuing...`;
+      try {
+        await issueCertificates(eventId, [userId]);
+        await showAlertDialog({
+          titleKey: "org_dashboard.cert_designer.save_success_title",
+          messageKey: "org_dashboard.cert_designer.certs_issued_success",
+          type: "success"
         });
-        if (!confirmed) return;
-
-        btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-[11px]"></i> Issuing...`;
-        try {
-          await issueCertificates(eventId, [userId]);
-          await showAlertDialog({
-            titleKey: "org_dashboard.cert_designer.save_success_title",
-            messageKey: "org_dashboard.cert_designer.certs_issued_success",
-            type: "success"
-          });
-          await loadCertificates(eventId);
-        } catch (err) {
-          showAlertDialog({
-            titleKey: "common.error",
-            message: err.message || t("org_dashboard.cert_designer.certs_issued_failed", "Failed to issue certificate"),
-            type: "error"
-          });
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = `<i class="fa-solid fa-award text-[11px]"></i> <span data-i18n="org_dashboard.issue_single">Issue</span>`;
-        }
-      });
-    });
-
-    // Attach Revoke modal openers
-    tbody.querySelectorAll(".revoke-cert-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        if (!isOrgOwner()) return alert("Only the organization owner can revoke certificates");
-        const certId = btn.dataset.certId;
-        const userName = btn.dataset.userName;
-        const certCode = btn.dataset.certCode;
-        openRevokeModal(certId, userName, certCode, eventId);
-      });
-    });
-
-    // Attach Restore actions
-    tbody.querySelectorAll(".restore-cert-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        if (!isOrgOwner()) return alert("Only the organization owner can restore certificates");
-        const certId = btn.dataset.certId;
-        const userName = btn.dataset.userName;
-        const confirmed = await showConfirmDialog({
-          titleKey: "common.confirm_title",
-          messageKey: "org_dashboard.restore_cert_confirm",
-          params: { name: userName },
-          confirmTextKey: "common.confirm_btn",
-          type: "primary"
+        await loadCertificates(eventId);
+      } catch (err) {
+        showAlertDialog({
+          titleKey: "common.error",
+          message: err.message || t("org_dashboard.cert_designer.certs_issued_failed", "Failed to issue certificate"),
+          type: "error"
         });
-        if (!confirmed) return;
-        try {
-          await restoreCertificate(certId);
-          await loadCertificates(eventId);
-        } catch (err) {
-          alert(err.message || "Failed to restore certificate");
-        }
-      });
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-award text-[11px]"></i> <span data-i18n="org_dashboard.issue_single">Issue</span>`;
+      }
     });
+  });
 
-  } catch (err) {
-    console.error("Load certificates error:", err);
-  }
+  // Attach Revoke modal openers
+  tbody.querySelectorAll(".revoke-cert-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (!isOrgOwner()) return alert("Only the organization owner can revoke certificates");
+      const certId = btn.dataset.certId;
+      const userName = btn.dataset.userName;
+      const certCode = btn.dataset.certCode;
+      openRevokeModal(certId, userName, certCode, eventId);
+    });
+  });
+
+  // Attach Restore actions
+  tbody.querySelectorAll(".restore-cert-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (!isOrgOwner()) return alert("Only the organization owner can restore certificates");
+      const certId = btn.dataset.certId;
+      const userName = btn.dataset.userName;
+      const confirmed = await showConfirmDialog({
+        titleKey: "common.confirm_title",
+        messageKey: "org_dashboard.restore_cert_confirm",
+        params: { name: userName },
+        confirmTextKey: "common.confirm_btn",
+        type: "primary"
+      });
+      if (!confirmed) return;
+      try {
+        await restoreCertificate(certId);
+        await loadCertificates(eventId);
+      } catch (err) {
+        alert(err.message || "Failed to restore certificate");
+      }
+    });
+  });
 }
 
 function openRevokeModal(certId, userName, certCode, eventId) {
@@ -7644,13 +7846,31 @@ function renderAnalyticsData(data) {
   const elRating = document.getElementById("analytics-stat-rating");
   if (elRating) elRating.textContent = `${summary.averageRating || 0} ★`;
 
-  const donutCtx = document.getElementById("chart-attendance-donut")?.getContext("2d");
-  if (donutCtx && typeof Chart !== "undefined") {
+  const totalAtt = (att.present || 0) + (att.late || 0) + (att.absent || 0);
+  const donutCanvas = document.getElementById("chart-attendance-donut");
+  const donutEmptyEl = document.getElementById("chart-attendance-donut-empty");
+  const donutCtx = donutCanvas?.getContext("2d");
+
+  if (totalAtt === 0) {
+    if (donutEmptyEl) donutEmptyEl.classList.remove("hidden");
+    if (donutCanvas) donutCanvas.classList.add("hidden");
+    if (orgDonutChartInstance) {
+      orgDonutChartInstance.destroy();
+      orgDonutChartInstance = null;
+    }
+  } else if (donutCtx && typeof Chart !== "undefined") {
+    if (donutEmptyEl) donutEmptyEl.classList.add("hidden");
+    if (donutCanvas) donutCanvas.classList.remove("hidden");
     if (orgDonutChartInstance) orgDonutChartInstance.destroy();
+
+    const labelPresent = t("org_dashboard.att_present", "Present");
+    const labelLate = t("org_dashboard.att_late", "Late");
+    const labelAbsent = t("org_dashboard.att_absent", "Absent");
+
     orgDonutChartInstance = new Chart(donutCtx, {
       type: "doughnut",
       data: {
-        labels: ["Present", "Late", "Absent"],
+        labels: [labelPresent, labelLate, labelAbsent],
         datasets: [{
           data: [att.present || 0, att.late || 0, att.absent || 0],
           backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
@@ -7660,20 +7880,52 @@ function renderAnalyticsData(data) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom" } }
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                const val = context.raw || 0;
+                const pct = totalAtt > 0 ? ((val / totalAtt) * 100).toFixed(1) : "0.0";
+                return ` ${context.label}: ${val} (${pct}%)`;
+              }
+            }
+          }
+        }
       }
     });
   }
 
-  const methodsCtx = document.getElementById("chart-checkin-methods")?.getContext("2d");
-  if (methodsCtx && typeof Chart !== "undefined") {
+  const methodsCanvas = document.getElementById("chart-checkin-methods");
+  const methodsEmptyEl = document.getElementById("chart-checkin-methods-empty");
+  const methodsCtx = methodsCanvas?.getContext("2d");
+  const totalCheckins = (methods.ticket_qr || 0) + (methods.student_card || 0) + (methods.manual || 0) + (methods.excel_import || 0);
+
+  if (totalCheckins === 0 && totalAtt === 0) {
+    if (methodsEmptyEl) methodsEmptyEl.classList.remove("hidden");
+    if (methodsCanvas) methodsCanvas.classList.add("hidden");
+    if (orgMethodsChartInstance) {
+      orgMethodsChartInstance.destroy();
+      orgMethodsChartInstance = null;
+    }
+  } else if (methodsCtx && typeof Chart !== "undefined") {
+    if (methodsEmptyEl) methodsEmptyEl.classList.add("hidden");
+    if (methodsCanvas) methodsCanvas.classList.remove("hidden");
     if (orgMethodsChartInstance) orgMethodsChartInstance.destroy();
+
+    const methodLabels = [
+      t("org_dashboard.method_ticket_qr", "Ticket QR"),
+      t("org_dashboard.method_student_card", "Student Card"),
+      t("org_dashboard.method_manual", "Manual"),
+      t("org_dashboard.method_excel_import", "Excel Import")
+    ];
+
     orgMethodsChartInstance = new Chart(methodsCtx, {
       type: "bar",
       data: {
-        labels: ["Ticket QR", "Student Card", "Manual", "Excel Import"],
+        labels: methodLabels,
         datasets: [{
-          label: "Check-ins",
+          label: t("org_dashboard.chart_checkins_label", "Check-ins"),
           data: [methods.ticket_qr || 0, methods.student_card || 0, methods.manual || 0, methods.excel_import || 0],
           backgroundColor: "#3b6fd4",
           borderRadius: 8
@@ -7683,7 +7935,15 @@ function renderAnalyticsData(data) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              stepSize: 1
+            }
+          }
+        }
       }
     });
   }
@@ -7692,20 +7952,23 @@ function renderAnalyticsData(data) {
   if (schoolsContainer) {
     const topSchools = data.topSchools || [];
     if (!topSchools.length) {
-      schoolsContainer.innerHTML = '<p class="text-xs text-[#94a3b8]">No university data recorded yet.</p>';
+      schoolsContainer.innerHTML = `<p class="text-xs text-[#94a3b8]">${t("org_dashboard.no_schools_data", "No university data recorded yet.")}</p>`;
     } else {
       const maxCount = Math.max(...topSchools.map(s => s.count), 1);
-      schoolsContainer.innerHTML = topSchools.map(s => `
+      schoolsContainer.innerHTML = topSchools.map(s => {
+        const attendeeLabel = s.count === 1 ? t("org_dashboard.attendee", "attendee") : t("org_dashboard.attendees", "attendees");
+        return `
         <div>
           <div class="flex justify-between text-xs font-semibold mb-1">
             <span class="truncate max-w-[70%]">${s.name}</span>
-            <span class="text-primary">${s.count} attendees</span>
+            <span class="text-primary">${s.count} ${attendeeLabel}</span>
           </div>
           <div class="w-full h-2 bg-[#ecedfa] rounded-full overflow-hidden">
             <div class="h-full bg-primary rounded-full" style="width: ${Math.round((s.count / maxCount) * 100)}%"></div>
           </div>
         </div>
-      `).join("");
+      `;
+      }).join("");
     }
   }
 
@@ -7713,20 +7976,23 @@ function renderAnalyticsData(data) {
   if (majorsContainer) {
     const topMajors = data.topMajors || [];
     if (!topMajors.length) {
-      majorsContainer.innerHTML = '<p class="text-xs text-[#94a3b8]">No major data recorded yet.</p>';
+      majorsContainer.innerHTML = `<p class="text-xs text-[#94a3b8]">${t("org_dashboard.no_majors_data", "No major data recorded yet.")}</p>`;
     } else {
       const maxCount = Math.max(...topMajors.map(m => m.count), 1);
-      majorsContainer.innerHTML = topMajors.map(m => `
+      majorsContainer.innerHTML = topMajors.map(m => {
+        const attendeeLabel = m.count === 1 ? t("org_dashboard.attendee", "attendee") : t("org_dashboard.attendees", "attendees");
+        return `
         <div>
           <div class="flex justify-between text-xs font-semibold mb-1">
             <span class="truncate max-w-[70%]">${m.name}</span>
-            <span class="text-emerald-600">${m.count} attendees</span>
+            <span class="text-emerald-600">${m.count} ${attendeeLabel}</span>
           </div>
           <div class="w-full h-2 bg-[#ecedfa] rounded-full overflow-hidden">
             <div class="h-full bg-emerald-500 rounded-full" style="width: ${Math.round((m.count / maxCount) * 100)}%"></div>
           </div>
         </div>
-      `).join("");
+      `;
+      }).join("");
     }
   }
 }

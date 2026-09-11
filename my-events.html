@@ -49,14 +49,12 @@
         </div>
 
         <!-- Format Filter Combobox (All / Online / Offline) -->
-        <div class="relative min-w-[170px]">
-          <select id="ticketFormatSelect" class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-8 pr-8 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#1755ba] focus:ring-2 focus:ring-[#1755ba]/10 transition-all cursor-pointer shadow-xs">
+        <div class="relative min-w-[170px] combobox-group group">
+          <select id="ticketFormatSelect" data-icon="devices" class="w-full appearance-none bg-white hover:bg-[#f8faff] border border-slate-200 hover:border-[#1755ba] rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#1755ba] focus:ring-2 focus:ring-[#1755ba]/15 transition-all cursor-pointer shadow-xs">
             <option value="all" data-i18n="my_events.format_filter_all">Tất cả hình thức (All)</option>
             <option value="online" data-i18n="my_events.format_filter_online">Trực tuyến (Online)</option>
             <option value="offline" data-i18n="my_events.format_filter_offline">Trực tiếp (Offline)</option>
           </select>
-          <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[17px] pointer-events-none">devices</span>
-          <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[17px] pointer-events-none">expand_more</span>
         </div>
       </div>
 
@@ -87,12 +85,22 @@
             <span data-i18n="my_events.rate_modal_unlock_notice">Rate this event to unlock and receive your official certificate!</span>
           </div>
         </div>
-        <div class="flex justify-center gap-2 mb-6" id="star-rating" role="radiogroup" aria-label="Rating">
-          <button type="button" class="star cursor-pointer text-3xl text-slate-200 hover:text-yellow-400 transition-colors" data-rating="1" aria-label="1 star" role="radio" aria-checked="false">★</button>
-          <button type="button" class="star cursor-pointer text-3xl text-slate-200 hover:text-yellow-400 transition-colors" data-rating="2" aria-label="2 stars" role="radio" aria-checked="false">★</button>
-          <button type="button" class="star cursor-pointer text-3xl text-slate-200 hover:text-yellow-400 transition-colors" data-rating="3" aria-label="3 stars" role="radio" aria-checked="false">★</button>
-          <button type="button" class="star cursor-pointer text-3xl text-slate-200 hover:text-yellow-400 transition-colors" data-rating="4" aria-label="4 stars" role="radio" aria-checked="false">★</button>
-          <button type="button" class="star cursor-pointer text-3xl text-slate-200 hover:text-yellow-400 transition-colors" data-rating="5" aria-label="5 stars" role="radio" aria-checked="false">★</button>
+        <div class="flex justify-center gap-2.5 mb-6" id="star-rating" role="radiogroup" aria-label="Rating">
+          <button type="button" class="star cursor-pointer transition-all" data-rating="1" aria-label="1 star" role="radio" aria-checked="false">
+            <i class="fa-solid fa-star"></i>
+          </button>
+          <button type="button" class="star cursor-pointer transition-all" data-rating="2" aria-label="2 stars" role="radio" aria-checked="false">
+            <i class="fa-solid fa-star"></i>
+          </button>
+          <button type="button" class="star cursor-pointer transition-all" data-rating="3" aria-label="3 stars" role="radio" aria-checked="false">
+            <i class="fa-solid fa-star"></i>
+          </button>
+          <button type="button" class="star cursor-pointer transition-all" data-rating="4" aria-label="4 stars" role="radio" aria-checked="false">
+            <i class="fa-solid fa-star"></i>
+          </button>
+          <button type="button" class="star cursor-pointer transition-all" data-rating="5" aria-label="5 stars" role="radio" aria-checked="false">
+            <i class="fa-solid fa-star"></i>
+          </button>
         </div>
         <label for="rate-review-content" class="sr-only">Review (optional)</label>
         <textarea id="rate-review-content" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm resize-none mb-4 outline-none focus:border-primary" rows="3" placeholder="Write your review (optional)..." data-i18n-placeholder="my_events.rate_modal_placeholder"></textarea>

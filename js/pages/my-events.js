@@ -10,6 +10,7 @@ import { openEventPopup } from "../components/eventPopup.js";
 import { t, applyTranslation, getLang } from "../lib/i18n.js";
 import { showToast } from "../components/toast.js";
 import { verifyOnlineCheckin } from "../api/attendance.js";
+import { enhanceSelect } from "../components/customCombobox.js";
 
 let allTickets = [];
 let currentFilter = 'all'; // 'all' | 'upcoming' | 'checked_in' | 'expired'
@@ -550,6 +551,20 @@ function closePinModal() {
 
 // ─── Rate Modal ───
 
+function updateStarRatingUI(displayRating) {
+  document.querySelectorAll("#star-rating .star").forEach((s, i) => {
+    const isLit = i < displayRating;
+    if (isLit) {
+      s.classList.remove("text-slate-200");
+      s.classList.add("text-yellow-400", "active");
+    } else {
+      s.classList.remove("text-yellow-400", "active");
+      s.classList.add("text-slate-200");
+    }
+    s.setAttribute("aria-checked", i + 1 === selectedRating ? "true" : "false");
+  });
+}
+
 function openRateModal(eventId, eventTitle, options = {}) {
   currentRateEventId = eventId;
   selectedRating = 0;
@@ -568,10 +583,7 @@ function openRateModal(eventId, eventTitle, options = {}) {
     }
   }
 
-  document.querySelectorAll("#star-rating .star").forEach(s => {
-    s.classList.remove("text-yellow-400");
-    s.classList.add("text-slate-200");
-  });
+  updateStarRatingUI(0);
   const modal = document.getElementById("rate-modal");
   const content = modal.querySelector(".bg-white");
   modal.hidden = false;
@@ -732,21 +744,30 @@ function initModals() {
     if (e.target === rateModal) closeRateModal();
   });
 
-  document.querySelectorAll("#star-rating .star").forEach(star => {
+  const starContainer = document.getElementById("star-rating");
+  const stars = document.querySelectorAll("#star-rating .star");
+
+  stars.forEach(star => {
+    star.addEventListener("mouseenter", () => {
+      const hoverRating = parseInt(star.dataset.rating, 10);
+      updateStarRatingUI(hoverRating);
+    });
+
+    star.addEventListener("focus", () => {
+      const hoverRating = parseInt(star.dataset.rating, 10);
+      updateStarRatingUI(hoverRating);
+    });
+
     star.addEventListener("click", () => {
-      const rating = parseInt(star.dataset.rating);
+      const rating = parseInt(star.dataset.rating, 10);
       selectedRating = rating;
-      document.querySelectorAll("#star-rating .star").forEach((s, i) => {
-        if (i < rating) {
-          s.classList.remove("text-slate-200");
-          s.classList.add("text-yellow-400");
-        } else {
-          s.classList.remove("text-yellow-400");
-          s.classList.add("text-slate-200");
-        }
-      });
+      updateStarRatingUI(selectedRating);
       document.getElementById("submit-rate-btn").disabled = false;
     });
+  });
+
+  starContainer?.addEventListener("mouseleave", () => {
+    updateStarRatingUI(selectedRating);
   });
 
   document.getElementById("submit-rate-btn").addEventListener("click", async () => {
@@ -1042,6 +1063,7 @@ function setupFilterTabs() {
 
   const formatSelect = document.getElementById("ticketFormatSelect");
   if (formatSelect) {
+    enhanceSelect(formatSelect);
     formatSelect.addEventListener("change", (e) => {
       currentFormat = e.target.value || 'all';
       renderEvents();

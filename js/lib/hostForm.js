@@ -1256,7 +1256,7 @@ export async function initOrgSelector(urlOrgId) {
             `<option value="${o._id}" ${matchedOrg?._id === o._id ? "selected" : ""}>${o.name}</option>`
         ).join("");
         container.innerHTML = `
-            <select id="org-id-value" class="input" style="appearance:auto;cursor:pointer">
+            <select id="org-id-value" class="input cursor-pointer hover:border-primary hover:bg-[#f8faff] transition-all shadow-2xs">
                 <option value="">${t("host.select_org")}</option>
                 ${options}
             </select>

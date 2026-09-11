@@ -394,13 +394,13 @@
                     </div>
 
                     <!-- Publication Status Dropdown/Filter -->
-                    <div class="relative shrink-0">
-                        <select id="events-status-filter" class="pl-3 pr-8 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 outline-none focus:border-primary transition-all shadow-2xs cursor-pointer appearance-none">
+                    <div class="relative shrink-0 combobox-group group">
+                        <select id="events-status-filter" class="pl-3 pr-8 py-2 rounded-xl border border-slate-200 hover:border-primary hover:bg-[#f8faff] bg-white text-xs font-semibold text-slate-700 outline-none focus:border-primary transition-all shadow-2xs cursor-pointer appearance-none">
                             <option value="all" data-i18n="org_dashboard.filter_all_status">All Status</option>
                             <option value="published" data-i18n="org_dashboard.filter_published">Published</option>
                             <option value="draft" data-i18n="org_dashboard.filter_draft">Draft</option>
                         </select>
-                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 group-hover:text-primary pointer-events-none transition-colors"></i>
                     </div>
                 </div>
             </div>
@@ -743,6 +743,19 @@
 
             <!-- Certificates Table Card -->
             <div class="spring-card overflow-hidden">
+                <div class="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-800" data-i18n="org_dashboard.cert_list_title">Attendees &amp; Certificates</h3>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <div class="relative w-full sm:w-auto">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            <input type="text" id="certs-search-input" placeholder="Search by name, email, code..." data-i18n-placeholder="org_dashboard.search_participants_placeholder" class="pl-8 pr-8 py-1.5 rounded-xl border border-slate-200 bg-white text-xs w-full sm:w-[180px] md:w-[240px] outline-none focus:border-primary transition-all shadow-2xs" />
+                            <button type="button" id="certs-search-clear" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs border-none bg-transparent cursor-pointer p-0" title="Clear search">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            </button>
+                        </div>
+                        <span class="text-xs text-slate-500 font-medium" id="certs-count">0 records</span>
+                    </div>
+                </div>
                 <div class="overflow-x-auto table-responsive-container">
                     <table class="w-full text-xs sm:text-sm text-left">
                         <thead>
@@ -820,7 +833,7 @@
 
                     <div>
                         <label for="settings-university" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5" data-i18n="org_dashboard.affiliated_university">Trường Đại học trực thuộc</label>
-                        <select id="settings-university" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-primary shadow-2xs font-medium">
+                        <select id="settings-university" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 hover:border-primary hover:bg-[#f8faff] bg-white text-sm outline-none focus:border-primary shadow-2xs font-medium cursor-pointer transition-all">
                             <option value="" data-i18n="org_dashboard.independent_org">Tự do / Không thuộc trường nào (Independent)</option>
                         </select>
                     </div>
@@ -884,17 +897,17 @@
         <div id="section-analytics" class="section-content hidden">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
                 <div>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Analytics & Reports</h2>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Real-time engagement metrics, demographics, and activity reports</p>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" data-i18n="org_dashboard.analytics">Analytics & Reports</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5" data-i18n="org_dashboard.analytics_subtitle">Real-time engagement metrics, demographics, and activity reports</p>
                 </div>
                 <div class="flex flex-col sm:flex-row items-stretch lg:items-center gap-2.5 flex-wrap">
                     <div class="flex items-center gap-1 p-1 bg-white border border-slate-200/80 rounded-xl shadow-2xs w-fit">
-                        <button type="button" class="analytics-scope-btn px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all active" data-analytics-scope="all">All Events</button>
-                        <button type="button" class="analytics-scope-btn px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all" data-analytics-scope="event">Specific Event</button>
+                        <button type="button" class="analytics-scope-btn px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all active" data-analytics-scope="all" data-i18n="org_dashboard.all_events">All Events</button>
+                        <button type="button" class="analytics-scope-btn px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all" data-analytics-scope="event" data-i18n="org_dashboard.specific_event">Specific Event</button>
                     </div>
                     <div id="analytics-report-event-select-wrapper" class="relative hidden w-full sm:w-auto md:min-w-[240px]"></div>
                     <button id="export-org-excel-btn" class="py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 border-none cursor-pointer spring-ease shadow-xs active:scale-95 shrink-0">
-                        <i class="fa-solid fa-file-excel text-xs"></i> <span>Export Excel (.xlsx)</span>
+                        <i class="fa-solid fa-file-excel text-xs"></i> <span data-i18n="org_dashboard.export_excel">Export Excel (.xlsx)</span>
                     </button>
                 </div>
             </div>
@@ -904,8 +917,8 @@
                 <div class="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mx-auto mb-3 text-2xl">
                     <i class="fa-solid fa-chart-simple"></i>
                 </div>
-                <h4 class="text-base sm:text-lg font-bold text-slate-900 mb-1">Select an event to view report</h4>
-                <p class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto">Choose a specific event from the dropdown above to examine KPIs, attendance breakdown, and participant demographics.</p>
+                <h4 class="text-base sm:text-lg font-bold text-slate-900 mb-1" data-i18n="org_dashboard.select_event_to_view_report">Select an event to view report</h4>
+                <p class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto" data-i18n="org_dashboard.select_event_to_view_report_desc">Choose a specific event from the dropdown above to examine KPIs, attendance breakdown, and participant demographics.</p>
             </div>
 
             <!-- Analytics Content -->
@@ -913,19 +926,19 @@
                 <!-- KPI Grid (2x2 on Mobile) -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
                     <div class="spring-card p-4 sm:p-5" id="analytics-kpi-total-events">
-                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Events</p>
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider" data-i18n="org_dashboard.total_events">Total Events</p>
                         <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1" id="analytics-stat-events">0</p>
                     </div>
                     <div class="spring-card p-4 sm:p-5">
-                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Registrations</p>
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider" data-i18n="org_dashboard.registrations">Registrations</p>
                         <p class="text-2xl sm:text-3xl font-extrabold text-primary mt-1" id="analytics-stat-regs">0</p>
                     </div>
                     <div class="spring-card p-4 sm:p-5">
-                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Attendance Rate</p>
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider" data-i18n="org_dashboard.attendance_rate">Attendance Rate</p>
                         <p class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1" id="analytics-stat-att-rate">0%</p>
                     </div>
                     <div class="spring-card p-4 sm:p-5">
-                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Avg Rating</p>
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider" data-i18n="org_dashboard.avg_rating">Avg Rating</p>
                         <p class="text-2xl sm:text-3xl font-extrabold text-amber-500 mt-1" id="analytics-stat-rating">0.0 ★</p>
                     </div>
                 </div>
@@ -933,16 +946,24 @@
                 <!-- Charts Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
                     <div class="spring-card p-4 sm:p-6">
-                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4">Attendance Status Distribution</h3>
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4" data-i18n="org_dashboard.analytics_att_dist">Attendance Status Distribution</h3>
                         <div class="h-[220px] sm:h-[260px] flex items-center justify-center relative">
                             <canvas id="chart-attendance-donut"></canvas>
+                            <div id="chart-attendance-donut-empty" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                                <i class="fa-solid fa-chart-pie text-3xl text-slate-300 mb-2"></i>
+                                <p class="text-xs text-slate-400 font-medium" data-i18n="org_dashboard.no_attendance_data">No attendance data recorded yet.</p>
+                            </div>
                         </div>
                     </div>
 
                     <div class="spring-card p-4 sm:p-6">
-                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4">Check-in Methods Breakdown</h3>
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4" data-i18n="org_dashboard.analytics_methods_breakdown">Check-in Methods Breakdown</h3>
                         <div class="h-[220px] sm:h-[260px] flex items-center justify-center relative">
                             <canvas id="chart-checkin-methods"></canvas>
+                            <div id="chart-checkin-methods-empty" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                                <i class="fa-solid fa-chart-column text-3xl text-slate-300 mb-2"></i>
+                                <p class="text-xs text-slate-400 font-medium" data-i18n="org_dashboard.no_attendance_data">No attendance data recorded yet.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -950,12 +971,12 @@
                 <!-- Demographics Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
                     <div class="spring-card p-4 sm:p-6">
-                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4">Top Participant Universities</h3>
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4" data-i18n="org_dashboard.analytics_top_schools">Top Participant Universities</h3>
                         <div id="top-schools-container" class="space-y-2.5"></div>
                     </div>
 
                     <div class="spring-card p-4 sm:p-6">
-                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4">Top Participant Majors</h3>
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-3 sm:mb-4" data-i18n="org_dashboard.analytics_top_majors">Top Participant Majors</h3>
                         <div id="top-majors-container" class="space-y-2.5"></div>
                     </div>
                 </div>
@@ -1006,7 +1027,7 @@
                             <div class="flex flex-col gap-1">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Camera</label>
                                 <div class="flex gap-2">
-                                    <select id="scanner-camera-select" class="flex-grow px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-primary font-medium shadow-2xs">
+                                    <select id="scanner-camera-select" class="flex-grow px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-primary hover:bg-[#f8faff] bg-white text-xs outline-none focus:border-primary font-medium shadow-2xs cursor-pointer transition-all">
                                         <option value="">Detecting cameras...</option>
                                     </select>
                                     <button id="scanner-mirror-btn" title="Toggle Mirror View" class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-primary spring-ease flex items-center justify-center cursor-pointer shadow-2xs">
@@ -1575,7 +1596,7 @@
                         
                         <!-- Custom Grid Spacing Select -->
                         <div id="cert-grid-options" class="flex items-center gap-1 pr-1.5 border-r border-slate-200">
-                            <select id="cert-grid-size-select" class="px-2 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-700 outline-none cursor-pointer hover:border-primary">
+                            <select id="cert-grid-size-select" class="px-2 py-1.5 rounded-xl border border-slate-200 hover:border-primary hover:bg-[#f8faff] bg-slate-50 text-[11px] font-semibold text-slate-700 outline-none cursor-pointer transition-all">
                                 <option value="20" data-i18n="org_dashboard.cert_designer.grid_20">Lưới 20px (Mịn)</option>
                                 <option value="50" selected data-i18n="org_dashboard.cert_designer.grid_50">Lưới 50px (Chuẩn)</option>
                                 <option value="100" data-i18n="org_dashboard.cert_designer.grid_100">Lưới 100px (Thưa)</option>
@@ -1818,7 +1839,7 @@
                             <!-- QR Frame Style (None, Box, Bordered, Double, Dots-Corner) -->
                             <div class="space-y-1.5">
                                 <label for="field-ctrl-qr-frame" class="block text-xs font-bold text-slate-700" data-i18n="org_dashboard.cert_designer.frame_border">Khung & Viền QR</label>
-                                <select id="field-ctrl-qr-frame" class="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary">
+                                <select id="field-ctrl-qr-frame" class="w-full px-3 py-1.5 rounded-xl border border-slate-200 hover:border-primary hover:bg-[#f8faff] bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary cursor-pointer transition-all">
                                     <option value="none" data-i18n="org_dashboard.cert_designer.frame_none">Không viền (Trong suốt / Nổi trực tiếp trên phôi)</option>
                                     <option value="box" selected data-i18n="org_dashboard.cert_designer.frame_box">Khung thẻ tiêu chuẩn (Card Box)</option>
                                     <option value="bordered" data-i18n="org_dashboard.cert_designer.frame_bordered">Viền đơn thanh lịch (Bordered)</option>
@@ -1870,7 +1891,7 @@
                         <!-- Font Family (For Text Fields) -->
                         <div id="field-ctrl-font-group" class="space-y-1.5">
                             <label for="field-ctrl-font" class="block text-xs font-bold text-slate-700" data-i18n="org_dashboard.cert_designer.font_family">Font Chữ</label>
-                            <select id="field-ctrl-font" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary">
+                            <select id="field-ctrl-font" class="w-full px-3 py-2 rounded-xl border border-slate-200 hover:border-primary hover:bg-[#f8faff] bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary cursor-pointer transition-all">
                                 <option value="Playfair Display" style="font-family: 'Playfair Display', serif;">Playfair Display</option>
                                 <option value="Great Vibes" style="font-family: 'Great Vibes', cursive;">Great Vibes</option>
                                 <option value="Plus Jakarta Sans" style="font-family: 'Plus Jakarta Sans', sans-serif;">Plus Jakarta Sans</option>
@@ -1911,7 +1932,7 @@
                         <div id="field-ctrl-typography-group" class="grid grid-cols-2 gap-3">
                             <div class="space-y-1.5">
                                 <label for="field-ctrl-spacing" class="block text-xs font-bold text-slate-700" data-i18n="org_dashboard.cert_designer.letter_spacing">Giãn chữ (Spacing)</label>
-                                <select id="field-ctrl-spacing" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary">
+                                <select id="field-ctrl-spacing" class="w-full px-3 py-2 rounded-xl border border-slate-200 hover:border-primary hover:bg-[#f8faff] bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary cursor-pointer transition-all">
                                     <option value="0" data-i18n="org_dashboard.cert_designer.spacing_default">Mặc định (0px)</option>
                                     <option value="1" data-i18n="org_dashboard.cert_designer.spacing_tight">Nhẹ (1px)</option>
                                     <option value="2" data-i18n="org_dashboard.cert_designer.spacing_normal">Vừa (2px)</option>
@@ -1932,7 +1953,7 @@
                         <div id="field-ctrl-style-group" class="grid grid-cols-2 gap-3">
                             <div class="space-y-1.5">
                                 <label for="field-ctrl-weight" class="block text-xs font-bold text-slate-700" data-i18n="org_dashboard.cert_designer.font_weight">Độ đậm (Weight)</label>
-                                <select id="field-ctrl-weight" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary">
+                                <select id="field-ctrl-weight" class="w-full px-3 py-2 rounded-xl border border-slate-200 hover:border-primary hover:bg-[#f8faff] bg-white text-xs font-medium text-slate-800 outline-none focus:border-primary cursor-pointer transition-all">
                                     <option value="400">Regular (400)</option>
                                     <option value="500">Medium (500)</option>
                                     <option value="600">SemiBold (600)</option>
@@ -2051,7 +2072,7 @@
                         <label for="online-host-duration" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" data-i18n="org_dashboard.session_duration">
                             Thời hạn mở cổng
                         </label>
-                        <select id="online-host-duration" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-800 outline-none focus:border-slate-400 transition-all shadow-2xs">
+                        <select id="online-host-duration" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 hover:border-primary hover:bg-[#f8faff] bg-white text-xs sm:text-sm font-medium text-slate-800 outline-none focus:border-primary transition-all shadow-2xs cursor-pointer">
                             <option value="5" data-i18n="org_dashboard.duration_5m">5 phút</option>
                             <option value="10" data-i18n="org_dashboard.duration_10m">10 phút</option>
                             <option value="15" selected data-i18n="org_dashboard.duration_15m">15 phút (Khuyến nghị)</option>

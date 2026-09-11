@@ -42,23 +42,35 @@ export async function openReviewModal(eventId, eventTitle, eventThumbnail, orgNa
         }
 
         const stars = document.querySelectorAll(".star-btn");
+        const starContainer = document.getElementById("star-rating");
         const ratingInput = document.getElementById("review-rating-value");
         let selectedRating = 0;
 
+        function updateReviewStars(rating) {
+            stars.forEach(s => {
+                if (parseInt(s.dataset.value) <= rating) {
+                    s.classList.remove("text-gray-300");
+                    s.classList.add("text-yellow-400");
+                } else {
+                    s.classList.remove("text-yellow-400");
+                    s.classList.add("text-gray-300");
+                }
+            });
+        }
+
         stars.forEach(star => {
+            star.addEventListener("mouseenter", () => {
+                updateReviewStars(parseInt(star.dataset.value));
+            });
             star.addEventListener("click", () => {
                 selectedRating = parseInt(star.dataset.value);
                 ratingInput.value = selectedRating;
-                stars.forEach(s => {
-                    if (parseInt(s.dataset.value) <= selectedRating) {
-                        s.classList.remove("text-gray-300");
-                        s.classList.add("text-yellow-400");
-                    } else {
-                        s.classList.remove("text-yellow-400");
-                        s.classList.add("text-gray-300");
-                    }
-                });
+                updateReviewStars(selectedRating);
             });
+        });
+
+        starContainer?.addEventListener("mouseleave", () => {
+            updateReviewStars(selectedRating);
         });
 
         document.getElementById("review-form").addEventListener("submit", async (e) => {

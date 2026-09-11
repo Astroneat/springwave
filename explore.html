@@ -288,15 +288,12 @@
                 <span>Hình thức sự kiện</span>
                 <span class="material-symbols-outlined text-[18px] text-slate-400">devices</span>
               </label>
-              <div class="relative mt-2">
-                <select id="formatSelect" class="w-full appearance-none bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3.5 py-2.5 pr-9 text-xs sm:text-sm font-semibold text-slate-800 outline-none focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all cursor-pointer shadow-xs">
+              <div class="relative mt-2 combobox-group group">
+                <select id="formatSelect" data-icon="devices" class="w-full appearance-none bg-slate-50 hover:bg-[#f8faff] border border-slate-200 hover:border-primary rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 outline-none focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/15 transition-all cursor-pointer shadow-xs">
                   <option value="all" data-i18n="explore.format_all">Tất cả hình thức (All)</option>
                   <option value="online" data-i18n="explore.format_online">Trực tuyến (Online)</option>
                   <option value="offline" data-i18n="explore.format_offline">Trực tiếp (Offline)</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
-                  <span class="material-symbols-outlined text-[20px]">expand_more</span>
-                </div>
               </div>
             </div>
 
