@@ -2832,6 +2832,34 @@ select:not(.time-select) option:hover {
   }
 }
 
+.profile-academic-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .profile-academic-meta {
+    justify-content: flex-start;
+  }
+}
+
+.profile-contact-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .profile-contact-meta {
+    justify-content: flex-start;
+  }
+}
+
 .profile-detail-chip {
   display: inline-flex;
   align-items: center;
@@ -4613,8 +4641,8 @@ select:not(.time-select) option:hover {
 
 .cards-container {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 1.25rem !important;
   width: 100%;
   justify-items: stretch;
 }
@@ -4896,13 +4924,6 @@ select:not(.time-select) option:hover {
 }
 
 /* ===== RESPONSIVE CARDS ===== */
-@media (max-width: 1280px) {
-  .cards-container {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-}
-
 @media (max-width: 900px) {
   .cards-container {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -4914,7 +4935,7 @@ select:not(.time-select) option:hover {
   }
 
   .card-image {
-    height: 125px;
+    height: 130px;
   }
 
   .card-content {
@@ -4956,11 +4977,11 @@ select:not(.time-select) option:hover {
   }
 }
 
-@media (max-width: 580px) {
+@media (max-width: 640px) {
   .cards-container {
     grid-template-columns: 1fr !important;
-    gap: 1.15rem !important;
-    max-width: 440px !important;
+    gap: 1rem !important;
+    max-width: 460px !important;
     margin-inline: auto !important;
   }
 
@@ -9499,6 +9520,72 @@ select.input {
     padding: 13px 24px;
     font-size: 0.95rem;
     border-radius: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .quiz-page {
+    padding-top: 84px !important;
+    padding-bottom: max(110px, calc(90px + env(safe-area-inset-bottom, 16px))) !important;
+    align-items: flex-start !important;
+  }
+
+  .quiz-question-card {
+    padding: 22px 16px !important;
+    border-radius: 22px !important;
+    min-height: auto !important;
+  }
+
+  .quiz-question-title {
+    font-size: 1.18rem !important;
+    margin-bottom: 20px !important;
+    line-height: 1.35 !important;
+  }
+
+  .quiz-answers {
+    gap: 10px !important;
+  }
+
+  .quiz-answer-btn {
+    padding: 12px 14px !important;
+    gap: 12px !important;
+    border-radius: 14px !important;
+  }
+
+  .quiz-answer-circle {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 10px !important;
+    font-size: 0.88rem !important;
+  }
+
+  .quiz-answer-text {
+    font-size: 0.95rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .quiz-external-nav {
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom, 12px)) !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05) !important;
+    pointer-events: auto !important;
+  }
+
+  .quiz-btn-prev {
+    padding: 10px 18px !important;
+    font-size: 0.88rem !important;
+    border-radius: 12px !important;
+    gap: 6px !important;
+  }
+
+  .quiz-btn-next {
+    padding: 10px 20px !important;
+    font-size: 0.88rem !important;
+    border-radius: 12px !important;
+    gap: 6px !important;
   }
 }
 
@@ -20992,6 +21079,28 @@ body {
   max-width: 760px !important;
   margin-bottom: 32px !important;
   font-weight: 600 !important;
+}
+
+@media (max-width: 640px) {
+  .hero-badge-pill {
+    padding: 5px 14px !important;
+    font-size: 11.5px !important;
+    margin-bottom: 16px !important;
+    max-width: 95% !important;
+  }
+
+  .hero-redesign-title {
+    font-size: clamp(22px, 5.8vw, 32px) !important;
+    line-height: 1.25 !important;
+    margin-bottom: 14px !important;
+  }
+
+  .hero-redesign-desc {
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+    margin-bottom: 24px !important;
+    padding-inline: 4px !important;
+  }
 }
 
 .hero-actions-row {

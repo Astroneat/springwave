@@ -2106,6 +2106,7 @@
     "dashboard": "Tổng quan",
     "events": "Sự kiện",
     "events_subtitle": "Tạo và quản lý sự kiện của câu lạc bộ / tổ chức",
+    "scanner_mirror_btn": "Lật gương",
     "create_event": "Tạo sự kiện mới",
     "total_events": "Tổng sự kiện",
     "stat_total_events": "Tổng sự kiện",

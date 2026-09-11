@@ -29,20 +29,20 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 hidden" id="filter-bar">
       <div class="flex items-center gap-3 flex-wrap">
         <!-- Status Filter Tabs -->
-        <div class="inline-flex items-center p-1 bg-slate-100 rounded-xl gap-1 flex-wrap" role="tablist">
-          <button id="tab-all" role="tab" aria-selected="true" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-white text-[#1755ba] shadow-sm">
+        <div class="inline-flex items-center p-1 bg-slate-100 rounded-xl gap-1 overflow-x-auto max-w-full no-scrollbar shrink-0" role="tablist">
+          <button id="tab-all" role="tab" aria-selected="true" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-white text-[#1755ba] shadow-sm shrink-0">
             <span data-i18n="my_events.filter_all">All</span>
             <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-[#1755ba]/10 text-[#1755ba]" id="count-all">0</span>
           </button>
-          <button id="tab-upcoming" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+          <button id="tab-upcoming" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900 shrink-0">
             <span data-i18n="my_events.filter_upcoming">Upcoming</span>
             <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-upcoming">0</span>
           </button>
-          <button id="tab-checked-in" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+          <button id="tab-checked-in" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900 shrink-0">
             <span data-i18n="my_events.filter_checked_in">Checked In</span>
             <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-checked-in">0</span>
           </button>
-          <button id="tab-expired" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+          <button id="tab-expired" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900 shrink-0">
             <span data-i18n="my_events.filter_expired">Expired</span>
             <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-expired">0</span>
           </button>
@@ -65,7 +65,57 @@
     </div>
 
     <div id="events-list" class="space-y-4">
-      <div class="text-center py-12 text-[#64748b]" data-i18n="common.loading">Loading...</div>
+      <!-- SKELETON LOADERS (Show instantly on initial load) -->
+      <div class="my-events-skeleton-card bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm flex flex-col md:flex-row animate-pulse">
+        <div class="w-full md:w-48 h-36 md:h-auto min-h-[144px] bg-slate-200 shrink-0"></div>
+        <div class="flex-grow p-5 flex flex-col justify-between gap-4">
+          <div class="space-y-3">
+            <div class="flex items-center gap-2">
+              <div class="h-6 w-16 bg-slate-200 rounded-full"></div>
+              <div class="h-6 w-20 bg-slate-200 rounded-full"></div>
+              <div class="h-6 w-20 bg-slate-200 rounded-full"></div>
+            </div>
+            <div class="h-6 w-3/4 bg-slate-200 rounded-lg"></div>
+            <div class="space-y-2 pt-1">
+              <div class="h-4 w-48 bg-slate-100 rounded"></div>
+              <div class="h-4 w-64 bg-slate-100 rounded"></div>
+            </div>
+          </div>
+          <div class="h-4 w-32 bg-slate-100 rounded"></div>
+        </div>
+        <div class="hidden md:flex flex-col justify-between items-center py-3 my-2 flex-shrink-0 w-[1px]">
+          <div class="h-full border-l border-dashed border-slate-200"></div>
+        </div>
+        <div class="w-full md:w-44 p-5 flex flex-col items-center justify-center bg-slate-50/50 md:bg-transparent shrink-0">
+          <div class="w-24 h-24 rounded-xl bg-slate-200"></div>
+          <div class="h-3 w-16 bg-slate-200 rounded mt-2"></div>
+        </div>
+      </div>
+
+      <div class="my-events-skeleton-card bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm flex flex-col md:flex-row animate-pulse">
+        <div class="w-full md:w-48 h-36 md:h-auto min-h-[144px] bg-slate-200 shrink-0"></div>
+        <div class="flex-grow p-5 flex flex-col justify-between gap-4">
+          <div class="space-y-3">
+            <div class="flex items-center gap-2">
+              <div class="h-6 w-16 bg-slate-200 rounded-full"></div>
+              <div class="h-6 w-20 bg-slate-200 rounded-full"></div>
+            </div>
+            <div class="h-6 w-2/3 bg-slate-200 rounded-lg"></div>
+            <div class="space-y-2 pt-1">
+              <div class="h-4 w-44 bg-slate-100 rounded"></div>
+              <div class="h-4 w-56 bg-slate-100 rounded"></div>
+            </div>
+          </div>
+          <div class="h-4 w-36 bg-slate-100 rounded"></div>
+        </div>
+        <div class="hidden md:flex flex-col justify-between items-center py-3 my-2 flex-shrink-0 w-[1px]">
+          <div class="h-full border-l border-dashed border-slate-200"></div>
+        </div>
+        <div class="w-full md:w-44 p-5 flex flex-col items-center justify-center bg-slate-50/50 md:bg-transparent shrink-0">
+          <div class="w-24 h-24 rounded-xl bg-slate-200"></div>
+          <div class="h-3 w-16 bg-slate-200 rounded mt-2"></div>
+        </div>
+      </div>
     </div>
   </div>
 

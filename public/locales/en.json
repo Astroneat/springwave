@@ -2106,6 +2106,7 @@
     "dashboard": "Dashboard",
     "events": "Events",
     "events_subtitle": "Create and manage your organization's events",
+    "scanner_mirror_btn": "Mirror View",
     "create_event": "Create New Event",
     "total_events": "Total Events",
     "stat_total_events": "Total Events",

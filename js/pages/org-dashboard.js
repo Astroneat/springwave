@@ -3931,6 +3931,7 @@ function initQRScan() {
 
   const cameraSelect = document.getElementById("scanner-camera-select");
   const mirrorBtn = document.getElementById("scanner-mirror-btn");
+  const viewfinderFlipBtn = document.getElementById("scanner-viewfinder-flip-btn");
   const zoomSlider = document.getElementById("scanner-zoom-slider");
   const zoomVal = document.getElementById("zoom-value");
   const expSlider = document.getElementById("scanner-exposure-slider");
@@ -3946,22 +3947,35 @@ function initQRScan() {
       video.style.transform = "scaleX(-1)";
       if (mirrorBtn) {
         mirrorBtn.classList.add("bg-primary/10", "border-primary", "text-primary");
-        mirrorBtn.classList.remove("bg-white", "text-[#64748b]");
+        mirrorBtn.classList.remove("bg-white", "text-slate-700");
+      }
+      if (viewfinderFlipBtn) {
+        viewfinderFlipBtn.classList.add("!bg-primary", "!border-primary", "text-white");
+        viewfinderFlipBtn.classList.remove("bg-black/60");
       }
     } else {
       video.style.transform = "none";
       if (mirrorBtn) {
         mirrorBtn.classList.remove("bg-primary/10", "border-primary", "text-primary");
-        mirrorBtn.classList.add("bg-white", "text-[#64748b]");
+        mirrorBtn.classList.add("bg-white", "text-slate-700");
+      }
+      if (viewfinderFlipBtn) {
+        viewfinderFlipBtn.classList.remove("!bg-primary", "!border-primary");
+        viewfinderFlipBtn.classList.add("bg-black/60", "text-white");
       }
     }
   }
 
+  const toggleMirror = () => {
+    isMirrored = !isMirrored;
+    updateVideoMirrorStyle();
+  };
+
   if (mirrorBtn) {
-    mirrorBtn.addEventListener("click", () => {
-      isMirrored = !isMirrored;
-      updateVideoMirrorStyle();
-    });
+    mirrorBtn.addEventListener("click", toggleMirror);
+  }
+  if (viewfinderFlipBtn) {
+    viewfinderFlipBtn.addEventListener("click", toggleMirror);
   }
 
   if (cameraSelect) {

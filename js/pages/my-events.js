@@ -331,48 +331,44 @@ function renderEvents() {
 
     return `
       <div id="ticket-card-${eventId}" data-event-id="${eventId}" data-activity-id="${event.activityID || ''}" data-ticket-id="${tkt._id || ''}" class="ticket-card-item group relative flex flex-col md:flex-row bg-white border border-[#ecedfa] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-        <div class="relative w-full md:w-48 h-36 md:h-auto min-h-[144px] flex-shrink-0 bg-slate-100 overflow-hidden cursor-pointer event-card-preview" data-event-id="${eventId}">
+        <!-- Thumbnail image -->
+        <div class="relative w-full md:w-48 h-40 sm:h-44 md:h-auto min-h-[144px] flex-shrink-0 bg-slate-100 overflow-hidden cursor-pointer event-card-preview" data-event-id="${eventId}">
           <img src="${event.thumbnail || 'https://images.unsplash.com/photo-1618477462146-050d2767eac4?q=80&w=1200&auto=format&fit=crop'}" 
                alt="${eventTitle}" 
                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent md:hidden"></div>
-          <div class="absolute top-3 left-3 md:hidden flex items-center gap-1.5 flex-wrap">
-            ${statusBadgeHTML(effectiveStatus)}
-            ${formatBadgeTag}
-            ${certBadgeTag}
-          </div>
         </div>
 
-        <div class="flex-grow p-5 flex flex-col justify-between min-w-0">
+        <!-- Main Card Content -->
+        <div class="flex-grow p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div class="min-w-0">
-            <div class="hidden md:flex items-center justify-between gap-2 mb-2">
-              <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
+              <div class="flex items-center gap-1.5 flex-wrap">
                 ${statusBadgeHTML(effectiveStatus)}
                 ${formatBadgeTag}
                 ${certBadgeTag}
               </div>
               ${statusBadgeTag}
             </div>
-            <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2 cursor-pointer event-card-preview" data-event-id="${eventId}" title="${eventTitle}">${eventTitle}</h3>
+            <h3 class="font-bold text-[#191b22] text-base sm:text-lg md:text-xl line-clamp-2 md:line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2 cursor-pointer event-card-preview" data-event-id="${eventId}" title="${eventTitle}">${eventTitle}</h3>
             
-            <div class="space-y-1.5 text-sm text-[#64748b] min-w-0">
+            <div class="space-y-1.5 text-xs sm:text-sm text-[#64748b] min-w-0">
               <div class="flex items-center gap-2 min-w-0">
-                <span class="material-symbols-outlined text-[18px] text-[#1755ba] shrink-0">calendar_today</span>
-                <span class="truncate">${eventDate}</span>
+                <span class="material-symbols-outlined text-[17px] text-[#1755ba] shrink-0">calendar_today</span>
+                <span class="truncate font-medium text-slate-700">${eventDate}</span>
               </div>
               ${isOnline ? `
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="material-symbols-outlined text-[18px] text-emerald-600 shrink-0">videocam</span>
+              <div class="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
+                <span class="material-symbols-outlined text-[17px] text-emerald-600 shrink-0">videocam</span>
                 <span class="truncate font-medium text-emerald-700">${t('my_events.online_event_label', 'Sự kiện trực tuyến (Google Meet / Zoom)')}</span>
                 ${event.meetingUrl ? `
-                  <a href="${event.meetingUrl}" target="_blank" rel="noopener noreferrer" class="ml-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all">
+                  <a href="${event.meetingUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all shrink-0">
                     <span>${t('my_events.join_meeting', 'Vào phòng')}</span>
                     <span class="material-symbols-outlined text-[12px]">open_in_new</span>
                   </a>
                 ` : ''}
               </div>` : (event.location ? `
               <div class="flex items-center gap-2 min-w-0">
-                <span class="material-symbols-outlined text-[18px] text-[#1755ba] shrink-0">location_on</span>
+                <span class="material-symbols-outlined text-[17px] text-[#1755ba] shrink-0">location_on</span>
                 <span class="truncate" title="${event.location}">${event.location}</span>
               </div>` : '')}
               ${checkInInfo ? `<div class="flex items-center gap-2 min-w-0">${checkInInfo}</div>` : ''}
@@ -380,57 +376,74 @@ function renderEvents() {
           </div>
 
           ${actionButtons ? `
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 flex-wrap">
+          <div class="mt-3.5 pt-3 border-t border-slate-100 flex items-center gap-2 flex-wrap">
             ${actionButtons}
           </div>` : (effectiveStatus === 'active' ? `
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-400">
-            <span class="material-symbols-outlined text-[16px]">info</span>
-            <span>${t('my_events.unlock_features', 'Participate and check in to unlock features')}</span>
+          <div class="mt-3.5 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-400">
+            <span class="material-symbols-outlined text-[15px]">info</span>
+            <span class="text-[11px] sm:text-xs">${t('my_events.unlock_features', 'Participate and check in to unlock features')}</span>
           </div>` : '')}
         </div>
 
-        <div class="hidden md:flex flex-col justify-between items-center py-3 my-2 flex-shrink-0 w-[1px]">
-          <div class="w-3 h-3 rounded-full bg-[#f8f9fc] -mt-5 -ml-1.5 border-b border-l border-r border-[#ecedfa]"></div>
+        <!-- Perforated ticket divider -->
+        <!-- Desktop Vertical Divider with notches -->
+        <div class="hidden md:flex flex-col justify-between items-center py-2 flex-shrink-0 w-[1px] relative">
+          <div class="w-3.5 h-3.5 rounded-full bg-[#f8f9fc] -mt-4 -ml-1.5 border border-[#ecedfa]"></div>
           <div class="h-full border-l border-dashed border-slate-200"></div>
-          <div class="w-3 h-3 rounded-full bg-[#f8f9fc] -mb-5 -ml-1.5 border-t border-l border-r border-[#ecedfa]"></div>
-        </div>
-        <div class="md:hidden flex items-center px-5 flex-shrink-0">
-          <div class="w-full border-t border-dashed border-slate-200"></div>
+          <div class="w-3.5 h-3.5 rounded-full bg-[#f8f9fc] -mb-4 -ml-1.5 border border-[#ecedfa]"></div>
         </div>
 
-        <div class="w-full md:w-44 p-5 flex flex-col items-center justify-center bg-slate-50/50 md:bg-transparent flex-shrink-0">
+        <!-- Mobile Horizontal Divider with notches -->
+        <div class="md:hidden relative flex items-center w-full my-0">
+          <div class="w-3.5 h-3.5 rounded-full bg-[#f8f9fc] -ml-2 border border-[#ecedfa] shrink-0"></div>
+          <div class="flex-grow border-t border-dashed border-slate-200"></div>
+          <div class="w-3.5 h-3.5 rounded-full bg-[#f8f9fc] -mr-2 border border-[#ecedfa] shrink-0"></div>
+        </div>
+
+        <!-- Ticket Stub: QR / Pass Section -->
+        <div class="w-full md:w-44 p-4 sm:p-5 flex flex-col items-center justify-center bg-slate-50/70 md:bg-transparent flex-shrink-0">
           ${effectiveStatus === 'active' ? (
             isOnline ? `
-              <div class="w-24 h-24 rounded-xl border border-emerald-200 bg-white p-2 flex flex-col items-center justify-center shadow-xs cursor-pointer hover:border-emerald-400 hover:shadow-md transition-all pin-checkin-btn group/pin" data-event-id="${eventId}" data-event-title="${safeTitle}" title="${t('my_events.pin_checkin_btn', 'Online PIN Check-in')}">
-                <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover/pin:scale-105 group-hover/pin:bg-emerald-100/70 transition-all">
-                  <span class="material-symbols-outlined text-3xl">dialpad</span>
+              <div class="flex items-center md:flex-col gap-3 md:gap-2">
+                <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl border border-emerald-200 bg-white p-2 flex flex-col items-center justify-center shadow-2xs cursor-pointer hover:border-emerald-400 hover:shadow-md transition-all pin-checkin-btn group/pin" data-event-id="${eventId}" data-event-title="${safeTitle}" title="${t('my_events.pin_checkin_btn', 'Online PIN Check-in')}">
+                  <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover/pin:scale-105 group-hover/pin:bg-emerald-100/70 transition-all">
+                    <span class="material-symbols-outlined text-2xl md:text-3xl">dialpad</span>
+                  </div>
+                  <span class="mt-1 text-[9px] font-bold text-emerald-700 uppercase tracking-wider">PIN CODE</span>
                 </div>
-                <span class="mt-1 text-[9px] font-bold text-emerald-700 uppercase tracking-wider">PIN CODE</span>
+                <div class="flex flex-col items-start md:items-center">
+                  <span class="text-[10px] font-mono font-semibold text-emerald-800 uppercase tracking-wide">ONLINE PASS</span>
+                  <span class="text-[11px] text-slate-500 font-medium">${t('my_events.pin_checkin_hint', 'Nhập PIN check-in')}</span>
+                </div>
               </div>
-              <span class="mt-2 text-[10px] font-mono text-slate-400 uppercase">ONLINE PASS</span>
             ` : (
               showQR ? `
-                <div class="relative group/qr cursor-zoom-in qr-zoom-btn" data-qr-url="${tkt.qrImageUrl}" data-event-title="${(event.title || 'Event').replace(/"/g, '&quot;')}" data-qr-code="${tkt.qrCode || ''}">
-                  <img src="${tkt.qrImageUrl}" alt="QR Code" class="w-24 h-24 rounded-xl border border-slate-200 bg-white p-1 hover:shadow-md transition-all duration-300" />
-                  <div class="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover/qr:opacity-100 flex items-center justify-center transition-opacity duration-200">
-                    <span class="material-symbols-outlined text-white text-xl">zoom_in</span>
+                <div class="flex items-center md:flex-col gap-3.5 md:gap-2 w-full justify-between md:justify-center">
+                  <div class="relative group/qr cursor-zoom-in qr-zoom-btn shrink-0" data-qr-url="${tkt.qrImageUrl}" data-event-title="${(event.title || 'Event').replace(/"/g, '&quot;')}" data-qr-code="${tkt.qrCode || ''}">
+                    <img src="${tkt.qrImageUrl}" alt="QR Code" class="w-20 h-20 md:w-24 md:h-24 rounded-xl border border-slate-200 bg-white p-1 hover:shadow-md transition-all duration-300" />
+                    <div class="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover/qr:opacity-100 flex items-center justify-center transition-opacity duration-200">
+                      <span class="material-symbols-outlined text-white text-xl">zoom_in</span>
+                    </div>
+                  </div>
+                  <div class="flex flex-col items-start md:items-center">
+                    <span class="text-[10px] font-mono text-slate-500 font-semibold uppercase">${tkt.qrCode ? tkt.qrCode.slice(0, 8) : 'N/A'}</span>
+                    <a href="${tkt.qrImageUrl}" download="ticket_${tkt.qrCode || 'qr'}.png" target="_blank" class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#1755ba] hover:underline">
+                      <span class="material-symbols-outlined text-[14px]">download</span>
+                      <span>${t('my_events.download_qr', 'Download QR')}</span>
+                    </a>
                   </div>
                 </div>
-                <span class="mt-2 text-[10px] font-mono text-slate-400 uppercase">${tkt.qrCode ? tkt.qrCode.slice(0, 8) : 'N/A'}</span>
-                <a href="${tkt.qrImageUrl}" download="ticket_${tkt.qrCode || 'qr'}.png" target="_blank" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1755ba] hover:underline">
-                  <span class="material-symbols-outlined text-[14px]">download</span> ${t('my_events.download_qr', 'Download QR')}
-                </a>
               ` : `
-                <div class="w-24 h-24 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 flex flex-col items-center justify-center gap-1 select-none">
-                  <span class="material-symbols-outlined text-3xl">qr_code_2</span>
+                <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-slate-100 border border-slate-200 text-slate-400 flex flex-col items-center justify-center gap-1 select-none">
+                  <span class="material-symbols-outlined text-2xl md:text-3xl">qr_code_2</span>
                   <span class="text-[9px] font-bold uppercase tracking-wider">No QR</span>
                 </div>
               `
             )
           ) : `
-            <div class="w-24 h-24 rounded-xl ${effectiveStatus === 'checked_in' ? 'bg-emerald-50 border border-emerald-200/60 text-emerald-600' : (effectiveStatus === 'cancelled' ? 'bg-rose-50 border border-rose-200/60 text-rose-600' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex flex-col items-center justify-center gap-1 select-none">
-              <span class="material-symbols-outlined text-3xl">${statusIcon}</span>
-              <span class="text-[9px] font-bold uppercase tracking-wider">${statusBottomText}</span>
+            <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl ${effectiveStatus === 'checked_in' ? 'bg-emerald-50 border border-emerald-200/60 text-emerald-600' : (effectiveStatus === 'cancelled' ? 'bg-rose-50 border border-rose-200/60 text-rose-600' : 'bg-slate-100 border border-slate-200 text-slate-400')} flex flex-col items-center justify-center gap-1 select-none">
+              <span class="material-symbols-outlined text-2xl md:text-3xl">${statusIcon}</span>
+              <span class="text-[9px] font-bold uppercase tracking-wider text-center px-1">${statusBottomText}</span>
             </div>
           `}
         </div>
@@ -1077,7 +1090,9 @@ function setupFilterTabs() {
 
 function checkAndHighlightTicket() {
   const urlParams = new URLSearchParams(window.location.search);
-  const targetId = urlParams.get("event") 
+  const rateId = urlParams.get("rate");
+  const targetId = rateId 
+    || urlParams.get("event") 
     || urlParams.get("highlight") 
     || urlParams.get("id") 
     || sessionStorage.getItem("lastRegisteredEventId");
@@ -1098,10 +1113,16 @@ function checkAndHighlightTicket() {
       setFilter('all');
     }
     highlightTicket(targetId);
+
+    if (rateId || urlParams.get("action") === "rate") {
+      setTimeout(() => {
+        openRateModal(targetTicket.event?._id || targetId, targetTicket.event?.title || "Event", { unlockCert: true });
+      }, 350);
+    }
   }
 
   // Clean URL query param cleanly without reloading
-  if (urlParams.has("event") || urlParams.has("highlight") || urlParams.has("id")) {
+  if (urlParams.has("event") || urlParams.has("highlight") || urlParams.has("id") || urlParams.has("rate") || urlParams.has("action")) {
     const cleanUrl = window.location.pathname;
     window.history.replaceState({}, document.title, cleanUrl);
   }
@@ -1119,30 +1140,29 @@ async function loadPage() {
     return;
   }
 
-  await loadSharedNavbar();
+  // Parallelize ticket fetching immediately
+  const ticketsPromise = getMyTickets().catch(err => {
+    console.error("Tickets fetch error:", err);
+    return { tickets: [] };
+  });
+
   initBasicScroll();
   initModals();
   setupFilterTabs();
+
+  // Load navbar in parallel without blocking initial ticket render
+  loadSharedNavbar().catch(err => console.warn("Navbar load error:", err));
 
   const list = document.getElementById("events-list");
   if (!list) return;
 
   try {
-    const actMapPromise = fetchActivitiesMap();
-    const ticketsPromise = getMyTickets();
-    const [{ tickets }, actMap] = await Promise.all([
-      ticketsPromise,
-      actMapPromise
-    ]);
-
-    const validRaw = (tickets || []).filter(t => t && t.event && (t.event._id || t.event.title));
-    allTickets = enrichTicketsWithActivities(validRaw, actMap);
-
-    const validTickets = allTickets;
+    const { tickets } = await ticketsPromise;
+    allTickets = (tickets || []).filter(t => t && t.event && (t.event._id || t.event.title));
 
     const filterBar = document.getElementById("filter-bar");
     if (filterBar) {
-      if (validTickets.length > 0) {
+      if (allTickets.length > 0) {
         filterBar.classList.remove("hidden");
       } else {
         filterBar.classList.add("hidden");
@@ -1151,6 +1171,14 @@ async function loadPage() {
 
     renderEvents();
     checkAndHighlightTicket();
+
+    // Background non-blocking fetch for any additional event details
+    fetchActivitiesMap().then(actMap => {
+      if (actMap && actMap.size > 0) {
+        allTickets = enrichTicketsWithActivities(allTickets, actMap);
+        renderEvents();
+      }
+    }).catch(() => {});
   } catch (err) {
     console.error("Failed to load events:", err);
     list.innerHTML = `<div class="text-center py-12 text-red-500 font-medium bg-white border border-red-100 rounded-2xl">${t("my_events.failed_load", "Failed to load events. Please try again later.")}</div>`;

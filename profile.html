@@ -46,12 +46,36 @@
             <span class="profile-role" id="profile-role">Student</span>
             <span class="verification-badge hidden" id="verification-badge"></span>
           </div>
-          <div class="profile-details-grid" id="profile-details">
-            <div class="profile-detail-chip"><i class="fa-regular fa-envelope"></i> <span id="profile-email">-</span></div>
-            <div class="profile-detail-chip"><i class="fa-solid fa-phone"></i> <span id="profile-phone">-</span></div>
-            <div class="profile-detail-chip"><i class="fa-solid fa-cake-candles"></i> <span id="profile-dob">-</span></div>
-            <div class="profile-detail-chip"><i class="fa-solid fa-school"></i> <span id="profile-school">-</span></div>
-            <div class="profile-detail-chip"><i class="fa-regular fa-user"></i> <span id="profile-username">-</span></div>
+          <!-- Minimalist Academic Subtitle -->
+          <div class="profile-academic-meta flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-700 mt-1.5 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 text-[#1755ba]">
+              <i class="fa-solid fa-graduation-cap"></i>
+              <span id="profile-school">-</span>
+            </span>
+            <span class="text-slate-300 hidden sm:inline">•</span>
+            <span class="inline-flex items-center gap-1.5 text-slate-600 hidden">
+              <i class="fa-solid fa-book-open text-slate-400"></i>
+              <span id="profile-major-display">-</span>
+            </span>
+          </div>
+
+          <!-- Minimalist Contact Info Strip -->
+          <div class="profile-contact-meta flex items-center gap-3 text-xs text-slate-500 mt-2 flex-wrap" id="profile-details">
+            <span class="inline-flex items-center gap-1.5 text-slate-600 hover:text-primary transition-colors">
+              <i class="fa-regular fa-envelope text-slate-400"></i>
+              <span id="profile-email">-</span>
+            </span>
+            <span class="text-slate-300 hidden sm:inline">•</span>
+            <span class="inline-flex items-center gap-1.5 text-slate-600 hover:text-primary transition-colors">
+              <i class="fa-solid fa-phone text-slate-400 text-[11px]"></i>
+              <span id="profile-phone">-</span>
+            </span>
+            <span class="text-slate-300 hidden sm:inline">•</span>
+            <span class="inline-flex items-center gap-1.5 text-slate-500">
+              <i class="fa-solid fa-cake-candles text-slate-400 text-[11px]"></i>
+              <span id="profile-dob">-</span>
+            </span>
+            <span id="profile-username" class="hidden"></span>
           </div>
         </div>
         

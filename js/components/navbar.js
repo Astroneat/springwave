@@ -631,7 +631,8 @@ function renderNotifDropdown() {
 
     function getNotifLink(n) {
         if (n.type === 'certificate_issued') {
-            return n.certificateCode ? `/certificate.html?code=${encodeURIComponent(n.certificateCode)}` : '/my-events.html';
+            const param = n.eventId ? `?rate=${encodeURIComponent(n.eventId)}` : (n.certificateCode ? `?code=${encodeURIComponent(n.certificateCode)}` : '');
+            return `/my-events.html${param}`;
         }
         if (n.type === 'event_ended') {
             return n.eventId ? `/explore.html?id=${encodeURIComponent(n.eventId)}` : '/my-events.html';

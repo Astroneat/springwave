@@ -172,6 +172,16 @@ function renderCachedProfileAndBadges() {
         if (schoolEl) schoolEl.textContent = user.school;
     }
 
+    const majorEl = document.getElementById("profile-major-display");
+    if (majorEl) {
+        if (user.major) {
+            majorEl.textContent = user.major;
+            majorEl.parentElement?.classList.remove("hidden");
+        } else {
+            majorEl.parentElement?.classList.add("hidden");
+        }
+    }
+
     const roleMap = { student: t("user.student", "Student"), host: t("user.host", "Host"), admin: t("user.admin", "Admin") };
     const roleEl = document.getElementById("profile-role");
     if (roleEl) roleEl.textContent = roleMap[user.role] || "Student";
@@ -377,6 +387,16 @@ async function loadUserProfile() {
 
     if (user.school) {
         document.getElementById("profile-school").textContent = user.school;
+    }
+
+    const majorEl = document.getElementById("profile-major-display");
+    if (majorEl) {
+        if (user.major) {
+            majorEl.textContent = user.major;
+            majorEl.parentElement?.classList.remove("hidden");
+        } else {
+            majorEl.parentElement?.classList.add("hidden");
+        }
     }
 
     const changePassBtn = document.getElementById("change-pass-btn");
