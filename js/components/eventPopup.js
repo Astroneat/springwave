@@ -638,9 +638,10 @@ function buildPopupHTML(a, backText) {
     const deadlineFormatted = a.applicationDeadline ? formatDate(a.applicationDeadline) : null;
     const type = getCategoryName(a.category || a.type || "Activity");
     const hasCoords = a.locationLat && a.locationLng;
+    const isOnlineEvent = a.format === 'online' || (!a.format && ((a.location || '').toLowerCase().includes('online') || (a.location || '').toLowerCase().includes('zoom') || (a.location || '').toLowerCase().includes('meet') || (!a.location && a.isNonPartner)));
     const googleMapsLink = hasCoords
         ? `https://www.google.com/maps?q=${a.locationLat},${a.locationLng}`
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`;
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location || '')}`;
 
     let statusBadgeHTML = "";
     if (status === 'ongoing') {
@@ -697,6 +698,7 @@ function buildPopupHTML(a, backText) {
             <div class="event-modal-badges">
                 <span class="event-pill-badge category"><i class="fa-solid fa-tag"></i> ${type}</span>
                 ${statusBadgeHTML}
+                ${isOnlineEvent ? `<span class="event-pill-badge" style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;"><i class="fa-solid fa-video"></i> ${t("explore.format_online", {}, "Trực tuyến")}</span>` : ''}
                 ${isNonPartner ? `<span class="event-pill-badge non-partner"><i class="fa-solid fa-arrow-up-right-from-square"></i> Non-Partner</span>` : ''}
             </div>
         </div>
@@ -762,15 +764,24 @@ function buildPopupHTML(a, backText) {
                                 </div>
                             </div>` : ''}
 
-                            <!-- Location -->
+                            <!-- Location / Format -->
                             <div class="event-sidebar-info-row">
-                                <div class="sidebar-info-icon location"><i class="fa-solid fa-location-dot"></i></div>
+                                <div class="sidebar-info-icon ${isOnlineEvent ? 'online' : 'location'}" style="${isOnlineEvent ? 'background:#ecfdf5;color:#059669;' : ''}"><i class="fa-solid ${isOnlineEvent ? 'fa-video' : 'fa-location-dot'}"></i></div>
                                 <div class="sidebar-info-meta">
-                                    <span class="sidebar-info-label">${t("description.location", "Location")}</span>
+                                    <span class="sidebar-info-label">${isOnlineEvent ? t("explore.format", {}, "Hình thức") : t("description.location", {}, "Location")}</span>
                                     <p class="sidebar-info-value">
-                                        <a href="${googleMapsLink}" target="_blank" class="event-location-link" rel="noopener noreferrer">
-                                            ${escapeHtml(a.location)} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                                        </a>
+                                        ${isOnlineEvent ? `
+                                            <span class="font-semibold text-emerald-800">${t("explore.format_online", {}, "Trực tuyến")}</span>
+                                            ${a.meetingUrl ? `
+                                                <a href="${a.meetingUrl}" target="_blank" class="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 underline ml-1 font-semibold" rel="noopener noreferrer">
+                                                    <span>${t("my_events.join_meeting", {}, "Vào phòng")}</span> <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                                </a>
+                                            ` : ''}
+                                        ` : `
+                                            <a href="${googleMapsLink}" target="_blank" class="event-location-link" rel="noopener noreferrer">
+                                                ${escapeHtml(a.location)} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                            </a>
+                                        `}
                                     </p>
                                 </div>
                             </div>
@@ -899,15 +910,24 @@ function buildPopupHTML(a, backText) {
                                 </div>
                             </div>` : ''}
 
-                            <!-- Location -->
+                            <!-- Location / Format -->
                             <div class="event-sidebar-info-row">
-                                <div class="sidebar-info-icon location"><i class="fa-solid fa-location-dot"></i></div>
+                                <div class="sidebar-info-icon ${isOnlineEvent ? 'online' : 'location'}" style="${isOnlineEvent ? 'background:#ecfdf5;color:#059669;' : ''}"><i class="fa-solid ${isOnlineEvent ? 'fa-video' : 'fa-location-dot'}"></i></div>
                                 <div class="sidebar-info-meta">
-                                    <span class="sidebar-info-label">${t("description.location", "Location")}</span>
+                                    <span class="sidebar-info-label">${isOnlineEvent ? t("explore.format", {}, "Hình thức") : t("description.location", {}, "Location")}</span>
                                     <p class="sidebar-info-value">
-                                        <a href="${googleMapsLink}" target="_blank" class="event-location-link" rel="noopener noreferrer">
-                                            ${escapeHtml(a.location)} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                                        </a>
+                                        ${isOnlineEvent ? `
+                                            <span class="font-semibold text-emerald-800">${t("explore.format_online", {}, "Trực tuyến")}</span>
+                                            ${a.meetingUrl ? `
+                                                <a href="${a.meetingUrl}" target="_blank" class="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 underline ml-1 font-semibold" rel="noopener noreferrer">
+                                                    <span>${t("my_events.join_meeting", {}, "Vào phòng")}</span> <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                                </a>
+                                            ` : ''}
+                                        ` : `
+                                            <a href="${googleMapsLink}" target="_blank" class="event-location-link" rel="noopener noreferrer">
+                                                ${escapeHtml(a.location)} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                            </a>
+                                        `}
                                     </p>
                                 </div>
                             </div>

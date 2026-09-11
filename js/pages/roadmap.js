@@ -792,7 +792,7 @@ function renderTimeline(timeline) {
                         <h3 class="roadmap-card-title text-base md:text-lg font-bold text-slate-900 line-clamp-2">${escapeHtml(ev.title)}</h3>
                         <div class="roadmap-meta-row mt-2">
                             <span class="roadmap-meta-item"><i class="fa-regular fa-calendar text-blue-600"></i> ${dateStr}</span>
-                            <span class="roadmap-meta-item"><i class="fa-solid fa-location-dot text-rose-500"></i> ${escapeHtml(ev.location || 'Online / Hybrid')}</span>
+                            <span class="roadmap-meta-item"><i class="fa-solid fa-location-dot text-rose-500"></i> ${escapeHtml(ev.location || 'Online')}</span>
                         </div>
                         <p class="roadmap-card-desc mt-2">${escapeHtml(ev.description || '')}</p>
                         ${reasonBox}

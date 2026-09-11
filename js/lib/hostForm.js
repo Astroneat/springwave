@@ -717,6 +717,18 @@ export async function initEditMode(eventId) {
     const slotsEl = document.getElementById("slots");
     if (slotsEl) slotsEl.value = (event.slots !== undefined && event.slots !== null && Number(event.slots) > 0) ? event.slots : '';
 
+    if (event.format) {
+      const radio = form.querySelector(`input[name="format"][value="${event.format}"]`);
+      if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event("change"));
+      }
+    }
+    const meetingUrlEl = document.getElementById("meetingUrl");
+    if (meetingUrlEl && event.meetingUrl) meetingUrlEl.value = event.meetingUrl;
+    const meetingPlatformEl = document.getElementById("meetingPlatform");
+    if (meetingPlatformEl && event.meetingPlatform) meetingPlatformEl.value = event.meetingPlatform;
+
     // Thumbnail preview
     if (event.thumbnail && thumbPreview) {
       thumbPreview.src = event.thumbnail;
@@ -897,12 +909,42 @@ export function initEventModeSelector() {
     }
 }
 
+export function initFormatSelector() {
+    const formatRadios = document.querySelectorAll('input[name="format"]');
+    const onlineContainer = document.getElementById("online-meeting-container");
+    const locationContainer = document.getElementById("location-field-container");
+    const locationInput = document.getElementById("location");
+
+    function updateFormat() {
+        const val = document.querySelector('input[name="format"]:checked')?.value || 'offline';
+        if (val === 'online') {
+            if (onlineContainer) onlineContainer.style.display = "block";
+            if (locationContainer) locationContainer.style.display = "none";
+            if (locationInput) {
+                locationInput.required = false;
+                if (!locationInput.value.trim()) locationInput.value = "Online";
+            }
+        } else {
+            if (onlineContainer) onlineContainer.style.display = "none";
+            if (locationContainer) locationContainer.style.display = "block";
+            if (locationInput) {
+                locationInput.required = true;
+                if (locationInput.value === "Online") locationInput.value = "";
+            }
+        }
+    }
+
+    formatRadios.forEach(radio => radio.addEventListener("change", updateFormat));
+    updateFormat();
+}
+
 export function initFormSubmit(orgId, onSuccess) {
     const form = document.getElementById("activity-form");
     const statusMsg = document.getElementById("status-msg");
     if (!form) return;
 
     initEventModeSelector();
+    initFormatSelector();
 
     const params = new URLSearchParams(window.location.search);
     const editId = params.get("edit");
@@ -926,7 +968,15 @@ export function initFormSubmit(orgId, onSuccess) {
         const user = getUser();
         const title = sanitizeHtml(document.getElementById("title")?.value.trim());
         const description = sanitizeHtml(document.getElementById("description")?.value.trim());
-        const location = sanitizeHtml(document.getElementById("location")?.value.trim());
+        let location = sanitizeHtml(document.getElementById("location")?.value.trim());
+        const format = form.querySelector('input[name="format"]:checked')?.value || 'offline';
+        const meetingUrl = sanitizeHtml(document.getElementById("meetingUrl")?.value.trim() || "");
+        const meetingPlatform = document.getElementById("meetingPlatform")?.value || "other";
+
+        if (format === 'online' && !location) {
+            location = 'Online';
+        }
+
         const type = form.querySelector('input[name="type"]:checked')?.value;
         const hostName = sanitizeHtml(document.getElementById("hostName")?.value.trim());
         const nonPartnerHostName = sanitizeHtml(document.getElementById("nonPartnerHostName")?.value.trim());
@@ -937,7 +987,7 @@ export function initFormSubmit(orgId, onSuccess) {
         const thumbnailFile = document.getElementById("thumbnail-upload")?.files?.[0];
         const attachmentFiles = document.getElementById("attachment-upload")?.files;
 
-        if (!title || !description || !location || !type || !heldDate) {
+        if (!title || !description || (!location && format !== 'online') || !type || !heldDate) {
             setStatus("Please fill in all required fields.", true, statusMsg);
             return;
         }
@@ -949,7 +999,10 @@ export function initFormSubmit(orgId, onSuccess) {
         const formData = new FormData();
         formData.append("title", title);
         formData.append("description", description);
-        formData.append("location", location);
+        formData.append("location", location || "Online");
+        formData.append("format", format);
+        if (meetingUrl) formData.append("meetingUrl", meetingUrl);
+        formData.append("meetingPlatform", meetingPlatform);
         formData.append("type", type);
 
         const slotsVal = document.getElementById("slots")?.value?.trim();

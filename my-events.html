@@ -26,25 +26,40 @@
       </div>
     </div>
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 hidden" id="filter-bar">
-      <div class="inline-flex items-center p-1 bg-slate-100 rounded-xl gap-1 flex-wrap" role="tablist">
-        <button id="tab-all" role="tab" aria-selected="true" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-white text-[#1755ba] shadow-sm">
-          <span data-i18n="my_events.filter_all">All</span>
-          <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-[#1755ba]/10 text-[#1755ba]" id="count-all">0</span>
-        </button>
-        <button id="tab-upcoming" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
-          <span data-i18n="my_events.filter_upcoming">Upcoming</span>
-          <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-upcoming">0</span>
-        </button>
-        <button id="tab-checked-in" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
-          <span data-i18n="my_events.filter_checked_in">Checked In</span>
-          <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-checked-in">0</span>
-        </button>
-        <button id="tab-expired" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
-          <span data-i18n="my_events.filter_expired">Expired</span>
-          <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-expired">0</span>
-        </button>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 hidden" id="filter-bar">
+      <div class="flex items-center gap-3 flex-wrap">
+        <!-- Status Filter Tabs -->
+        <div class="inline-flex items-center p-1 bg-slate-100 rounded-xl gap-1 flex-wrap" role="tablist">
+          <button id="tab-all" role="tab" aria-selected="true" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-white text-[#1755ba] shadow-sm">
+            <span data-i18n="my_events.filter_all">All</span>
+            <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-[#1755ba]/10 text-[#1755ba]" id="count-all">0</span>
+          </button>
+          <button id="tab-upcoming" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+            <span data-i18n="my_events.filter_upcoming">Upcoming</span>
+            <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-upcoming">0</span>
+          </button>
+          <button id="tab-checked-in" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+            <span data-i18n="my_events.filter_checked_in">Checked In</span>
+            <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-checked-in">0</span>
+          </button>
+          <button id="tab-expired" role="tab" aria-selected="false" class="filter-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+            <span data-i18n="my_events.filter_expired">Expired</span>
+            <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600" id="count-expired">0</span>
+          </button>
+        </div>
+
+        <!-- Format Filter Combobox (All / Online / Offline) -->
+        <div class="relative min-w-[170px]">
+          <select id="ticketFormatSelect" class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-8 pr-8 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#1755ba] focus:ring-2 focus:ring-[#1755ba]/10 transition-all cursor-pointer shadow-xs">
+            <option value="all" data-i18n="my_events.format_filter_all">Tất cả hình thức (All)</option>
+            <option value="online" data-i18n="my_events.format_filter_online">Trực tuyến (Online)</option>
+            <option value="offline" data-i18n="my_events.format_filter_offline">Trực tiếp (Offline)</option>
+          </select>
+          <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[17px] pointer-events-none">devices</span>
+          <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[17px] pointer-events-none">expand_more</span>
+        </div>
       </div>
+
       <div class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
         <span class="material-symbols-outlined text-[16px] text-slate-400">confirmation_number</span>
         <span id="registered-summary-text">0 registered events</span>
@@ -122,6 +137,35 @@
       <a id="modal-download-btn" href="" download="ticket_qr.png" class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1755ba] hover:bg-[#1755ba]/90 text-white font-semibold text-sm shadow-md transition-all">
         <span class="material-symbols-outlined text-[18px]">download</span> <span data-i18n="my_events.download_qr">Download QR</span>
       </a>
+    </div>
+  </div>
+
+  <!-- Online PIN Check-in Modal -->
+  <div id="pin-modal" hidden class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300" role="dialog" aria-modal="true" aria-labelledby="pin-modal-title">
+    <div id="pin-modal-content" class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl scale-95 transition-transform duration-300 relative text-center">
+      <button id="close-pin-modal" type="button" aria-label="Close" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center mx-auto mb-3 shadow-xs">
+        <span class="material-symbols-outlined text-3xl">dialpad</span>
+      </div>
+      <h4 id="pin-modal-title" class="font-bold text-lg text-slate-900 mb-1" data-i18n="my_events.pin_modal_title">Điểm danh trực tuyến</h4>
+      <p class="text-xs text-slate-500 mb-4 line-clamp-1" id="pin-modal-event-name">Event Name</p>
+      
+      <p class="text-xs text-slate-600 mb-4 text-left leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100" data-i18n="my_events.pin_modal_desc">
+        Nhập mã PIN 6 chữ số hiển thị trên màn hình buổi họp trực tuyến để xác nhận bạn đã tham dự.
+      </p>
+
+      <form id="pin-checkin-form" onsubmit="return false;">
+        <div class="mb-4">
+          <input type="text" id="pin-input" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="000000" autocomplete="one-time-code" class="w-full text-center text-3xl font-mono font-bold tracking-[0.3em] px-4 py-3 bg-slate-50 border-2 border-slate-200 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 rounded-xl outline-none transition-all text-slate-800 placeholder:text-slate-300" required />
+        </div>
+        <div id="pin-error-msg" class="hidden text-xs text-rose-600 font-medium mb-3"></div>
+        <button type="submit" id="submit-pin-btn" class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+          <span class="material-symbols-outlined text-[18px]">verified</span>
+          <span data-i18n="my_events.confirm_checkin">Xác nhận điểm danh</span>
+        </button>
+      </form>
     </div>
   </div>
 

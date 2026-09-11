@@ -7,7 +7,7 @@ import { loadNavbar } from "../components/navbar.js";
 import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
 import { get, post, put, del, uploadFormData } from "../api/client.js";
 import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager, transferOwnership, uploadOrgAvatar } from "../api/organizations.js";
-import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance, importExcelAttendance, addParticipantsBatch, updateExternalParticipant, deleteExternalParticipant, removeParticipant } from "../api/attendance.js";
+import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance, importExcelAttendance, addParticipantsBatch, updateExternalParticipant, deleteExternalParticipant, removeParticipant, toggleOnlineCheckin, getOnlineCheckinStatus } from "../api/attendance.js";
 import { getEventCertificates, issueCertificates, revokeCertificate, restoreCertificate } from "../api/certificates.js";
 import { getHostReviews, updateActivity } from "../api/activities.js";
 import { getOrgAnalytics, getEventAnalytics, downloadOrgExcelReport, downloadEventExcelReport } from "../api/analytics.js";
@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initAddManager();
   initQRScan();
   initAttendanceButtons();
+  initOnlineCheckinHostModal();
   initIssueCerts();
   initCreateEvent();
   initEventsTabs();
@@ -98,7 +99,7 @@ async function loadOrgs() {
   try {
     const data = isAdminUser() ? await getAllOrganizations() : await getMyOrganizations();
     currentOrgs = data.organizations || [];
-    
+
     renderOrgDropdown();
     if (currentOrgs.length === 1) {
       const singleOrg = currentOrgs[0];
@@ -134,7 +135,7 @@ function renderOrgDropdown() {
   }
   list.innerHTML = currentOrgs.map(o => {
     const ownerName = o.owner?.fullname || o.owner?.email || "Unknown";
-    const avatarContent = o.avatar 
+    const avatarContent = o.avatar
       ? `<img src="${o.avatar}" class="w-full h-full object-cover" alt="${o.name}" onerror="this.outerHTML='<span class=\\'font-bold text-sm text-primary\\'>${(o.name?.[0] || '?').toUpperCase()}</span>'" />`
       : `<span class="font-bold text-sm text-primary">${(o.name?.[0] || "?").toUpperCase()}</span>`;
     return `
@@ -274,7 +275,7 @@ async function selectOrg(orgId) {
 function checkOrgDisabledState(org) {
   const isDisabled = org && (org.isActive === false || org.status === 'disabled');
   let banner = document.getElementById("org-disabled-warning-banner");
-  
+
   if (isDisabled) {
     if (!banner) {
       banner = document.createElement("div");
@@ -600,9 +601,9 @@ function renderEventsTable() {
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-[#ecedfa] overflow-hidden shrink-0">
             ${e.thumbnail
-              ? `<img src="${e.thumbnail}" class="w-full h-full object-cover" alt="" />`
-              : `<div class="w-full h-full flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-sm"></i></div>`
-            }
+        ? `<img src="${e.thumbnail}" class="w-full h-full object-cover" alt="" />`
+        : `<div class="w-full h-full flex items-center justify-center text-[#94a3b8]"><i class="fa-regular fa-image text-sm"></i></div>`
+      }
           </div>
           <div class="min-w-0">
             <p class="font-semibold text-[#191b22] truncate max-w-[220px]" title="${e.title || ''}">${e.title}</p>
@@ -697,7 +698,7 @@ async function openEventDetailModal(eventId) {
   try {
     const res = await get(`/events/${eventId}`);
     if (res?.event) event = { ...event, ...res.event };
-  } catch (e) {}
+  } catch (e) { }
 
   const heldDate = formatDate(event.heldDate);
   const heldDateEnd = event.heldDateEnd ? formatDate(event.heldDateEnd) : null;
@@ -731,9 +732,9 @@ async function openEventDetailModal(eventId) {
     <!-- Hero Banner -->
     <div class="relative h-[220px] sm:h-[260px] w-full overflow-hidden bg-slate-900 group">
       ${event.thumbnail
-        ? `<img src="${event.thumbnail}" class="w-full h-full object-cover opacity-85 transition-transform duration-700 ease-out group-hover:scale-105" alt="${event.title}" />`
-        : `<div class="w-full h-full bg-slate-900 flex items-center justify-center"><i class="fa-regular fa-image text-6xl text-white/15"></i></div>`
-      }
+      ? `<img src="${event.thumbnail}" class="w-full h-full object-cover opacity-85 transition-transform duration-700 ease-out group-hover:scale-105" alt="${event.title}" />`
+      : `<div class="w-full h-full bg-slate-900 flex items-center justify-center"><i class="fa-regular fa-image text-6xl text-white/15"></i></div>`
+    }
       <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-black/30"></div>
 
       <!-- Top Action Floating Bar -->
@@ -752,9 +753,9 @@ async function openEventDetailModal(eventId) {
       <!-- Hero Bottom Badges & Category -->
       <div class="absolute bottom-4 left-4 right-4 z-10 flex flex-wrap items-center gap-2">
         ${event.status === "published"
-          ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Published</span>`
-          : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Draft</span>`
-        }
+      ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Published</span>`
+      : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Draft</span>`
+    }
         ${expired ? `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/50 text-rose-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider">Expired</span>` : ''}
         <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/15 border border-white/20 text-white backdrop-blur-md text-xs font-medium">${categoryName}</span>
       </div>
@@ -1057,7 +1058,7 @@ function saveEventSelection(sectionKey, eventId, events, hiddenInputId) {
     if (hiddenInputId) {
       localStorage.setItem(`${DIALOG_STATE_KEY_PREFIX}${hiddenInputId}`, JSON.stringify(payload));
     }
-  } catch (_) {}
+  } catch (_) { }
 }
 
 function restoreDialogState(hiddenInputId, events, sectionKey, allowAllOption = false) {
@@ -1201,14 +1202,14 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
   const dialogTitle = sectionKey === "attendance"
     ? "Select Event for Attendance"
     : sectionKey === "cert"
-    ? "Select Event for Certificates"
-    : sectionKey === "participant"
-    ? "Select Event for Participants"
-    : sectionKey === "analytics"
-    ? "Filter Reviews by Event"
-    : sectionKey === "analyticsReport"
-    ? "Select Event for Analytics Report"
-    : "Select Event";
+      ? "Select Event for Certificates"
+      : sectionKey === "participant"
+        ? "Select Event for Participants"
+        : sectionKey === "analytics"
+          ? "Filter Reviews by Event"
+          : sectionKey === "analyticsReport"
+            ? "Select Event for Analytics Report"
+            : "Select Event";
 
   const orgName = currentOrgs.find(o => o._id === currentOrgId)?.name || "Your Organization";
 
@@ -1371,8 +1372,8 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
         </div>
         <div class="shrink-0 ml-2">
           ${isAllSelected
-            ? '<div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-xs"><span class="material-symbols-outlined text-[16px] font-bold">check</span></div>'
-            : '<div class="w-6 h-6 rounded-full border-2 border-slate-200"></div>'}
+          ? '<div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-xs"><span class="material-symbols-outlined text-[16px] font-bold">check</span></div>'
+          : '<div class="w-6 h-6 rounded-full border-2 border-slate-200"></div>'}
         </div>
       `;
       allCard.addEventListener("click", () => {
@@ -1429,8 +1430,8 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
         </div>
         <div class="shrink-0 ml-2">
           ${isSelected
-            ? '<div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-xs"><span class="material-symbols-outlined text-[16px] font-bold">check</span></div>'
-            : '<div class="w-6 h-6 rounded-full border-2 border-slate-200"></div>'}
+          ? '<div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-xs"><span class="material-symbols-outlined text-[16px] font-bold">check</span></div>'
+          : '<div class="w-6 h-6 rounded-full border-2 border-slate-200"></div>'}
         </div>
       `;
 
@@ -1618,8 +1619,8 @@ function renderParticipantsTable(list) {
         <td class="py-3.5 px-4">
           <div class="flex items-center gap-3">
             ${p.avatar
-              ? `<img src="${p.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0" />`
-              : `<div class="w-8 h-8 rounded-full ${p.isExternal ? 'bg-amber-100 text-amber-700' : 'bg-[#dae1ff] text-primary'} flex items-center justify-center text-xs font-bold shrink-0">${(p.fullname?.[0] || "?").toUpperCase()}</div>`}
+        ? `<img src="${p.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0" />`
+        : `<div class="w-8 h-8 rounded-full ${p.isExternal ? 'bg-amber-100 text-amber-700' : 'bg-[#dae1ff] text-primary'} flex items-center justify-center text-xs font-bold shrink-0">${(p.fullname?.[0] || "?").toUpperCase()}</div>`}
             <div>
               <span class="font-semibold text-[#191b22] block">${p.fullname || "Unknown"}</span>
             </div>
@@ -1651,11 +1652,11 @@ function renderParticipantsTable(list) {
       const name = decodeURIComponent(btn.dataset.name || "this participant");
       const eventId = document.getElementById("participant-event-select")?.value;
       if (!eventId || !id) return;
-      
+
       const confirmMsg = isExt
         ? `Remove guest "${name}" from this event?`
         : `Remove "${name}" from this event? This will revoke their QR ticket and cancel participation.`;
-      
+
       const confirmed = await showConfirmDialog({
         titleKey: "common.delete_confirm_title",
         message: confirmMsg,
@@ -2273,31 +2274,31 @@ function renderPdfPreviewDoc() {
     return `
       <tr class="${rowBg} border-b border-slate-200">
         ${pdfExportColumns.map(col => {
-          const val = getParticipantColValue(p, col, idx, lang);
-          const key = col.key || col.id;
-          const isStt = col.id === "stt" || key === "stt";
-          const isStudentId = col.id === "studentId" || key === "studentId";
-          const isFullname = col.id === "fullname" || key === "fullname";
-          const isEmail = col.id === "email" || key === "email";
-          const isCompact = isStt || key === "class" || key === "phoneNo" || key === "status";
+      const val = getParticipantColValue(p, col, idx, lang);
+      const key = col.key || col.id;
+      const isStt = col.id === "stt" || key === "stt";
+      const isStudentId = col.id === "studentId" || key === "studentId";
+      const isFullname = col.id === "fullname" || key === "fullname";
+      const isEmail = col.id === "email" || key === "email";
+      const isCompact = isStt || key === "class" || key === "phoneNo" || key === "status";
 
-          let tdClass = "py-1.5 px-2.5 text-xs border-r border-slate-200 last:border-r-0";
-          if (isStt) {
-            tdClass += " text-center text-slate-500 font-mono w-12 shrink-0";
-          } else if (isStudentId) {
-            tdClass += " font-mono font-semibold text-slate-800 whitespace-nowrap shrink-0";
-          } else if (isFullname) {
-            tdClass += " font-medium text-slate-900";
-          } else if (isEmail) {
-            tdClass += " text-slate-600 truncate max-w-[200px]";
-          } else if (isCompact) {
-            tdClass += " text-slate-700 whitespace-nowrap shrink-0";
-          } else {
-            tdClass += " text-slate-700";
-          }
+      let tdClass = "py-1.5 px-2.5 text-xs border-r border-slate-200 last:border-r-0";
+      if (isStt) {
+        tdClass += " text-center text-slate-500 font-mono w-12 shrink-0";
+      } else if (isStudentId) {
+        tdClass += " font-mono font-semibold text-slate-800 whitespace-nowrap shrink-0";
+      } else if (isFullname) {
+        tdClass += " font-medium text-slate-900";
+      } else if (isEmail) {
+        tdClass += " text-slate-600 truncate max-w-[200px]";
+      } else if (isCompact) {
+        tdClass += " text-slate-700 whitespace-nowrap shrink-0";
+      } else {
+        tdClass += " text-slate-700";
+      }
 
-          return `<td class="${tdClass}">${escapePdfHtml(val)}</td>`;
-        }).join("")}
+      return `<td class="${tdClass}">${escapePdfHtml(val)}</td>`;
+    }).join("")}
       </tr>
     `;
   }).join("");
@@ -3069,12 +3070,12 @@ function initAddParticipantsModal() {
       const res = await addParticipantsBatch(eventId, nonEmpties);
       const summary = res.summary || {};
       let msg = res.message || "Participants processed successfully!";
-      
+
       const parts = [];
       if (summary.totalRows !== undefined) parts.push(`• Total processed: ${summary.totalRows}`);
       if (summary.matchedCount !== undefined) parts.push(`• SpringWave accounts matched (Member): ${summary.matchedCount}`);
       if (summary.externalCount !== undefined) parts.push(`• External guests created (Guest): ${summary.externalCount}`);
-      
+
       if (parts.length) {
         msg += `\n\n` + parts.join("\n");
       }
@@ -3249,7 +3250,7 @@ async function processBackgroundQueue() {
   isProcessingQueue = false;
 
   if (attendanceCache.eventId) {
-    loadAttendance(attendanceCache.eventId).catch(() => {});
+    loadAttendance(attendanceCache.eventId).catch(() => { });
   }
 }
 
@@ -3315,8 +3316,8 @@ function renderAttendanceTableRows(records, isPastEvent) {
         <td class="py-3.5 px-4">
           <div class="flex items-center gap-3">
             ${user.avatar
-              ? `<img src="${user.avatar}" class="w-8 h-8 rounded-full object-cover" />`
-              : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(user.fullname?.[0] || "?").toUpperCase()}</div>`}
+        ? `<img src="${user.avatar}" class="w-8 h-8 rounded-full object-cover" />`
+        : `<div class="w-8 h-8 rounded-full bg-[#dae1ff] flex items-center justify-center text-primary text-xs font-bold">${(user.fullname?.[0] || "?").toUpperCase()}</div>`}
             <span class="font-semibold">${user.fullname || "Unknown"}</span>
           </div>
         </td>
@@ -3325,12 +3326,12 @@ function renderAttendanceTableRows(records, isPastEvent) {
         <td class="py-3.5 px-4 text-[#64748b] hidden sm:table-cell">${r.checkedInAt ? formatDate(r.checkedInAt) : "—"}</td>
         <td class="py-3.5 px-4 text-right">
           ${isPastEvent
-            ? (isCheckedIn
-                ? `<span class="text-sm text-slate-400 font-semibold cursor-not-allowed select-none">Mark Absent</span>`
-                : `<span class="text-sm text-slate-400 font-semibold cursor-not-allowed select-none">Check In</span>`)
-            : (isCheckedIn
-                ? `<button class="manual-checkout-btn text-sm text-red-600 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r._id}">Mark Absent</button>`
-                : `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r._id}">Check In</button>`)}
+        ? (isCheckedIn
+          ? `<span class="text-sm text-slate-400 font-semibold cursor-not-allowed select-none">Mark Absent</span>`
+          : `<span class="text-sm text-slate-400 font-semibold cursor-not-allowed select-none">Check In</span>`)
+        : (isCheckedIn
+          ? `<button class="manual-checkout-btn text-sm text-red-600 font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r._id}">Mark Absent</button>`
+          : `<button class="manual-checkin-btn text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer" data-user-id="${user._id || r._id}">Check In</button>`)}
         </td>
       </tr>
     `;
@@ -3541,7 +3542,7 @@ function initQRScan() {
     }
     return nativeBarcodeDetector;
   }
-  getNativeBarcodeDetector().catch(() => {});
+  getNativeBarcodeDetector().catch(() => { });
 
   // ZXing fallback with TRY_HARDER hint enabled for 360-degree omnidirectional decoding
   let zxingReader = null;
@@ -3567,7 +3568,7 @@ function initQRScan() {
       return null;
     }
   }
-  getZXingReader().catch(() => {});
+  getZXingReader().catch(() => { });
 
   let scanType = 'qr'; // 'qr' | 'barcode' — updated dynamically per scan result
 
@@ -3665,11 +3666,10 @@ function initQRScan() {
       if (formatLabel) {
         const isBarcode = scanType === 'barcode';
         formatLabel.textContent = isBarcode ? t("attendance.format_barcode") : t("attendance.format_qr");
-        formatLabel.className = `text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${
-          isBarcode
+        formatLabel.className = `text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${isBarcode
             ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
             : 'bg-slate-100 text-slate-600 border-slate-200'
-        }`;
+          }`;
       }
 
       if (nameEl) nameEl.textContent = user.fullname || "Unknown Attendee";
@@ -3757,9 +3757,9 @@ function initQRScan() {
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-7 h-7 rounded-full overflow-hidden bg-slate-100 flex-shrink-0 flex items-center justify-center border border-slate-200">
             ${item.avatar
-              ? `<img src="${item.avatar}" class="w-full h-full object-cover" />`
-              : `<span class="font-bold text-[10px] text-slate-500">${(item.fullname?.[0] || "?").toUpperCase()}</span>`
-            }
+        ? `<img src="${item.avatar}" class="w-full h-full object-cover" />`
+        : `<span class="font-bold text-[10px] text-slate-500">${(item.fullname?.[0] || "?").toUpperCase()}</span>`
+      }
           </div>
           <div class="min-w-0">
             <p class="font-semibold text-slate-800 truncate">${item.fullname}</p>
@@ -3950,7 +3950,7 @@ function initQRScan() {
                 onScanSuccess(result.getText());
                 return;
               }
-            } catch (e) {}
+            } catch (e) { }
           }
 
           // 3. Fast jsQR multi-angle fallback
@@ -3990,7 +3990,7 @@ function initQRScan() {
             cameraSelect.value = cameraId;
           }
         }
-      } catch {}
+      } catch { }
 
       const constraints = {
         video: cameraId ? { deviceId: { exact: cameraId } } : { facingMode: { ideal: "environment" } }
@@ -4010,9 +4010,9 @@ function initQRScan() {
         if (track && track.applyConstraints) {
           await track.applyConstraints({
             advanced: [{ focusMode: "continuous" }]
-          }).catch(() => {});
+          }).catch(() => { });
         }
-      } catch {}
+      } catch { }
 
       isScanning = true;
       requestAnimationFrame(scanFrame);
@@ -4035,7 +4035,7 @@ function initQRScan() {
           isMirrored = isFrontCamera;
           updateVideoMirrorStyle();
         }
-      } catch {}
+      } catch { }
 
       setupCameraCapabilities();
     } catch (err) {
@@ -4048,11 +4048,11 @@ function initQRScan() {
     if (activeStream) {
       try {
         activeStream.getTracks().forEach(t => t.stop());
-      } catch {}
+      } catch { }
       activeStream = null;
     }
     if (zxingReader && typeof zxingReader.reset === 'function') {
-      try { zxingReader.reset(); } catch {}
+      try { zxingReader.reset(); } catch { }
     }
     const video = document.getElementById("qr-video");
     if (video) {
@@ -4303,6 +4303,186 @@ function initAttendanceButtons() {
   }
 }
 
+function initOnlineCheckinHostModal() {
+  const openModalBtn = document.getElementById("open-online-checkin-modal-btn");
+  const overlay = document.getElementById("online-checkin-host-modal");
+  const backdrop = document.getElementById("online-checkin-host-backdrop");
+  const closeBtn = document.getElementById("online-checkin-host-close");
+  const eventTitleEl = document.getElementById("online-host-event-title");
+  const statusBadgeEl = document.getElementById("online-host-status-badge");
+  const closedStateEl = document.getElementById("online-host-closed-state");
+  const openStateEl = document.getElementById("online-host-open-state");
+  const openBtn = document.getElementById("online-host-open-btn");
+  const closeGateBtn = document.getElementById("online-host-close-btn");
+  const durationSelect = document.getElementById("online-host-duration");
+  const pinDisplayEl = document.getElementById("online-host-pin-display");
+  const copyBtn = document.getElementById("online-host-copy-btn");
+  const copyTextEl = document.getElementById("online-host-copy-text");
+  const countdownEl = document.getElementById("online-host-countdown");
+
+  if (!openModalBtn || !overlay) return;
+
+  let countdownInterval = null;
+  let currentActiveEventId = null;
+
+  function stopCountdown() {
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+  }
+
+  function startCountdown(expiresAt) {
+    stopCountdown();
+    if (!expiresAt || !countdownEl) return;
+
+    function update() {
+      const remainingMs = new Date(expiresAt).getTime() - Date.now();
+      if (remainingMs <= 0) {
+        countdownEl.textContent = "00:00 (Hết hạn)";
+        stopCountdown();
+        renderState({ isOpen: false });
+        return;
+      }
+      const totalSec = Math.floor(remainingMs / 1000);
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      countdownEl.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+
+    update();
+    countdownInterval = setInterval(update, 1000);
+  }
+
+  function renderState(onlineCheckin) {
+    const isOpen = Boolean(onlineCheckin && onlineCheckin.isOpen && onlineCheckin.expiresAt && (new Date() < new Date(onlineCheckin.expiresAt)));
+
+    if (isOpen) {
+      closedStateEl?.classList.add("hidden");
+      openStateEl?.classList.remove("hidden");
+      if (statusBadgeEl) {
+        statusBadgeEl.textContent = t("org_dashboard.gate_status_open", "Đang mở");
+        statusBadgeEl.className = "px-3 py-1 rounded-full text-xs font-bold shrink-0 bg-emerald-100 text-emerald-700 border border-emerald-300";
+      }
+      if (pinDisplayEl) {
+        pinDisplayEl.textContent = onlineCheckin.code || "------";
+      }
+      startCountdown(onlineCheckin.expiresAt);
+    } else {
+      stopCountdown();
+      openStateEl?.classList.add("hidden");
+      closedStateEl?.classList.remove("hidden");
+      if (statusBadgeEl) {
+        statusBadgeEl.textContent = t("org_dashboard.gate_status_closed", "Đang đóng");
+        statusBadgeEl.className = "px-3 py-1 rounded-full text-xs font-bold shrink-0 bg-slate-100 text-slate-600 border border-slate-200";
+      }
+    }
+  }
+
+  async function openModal() {
+    const eventId = document.getElementById("attendance-event-select")?.value;
+    if (!eventId) {
+      alert(t("org_dashboard.select_event_first", "Select an event first"));
+      return;
+    }
+    currentActiveEventId = eventId;
+
+    const event = currentEvents.find(e => (e._id || e.id) === eventId);
+    if (eventTitleEl) {
+      eventTitleEl.textContent = event?.title || `Event #${eventId}`;
+    }
+
+    overlay.removeAttribute("hidden");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+
+    // Show initial closed state while loading
+    renderState({ isOpen: false });
+
+    try {
+      const res = await getOnlineCheckinStatus(eventId);
+      if (res && res.onlineCheckin) {
+        renderState(res.onlineCheckin);
+      }
+    } catch (err) {
+      console.error("Failed to load online checkin status:", err);
+    }
+  }
+
+  function closeModal() {
+    stopCountdown();
+    overlay.classList.remove("active");
+    document.body.style.overflow = "";
+    setTimeout(() => overlay.setAttribute("hidden", ""), 300);
+  }
+
+  openModalBtn.addEventListener("click", openModal);
+  backdrop?.addEventListener("click", closeModal);
+  closeBtn?.addEventListener("click", closeModal);
+
+  openBtn?.addEventListener("click", async () => {
+    if (!currentActiveEventId) return;
+    const durationMinutes = parseInt(durationSelect?.value || "15", 10);
+    const originalText = openBtn.innerHTML;
+    try {
+      openBtn.disabled = true;
+      openBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Đang khởi tạo...</span>`;
+      const res = await toggleOnlineCheckin(currentActiveEventId, { isOpen: true, durationMinutes });
+      if (res && res.onlineCheckin) {
+        renderState(res.onlineCheckin);
+      }
+    } catch (err) {
+      alert(err.message || "Failed to open online check-in gate");
+    } finally {
+      openBtn.disabled = false;
+      openBtn.innerHTML = originalText;
+    }
+  });
+
+  closeGateBtn?.addEventListener("click", async () => {
+    if (!currentActiveEventId) return;
+    const confirmed = await showConfirmDialog({
+      titleKey: "common.confirm_title",
+      messageKey: "org_dashboard.close_gate_confirm",
+      confirmTextKey: "common.confirm_btn",
+      type: "danger"
+    });
+    if (!confirmed) return;
+
+    const originalText = closeGateBtn.innerHTML;
+    try {
+      closeGateBtn.disabled = true;
+      closeGateBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Đang đóng...</span>`;
+      const res = await toggleOnlineCheckin(currentActiveEventId, { isOpen: false });
+      if (res && res.onlineCheckin) {
+        renderState(res.onlineCheckin);
+      }
+    } catch (err) {
+      alert(err.message || "Failed to close online check-in gate");
+    } finally {
+      closeGateBtn.disabled = false;
+      closeGateBtn.innerHTML = originalText;
+    }
+  });
+
+  copyBtn?.addEventListener("click", async () => {
+    const code = pinDisplayEl?.textContent?.trim();
+    if (!code || code === "------") return;
+    try {
+      await navigator.clipboard.writeText(code);
+      if (copyTextEl) {
+        const prev = copyTextEl.textContent;
+        copyTextEl.textContent = t("common.copied", "Đã sao chép!");
+        setTimeout(() => {
+          copyTextEl.textContent = prev;
+        }, 2000);
+      }
+    } catch (e) {
+      console.error("Clipboard copy failed:", e);
+    }
+  });
+}
+
 // ─── Certificates ───
 
 let selectedCertEventId = null;
@@ -4388,14 +4568,14 @@ function initCertBackgroundManager() {
       formData.append("certificateBackground", file);
       const res = await updateActivity(selectedCertEventId, formData);
       const updatedEv = res.event || res.activity || {};
-      
+
       const newBgUrl = updatedEv.certificateBackground || URL.createObjectURL(file);
       const idx = currentEvents.findIndex(ev => ev._id === selectedCertEventId);
       if (idx !== -1) {
         currentEvents[idx].certificateBackground = newBgUrl;
         renderCertBgPanel(currentEvents[idx]);
       }
-      
+
       await showAlertDialog({
         titleKey: "org_dashboard.cert_designer.save_success_title",
         messageKey: "org_dashboard.cert_designer.bg_upload_success",
@@ -4999,13 +5179,12 @@ function initCertLayoutDesigner() {
 
         const row = document.createElement("div");
         row.dataset.layerKey = key;
-        row.className = `layer-item-row group flex items-center justify-between p-2 rounded-xl border text-xs font-semibold spring-ease cursor-pointer ${
-          isCurrent
+        row.className = `layer-item-row group flex items-center justify-between p-2 rounded-xl border text-xs font-semibold spring-ease cursor-pointer ${isCurrent
             ? "border-primary bg-primary/5 shadow-2xs ring-1 ring-primary/30"
             : isHidden
               ? "border-slate-200 bg-slate-50/50 opacity-60 hover:opacity-100"
               : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70"
-        }`;
+          }`;
 
         let textSnippet = field.text ? field.text.replace(/\n/g, " ").trim() : t("org_dashboard.cert_designer.field_customText", "Văn bản tùy chỉnh");
         if (textSnippet.length > 20) textSnippet = textSnippet.slice(0, 18) + "...";
@@ -5087,13 +5266,12 @@ function initCertLayoutDesigner() {
 
       const row = document.createElement("div");
       row.dataset.layerKey = key;
-      row.className = `layer-item-row group flex items-center justify-between p-2 rounded-xl border text-xs font-semibold spring-ease cursor-pointer ${
-        isCurrent
+      row.className = `layer-item-row group flex items-center justify-between p-2 rounded-xl border text-xs font-semibold spring-ease cursor-pointer ${isCurrent
           ? "border-primary bg-primary/5 shadow-2xs ring-1 ring-primary/30"
           : isHidden
             ? "border-slate-200 bg-slate-50/50 opacity-60 hover:opacity-100"
             : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70"
-      }`;
+        }`;
 
       row.innerHTML = `
         <div class="flex items-center gap-2 min-w-0 flex-1 pr-1.5 pointer-events-none">
@@ -5585,7 +5763,7 @@ function initCertLayoutDesigner() {
       snapBadge?.classList.add("hidden");
       try {
         if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
-      } catch {}
+      } catch { }
       el.classList.remove("opacity-90", "scale-105", "shadow-xl");
 
       const finalX = currentConfig.fields[fieldKey]?.x;
@@ -6342,10 +6520,10 @@ async function loadCertificates(eventId) {
 
       const actionButtons = isRevoked
         ? (isOwner
-            ? `<button class="restore-cert-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${userName}">
+          ? `<button class="restore-cert-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 cursor-pointer spring-ease active:scale-95" data-cert-id="${c._id}" data-user-name="${userName}">
                  <i class="fa-solid fa-rotate-left"></i> Restore
                </button>`
-            : `<span class="text-xs text-slate-400 italic">—</span>`)
+          : `<span class="text-xs text-slate-400 italic">—</span>`)
         : `<div class="flex items-center justify-end gap-2">
              <a href="/certificate.html?code=${c.certificateCode}" target="_blank" class="p-1.5 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-50 transition-colors text-xs font-semibold" title="View Certificate">
                <i class="fa-solid fa-arrow-up-right-from-square"></i>
@@ -6645,7 +6823,7 @@ function loadSettings(org) {
   document.getElementById("settings-linkedin").value = org.socialLinks?.linkedin || "";
   document.getElementById("settings-instagram").value = org.socialLinks?.instagram || "";
   document.getElementById("settings-twitter").value = org.socialLinks?.twitter || "";
-  
+
   const universityVal = org.university?._id || org.university || "";
   populateOrgUniversitySelect("settings-university", universityVal).catch(e =>
     console.error("Failed to populate settings university:", e)
@@ -6979,16 +7157,16 @@ async function loadReviews() {
     initReviewRatingsEventSelect();
     const data = await getHostReviews(currentOrgId);
     const reviews = data.reviews || [];
-    
+
     // Filter reviews to only show those for the currently selected org
     const orgReviews = reviews.filter(r => r.organization === currentOrgId || r.organization?._id === currentOrgId);
-    
+
     // Calculate total org summary
     let orgTotalRating = 0;
     orgReviews.forEach(r => { orgTotalRating += r.rating; });
     orgTotalAvgRating = orgReviews.length > 0 ? (orgTotalRating / orgReviews.length).toFixed(1) : "0.0";
     orgTotalReviewsCount = orgReviews.length;
-    
+
     const avgEl = document.getElementById("review-avg-rating");
     const countEl = document.getElementById("review-total-count");
     if (avgEl) avgEl.textContent = orgTotalAvgRating;
@@ -6996,18 +7174,18 @@ async function loadReviews() {
 
     // Fetch org events to show all organized events
     const { events: rawEvents = [] } = await getOrgActivities(currentOrgId);
-    
+
     // Map events with their reviews
     allEventRatingsCache = rawEvents.map(event => {
-        const evReviews = orgReviews.filter(r => r.event?._id === event._id || r.event === event._id);
-        const totalScore = evReviews.reduce((sum, r) => sum + r.rating, 0);
-        const avg = evReviews.length > 0 ? (totalScore / evReviews.length).toFixed(1) : "0.0";
-        return {
-            ...event,
-            reviews: evReviews,
-            averageRating: avg,
-            reviewCount: evReviews.length
-        };
+      const evReviews = orgReviews.filter(r => r.event?._id === event._id || r.event === event._id);
+      const totalScore = evReviews.reduce((sum, r) => sum + r.rating, 0);
+      const avg = evReviews.length > 0 ? (totalScore / evReviews.length).toFixed(1) : "0.0";
+      return {
+        ...event,
+        reviews: evReviews,
+        averageRating: avg,
+        reviewCount: evReviews.length
+      };
     }).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
     const selectedEventId = document.getElementById("analytics-event-select")?.value;
@@ -7020,30 +7198,30 @@ async function loadReviews() {
 }
 
 function renderEventRatingsPage(page) {
-    const list = document.getElementById("events-ratings-list");
-    const pagination = document.getElementById("events-ratings-pagination");
-    const prevBtn = document.getElementById("events-ratings-prev");
-    const nextBtn = document.getElementById("events-ratings-next");
-    const pageInfo = document.getElementById("events-ratings-page-info");
+  const list = document.getElementById("events-ratings-list");
+  const pagination = document.getElementById("events-ratings-pagination");
+  const prevBtn = document.getElementById("events-ratings-prev");
+  const nextBtn = document.getElementById("events-ratings-next");
+  const pageInfo = document.getElementById("events-ratings-page-info");
 
-    if (!list) return;
+  if (!list) return;
 
-    if (globalEventRatings.length === 0) {
-        list.innerHTML = `<div class="p-8 text-center text-gray-500 italic">No events found for this organization.</div>`;
-        pagination.classList.add("hidden");
-        return;
-    }
+  if (globalEventRatings.length === 0) {
+    list.innerHTML = `<div class="p-8 text-center text-gray-500 italic">No events found for this organization.</div>`;
+    pagination.classList.add("hidden");
+    return;
+  }
 
-    const totalPages = Math.ceil(globalEventRatings.length / EVENTS_RATINGS_PER_PAGE);
-    if (page < 1) page = 1;
-    if (page > totalPages) page = totalPages;
-    currentEventRatingsPage = page;
+  const totalPages = Math.ceil(globalEventRatings.length / EVENTS_RATINGS_PER_PAGE);
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
+  currentEventRatingsPage = page;
 
-    const startIdx = (page - 1) * EVENTS_RATINGS_PER_PAGE;
-    const endIdx = startIdx + EVENTS_RATINGS_PER_PAGE;
-    const pageItems = globalEventRatings.slice(startIdx, endIdx);
+  const startIdx = (page - 1) * EVENTS_RATINGS_PER_PAGE;
+  const endIdx = startIdx + EVENTS_RATINGS_PER_PAGE;
+  const pageItems = globalEventRatings.slice(startIdx, endIdx);
 
-    list.innerHTML = pageItems.map(e => `
+  list.innerHTML = pageItems.map(e => `
         <div class="p-6 hover:bg-gray-50/50 transition-colors flex items-center justify-between gap-4 cursor-pointer" onclick="openReviewDetailsModal('${e._id}')">
             <div class="flex items-center gap-4 flex-1 min-w-0">
                 <div class="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
@@ -7066,35 +7244,35 @@ function renderEventRatingsPage(page) {
         </div>
     `).join("");
 
-    if (totalPages > 1) {
-        pagination.classList.remove("hidden");
-        pageInfo.textContent = `Page ${page} of ${totalPages}`;
-        
-        prevBtn.disabled = page === 1;
-        nextBtn.disabled = page === totalPages;
+  if (totalPages > 1) {
+    pagination.classList.remove("hidden");
+    pageInfo.textContent = `Page ${page} of ${totalPages}`;
 
-        prevBtn.onclick = () => renderEventRatingsPage(page - 1);
-        nextBtn.onclick = () => renderEventRatingsPage(page + 1);
-    } else {
-        pagination.classList.add("hidden");
-    }
+    prevBtn.disabled = page === 1;
+    nextBtn.disabled = page === totalPages;
+
+    prevBtn.onclick = () => renderEventRatingsPage(page - 1);
+    nextBtn.onclick = () => renderEventRatingsPage(page + 1);
+  } else {
+    pagination.classList.add("hidden");
+  }
 }
 
-window.openReviewDetailsModal = function(eventId) {
-    const eventData = globalEventRatings.find(e => e._id === eventId);
-    if (!eventData) return;
+window.openReviewDetailsModal = function (eventId) {
+  const eventData = globalEventRatings.find(e => e._id === eventId);
+  if (!eventData) return;
 
-    const modal = document.getElementById("review-details-modal");
-    const content = document.getElementById("review-details-content");
-    const title = document.getElementById("review-modal-title");
-    const list = document.getElementById("review-modal-list");
+  const modal = document.getElementById("review-details-modal");
+  const content = document.getElementById("review-details-content");
+  const title = document.getElementById("review-modal-title");
+  const list = document.getElementById("review-modal-list");
 
-    title.textContent = `Reviews: ${eventData.title}`;
+  title.textContent = `Reviews: ${eventData.title}`;
 
-    if (!eventData.reviews || eventData.reviews.length === 0) {
-        list.innerHTML = `<div class="py-12 text-center text-gray-500 italic">No reviews yet for this event.</div>`;
-    } else {
-        list.innerHTML = eventData.reviews.map(r => `
+  if (!eventData.reviews || eventData.reviews.length === 0) {
+    list.innerHTML = `<div class="py-12 text-center text-gray-500 italic">No reviews yet for this event.</div>`;
+  } else {
+    list.innerHTML = eventData.reviews.map(r => `
             <div class="py-5 border-b border-gray-100 last:border-0 flex items-start gap-4">
                 <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold flex-shrink-0">
                     ${(r.user?.fullname || r.user?.username || '?').charAt(0).toUpperCase()}
@@ -7111,36 +7289,36 @@ window.openReviewDetailsModal = function(eventId) {
                 </div>
             </div>
         `).join("");
-    }
+  }
 
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-    // trigger animation
-    setTimeout(() => {
-        content.classList.remove("scale-95", "opacity-0");
-        content.classList.add("scale-100", "opacity-100");
-    }, 10);
-    document.body.style.overflow = "hidden";
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  // trigger animation
+  setTimeout(() => {
+    content.classList.remove("scale-95", "opacity-0");
+    content.classList.add("scale-100", "opacity-100");
+  }, 10);
+  document.body.style.overflow = "hidden";
 }
 
 function closeReviewDetailsModal() {
-    const modal = document.getElementById("review-details-modal");
-    const content = document.getElementById("review-details-content");
-    if (!modal || modal.classList.contains("hidden")) return;
+  const modal = document.getElementById("review-details-modal");
+  const content = document.getElementById("review-details-content");
+  if (!modal || modal.classList.contains("hidden")) return;
 
-    content.classList.remove("scale-100", "opacity-100");
-    content.classList.add("scale-95", "opacity-0");
-    
-    setTimeout(() => {
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
-        document.body.style.overflow = "";
-    }, 300);
+  content.classList.remove("scale-100", "opacity-100");
+  content.classList.add("scale-95", "opacity-0");
+
+  setTimeout(() => {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.body.style.overflow = "";
+  }, 300);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("close-review-modal-btn")?.addEventListener("click", closeReviewDetailsModal);
-    document.getElementById("review-details-backdrop")?.addEventListener("click", closeReviewDetailsModal);
+  document.getElementById("close-review-modal-btn")?.addEventListener("click", closeReviewDetailsModal);
+  document.getElementById("review-details-backdrop")?.addEventListener("click", closeReviewDetailsModal);
 });
 
 let orgDonutChartInstance = null;

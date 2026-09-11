@@ -236,8 +236,50 @@
                 <p class="sub-text" data-i18n="host.slots_desc">Số lượng người tham gia tối đa cho sự kiện. Để trống nếu không giới hạn số slot.</p>
             </div>
 
+            <!-- EVENT FORMAT -->
+            <div style="margin-bottom: 22px;">
+                <label class="label" data-i18n="host.event_format">Hình thức tổ chức</label>
+                <div class="flex items-center gap-3 flex-wrap mt-1">
+                    <label class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-all text-xs font-semibold text-slate-800">
+                        <input type="radio" name="format" value="offline" checked class="accent-primary" style="width: 16px; height: 16px;">
+                        <span class="material-symbols-outlined text-[16px] text-[#1755ba]">location_on</span>
+                        <span data-i18n="host.format_offline">Trực tiếp (Offline)</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-all text-xs font-semibold text-slate-800">
+                        <input type="radio" name="format" value="online" class="accent-primary" style="width: 16px; height: 16px;">
+                        <span class="material-symbols-outlined text-[16px] text-emerald-600">videocam</span>
+                        <span data-i18n="host.format_online">Trực tuyến (Online)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ONLINE MEETING SETTINGS -->
+            <div id="online-meeting-container" style="display: none; margin-bottom: 22px;" class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/80">
+                <div class="flex items-center gap-2 mb-3 text-emerald-800 font-bold text-sm">
+                    <span class="material-symbols-outlined text-[20px] text-emerald-600">videocam</span>
+                    <span data-i18n="host.online_meeting_settings">Cấu hình phòng họp trực tuyến</span>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="label text-xs" data-i18n="host.meeting_platform">Nền tảng họp</label>
+                        <select id="meetingPlatform" name="meetingPlatform" class="input text-xs font-semibold">
+                            <option value="google_meet">Google Meet</option>
+                            <option value="zoom">Zoom Meeting / Webinar</option>
+                            <option value="teams">Microsoft Teams</option>
+                            <option value="webex">Cisco Webex</option>
+                            <option value="other">Nền tảng khác</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label text-xs" data-i18n="host.meeting_url">Link phòng họp (Meeting URL)</label>
+                        <input id="meetingUrl" name="meetingUrl" type="url" class="input" placeholder="https://meet.google.com/... hoặc https://zoom.us/j/..." data-i18n-placeholder="host.meeting_url_placeholder">
+                        <p class="sub-text" data-i18n="host.meeting_url_hint">Đường link này chỉ hiển thị cho người tham gia sau khi đăng ký thành công.</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- LOCATION -->
-            <div>
+            <div id="location-field-container">
                 <label class="label" data-i18n="host.location">Location</label>
                 <div class="location-input-row">
                     <input id="location" name="location" type="text" class="input" placeholder="Type address or click on map" required data-i18n="host.location">

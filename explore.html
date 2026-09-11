@@ -35,12 +35,144 @@
     </div>
 
     <!-- RECOMMENDATIONS (DYNAMIC) -->
-    <div id="recommendations-section" class="mx-auto px-gutter mb-8" style="max-width:1480px; display:none;">
+    <div id="recommendations-section" class="mx-auto px-gutter mb-8" style="max-width:1480px;">
       <div class="recommendations-header">
         <span class="material-symbols-outlined" style="color:#8B5CF6;font-size:22px;">auto_awesome</span>
         <h2 class="recommendations-title" data-i18n="explore.recommended">Recommended For You</h2>
       </div>
-      <div id="recommendations-container" class="recommendations-container"></div>
+      <div id="recommendations-container" class="recommendations-container">
+        <!-- SKELETON PLACEHOLDERS ON INITIAL LOAD -->
+        <div class="explore-skeleton-card" style="animation-delay:0ms">
+          <div class="explore-skeleton-image-wrap">
+            <div class="explore-skeleton-block explore-skeleton-image"></div>
+            <div class="explore-skeleton-tag"></div>
+          </div>
+          <div class="explore-skeleton-body">
+            <div class="explore-skeleton-block explore-skeleton-title"></div>
+            <div class="explore-skeleton-block explore-skeleton-title short"></div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line wide"></div>
+            </div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line medium"></div>
+            </div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line short"></div>
+            </div>
+            <div class="explore-skeleton-footer">
+              <div class="explore-skeleton-block explore-skeleton-button"></div>
+              <div class="explore-skeleton-block explore-skeleton-star"></div>
+            </div>
+          </div>
+        </div>
+        <div class="explore-skeleton-card" style="animation-delay:60ms">
+          <div class="explore-skeleton-image-wrap">
+            <div class="explore-skeleton-block explore-skeleton-image"></div>
+            <div class="explore-skeleton-tag"></div>
+          </div>
+          <div class="explore-skeleton-body">
+            <div class="explore-skeleton-block explore-skeleton-title"></div>
+            <div class="explore-skeleton-block explore-skeleton-title short"></div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line wide"></div>
+            </div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line medium"></div>
+            </div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line short"></div>
+            </div>
+            <div class="explore-skeleton-footer">
+              <div class="explore-skeleton-block explore-skeleton-button"></div>
+              <div class="explore-skeleton-block explore-skeleton-star"></div>
+            </div>
+          </div>
+        </div>
+        <div class="explore-skeleton-card" style="animation-delay:120ms">
+          <div class="explore-skeleton-image-wrap">
+            <div class="explore-skeleton-block explore-skeleton-image"></div>
+            <div class="explore-skeleton-tag"></div>
+          </div>
+          <div class="explore-skeleton-body">
+            <div class="explore-skeleton-block explore-skeleton-title"></div>
+            <div class="explore-skeleton-block explore-skeleton-title short"></div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line wide"></div>
+            </div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line medium"></div>
+            </div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line short"></div>
+            </div>
+            <div class="explore-skeleton-footer">
+              <div class="explore-skeleton-block explore-skeleton-button"></div>
+              <div class="explore-skeleton-block explore-skeleton-star"></div>
+            </div>
+          </div>
+        </div>
+        <div class="explore-skeleton-card" style="animation-delay:180ms">
+          <div class="explore-skeleton-image-wrap">
+            <div class="explore-skeleton-block explore-skeleton-image"></div>
+            <div class="explore-skeleton-tag"></div>
+          </div>
+          <div class="explore-skeleton-body">
+            <div class="explore-skeleton-block explore-skeleton-title"></div>
+            <div class="explore-skeleton-block explore-skeleton-title short"></div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line wide"></div>
+            </div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line medium"></div>
+            </div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line short"></div>
+            </div>
+            <div class="explore-skeleton-footer">
+              <div class="explore-skeleton-block explore-skeleton-button"></div>
+              <div class="explore-skeleton-block explore-skeleton-star"></div>
+            </div>
+          </div>
+        </div>
+        <div class="explore-skeleton-card" style="animation-delay:240ms">
+          <div class="explore-skeleton-image-wrap">
+            <div class="explore-skeleton-block explore-skeleton-image"></div>
+            <div class="explore-skeleton-tag"></div>
+          </div>
+          <div class="explore-skeleton-body">
+            <div class="explore-skeleton-block explore-skeleton-title"></div>
+            <div class="explore-skeleton-block explore-skeleton-title short"></div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line wide"></div>
+            </div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line medium"></div>
+            </div>
+            <div class="explore-skeleton-info-row">
+              <div class="explore-skeleton-block explore-skeleton-icon"></div>
+              <div class="explore-skeleton-block explore-skeleton-line short"></div>
+            </div>
+            <div class="explore-skeleton-footer">
+              <div class="explore-skeleton-block explore-skeleton-button"></div>
+              <div class="explore-skeleton-block explore-skeleton-star"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- SEARCH BAR -->
@@ -148,6 +280,24 @@
                 </label>
               </div>
               <p class="text-xs sm:text-[13px] text-slate-600 font-medium leading-relaxed mt-2.5 break-words" data-i18n="explore.has_certificate_desc">Only events with certificates</p>
+            </div>
+
+            <!-- EVENT FORMAT COMBOBOX -->
+            <div class="sidebar-section-figma" id="formatSection">
+              <label for="formatSelect" class="sidebar-title-figma flex items-center justify-between cursor-pointer" data-i18n="explore.format">
+                <span>Hình thức sự kiện</span>
+                <span class="material-symbols-outlined text-[18px] text-slate-400">devices</span>
+              </label>
+              <div class="relative mt-2">
+                <select id="formatSelect" class="w-full appearance-none bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3.5 py-2.5 pr-9 text-xs sm:text-sm font-semibold text-slate-800 outline-none focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all cursor-pointer shadow-xs">
+                  <option value="all" data-i18n="explore.format_all">Tất cả hình thức (All)</option>
+                  <option value="online" data-i18n="explore.format_online">Trực tuyến (Online)</option>
+                  <option value="offline" data-i18n="explore.format_offline">Trực tiếp (Offline)</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                  <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                </div>
+              </div>
             </div>
 
             <div class="sidebar-section-figma">

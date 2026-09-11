@@ -9,9 +9,11 @@ import { API_BASE_URL } from "../config.js";
 import { openEventPopup } from "../components/eventPopup.js";
 import { t, applyTranslation, getLang } from "../lib/i18n.js";
 import { showToast } from "../components/toast.js";
+import { verifyOnlineCheckin } from "../api/attendance.js";
 
 let allTickets = [];
-let currentFilter = 'all'; // 'all' | 'checked_in' | 'expired'
+let currentFilter = 'all'; // 'all' | 'upcoming' | 'checked_in' | 'expired'
+let currentFormat = 'all'; // 'all' | 'online' | 'offline'
 let currentRateEventId = null;
 let selectedRating = 0;
 
@@ -48,10 +50,10 @@ function getEffectiveStatus(tkt) {
 
 function statusBadgeHTML(status) {
   const map = {
-    active: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
-    checked_in: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
-    expired: 'bg-amber-50 text-amber-700 border-amber-200/50',
-    cancelled: 'bg-rose-50 text-rose-700 border-rose-200/50',
+    active: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+    checked_in: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+    expired: 'bg-amber-50 text-amber-700 border-amber-200/80',
+    cancelled: 'bg-rose-50 text-rose-700 border-rose-200/80',
   };
   const labels = {
     active: t('my_events.status_active', 'Active'),
@@ -59,8 +61,8 @@ function statusBadgeHTML(status) {
     expired: t('my_events.status_expired', 'Expired'),
     cancelled: t('my_events.status_cancelled', 'Cancelled'),
   };
-  const cls = map[status] || 'bg-slate-50 text-slate-600 border-slate-200/50';
-  return `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${cls} border">${labels[status] || status}</span>`;
+  const cls = map[status] || 'bg-slate-50 text-slate-600 border-slate-200/80';
+  return `<span class="inline-flex items-center justify-center h-[26px] px-3 rounded-full text-xs font-semibold ${cls} border shadow-2xs leading-none">${labels[status] || status}</span>`;
 }
 
 function canRateEvent(tkt) {
@@ -90,16 +92,25 @@ function renderEvents() {
   const countExpiredEl = document.getElementById("count-expired");
   const summaryEl = document.getElementById("registered-summary-text");
 
-  const upcomingCount = validTickets.filter(t => getEffectiveStatus(t) === 'active').length;
-  const checkedInCount = validTickets.filter(t => getEffectiveStatus(t) === 'checked_in').length;
-  const expiredCount = validTickets.filter(t => getEffectiveStatus(t) === 'expired' || getEffectiveStatus(t) === 'cancelled').length;
+  // 1. Filter by format (Online / Offline / All)
+  const formatFiltered = validTickets.filter(t => {
+    if (currentFormat === 'all') return true;
+    const fmt = (t.event?.format || 'offline').toLowerCase();
+    if (currentFormat === 'online') return fmt === 'online';
+    if (currentFormat === 'offline') return fmt === 'offline';
+    return true;
+  });
 
-  if (countAllEl) countAllEl.textContent = validTickets.length;
+  const upcomingCount = formatFiltered.filter(t => getEffectiveStatus(t) === 'active').length;
+  const checkedInCount = formatFiltered.filter(t => getEffectiveStatus(t) === 'checked_in').length;
+  const expiredCount = formatFiltered.filter(t => getEffectiveStatus(t) === 'expired' || getEffectiveStatus(t) === 'cancelled').length;
+
+  if (countAllEl) countAllEl.textContent = formatFiltered.length;
   if (countUpcomingEl) countUpcomingEl.textContent = upcomingCount;
   if (countCheckedInEl) countCheckedInEl.textContent = checkedInCount;
   if (countExpiredEl) countExpiredEl.textContent = expiredCount;
   if (summaryEl) {
-    summaryEl.textContent = t('my_events.registered_events_count', `${validTickets.length} registered events`).replace('{{n}}', validTickets.length);
+    summaryEl.textContent = t('my_events.registered_events_count', `${formatFiltered.length} registered events`).replace('{{n}}', formatFiltered.length);
   }
 
   if (validTickets.length === 0) {
@@ -113,13 +124,14 @@ function renderEvents() {
     return;
   }
 
-  let eventsToDisplay = validTickets;
+  // 2. Filter by status tab
+  let eventsToDisplay = formatFiltered;
   if (currentFilter === 'upcoming') {
-    eventsToDisplay = validTickets.filter(t => getEffectiveStatus(t) === 'active');
+    eventsToDisplay = formatFiltered.filter(t => getEffectiveStatus(t) === 'active');
   } else if (currentFilter === 'checked_in') {
-    eventsToDisplay = validTickets.filter(t => getEffectiveStatus(t) === 'checked_in');
+    eventsToDisplay = formatFiltered.filter(t => getEffectiveStatus(t) === 'checked_in');
   } else if (currentFilter === 'expired') {
-    eventsToDisplay = validTickets.filter(t => getEffectiveStatus(t) === 'expired' || getEffectiveStatus(t) === 'cancelled');
+    eventsToDisplay = formatFiltered.filter(t => getEffectiveStatus(t) === 'expired' || getEffectiveStatus(t) === 'cancelled');
   }
 
   if (eventsToDisplay.length === 0) {
@@ -131,6 +143,8 @@ function renderEvents() {
       emptyDesc = t('my_events.no_events_desc_checked_in', "You haven't checked into any events yet.");
     } else if (currentFilter === 'expired') {
       emptyDesc = t('my_events.no_events_desc_expired', "No expired events found.");
+    } else if (currentFormat !== 'all') {
+      emptyDesc = t('my_events.no_events_desc_format', 'Không có vé nào phù hợp với hình thức đã chọn.');
     }
 
     list.innerHTML = `
@@ -167,7 +181,17 @@ function renderEvents() {
     const safeTitle = eventTitle.replace(/'/g, "\\'");
 
     let actionButtons = '';
-    if (effectiveStatus !== 'active') {
+    const isOnline = event.format === 'online';
+    const hasOnlineCheckinOpen = Boolean(event.onlineCheckin && event.onlineCheckin.isOpen);
+    if (effectiveStatus === 'active') {
+      if (isOnline || hasOnlineCheckinOpen) {
+        actionButtons += `
+          <button class="pin-checkin-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs" data-event-id="${eventId}" data-event-title="${safeTitle}">
+            <span class="material-symbols-outlined text-[15px]">dialpad</span>
+            <span>${t('my_events.pin_checkin_btn', 'Điểm danh online (PIN)')}</span>
+          </button>`;
+      }
+    } else {
       if (canRate) {
         actionButtons += `
           <button class="rate-event-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1755ba] bg-[#1755ba]/10 hover:bg-[#1755ba]/25 transition-all cursor-pointer inline-flex items-center gap-1.5" data-event-id="${eventId}" data-event-title="${safeTitle}">
@@ -213,6 +237,15 @@ function renderEvents() {
       statusBadgeTag = `<span class="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 font-medium">${t('my_events.event_ended', 'Event ended')}</span>`;
     }
 
+    const isOnlineDisplay = event.format === 'online' || (!event.format && ((event.location || '').toLowerCase().includes('online') || (event.location || '').toLowerCase().includes('zoom') || (event.location || '').toLowerCase().includes('meet')));
+
+    let formatBadgeTag = '';
+    if (isOnlineDisplay) {
+      formatBadgeTag = `<span class="inline-flex items-center justify-center h-[26px] text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 rounded-full border border-emerald-200/80 shadow-2xs leading-none">${t('my_events.format_online', 'Trực tuyến')}</span>`;
+    } else {
+      formatBadgeTag = `<span class="inline-flex items-center justify-center h-[26px] text-xs font-semibold text-[#1755ba] bg-blue-50 px-3 rounded-full border border-blue-200/80 shadow-2xs leading-none">${t('my_events.format_offline', 'Trực tiếp')}</span>`;
+    }
+
     const showQR = effectiveStatus === 'active' && !!tkt.qrImageUrl;
 
     return `
@@ -222,15 +255,19 @@ function renderEvents() {
                alt="${eventTitle}" 
                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent md:hidden"></div>
-          <div class="absolute top-3 left-3 md:hidden">
+          <div class="absolute top-3 left-3 md:hidden flex items-center gap-1.5 flex-wrap">
             ${statusBadgeHTML(effectiveStatus)}
+            ${formatBadgeTag}
           </div>
         </div>
 
         <div class="flex-grow p-5 flex flex-col justify-between min-w-0">
           <div class="min-w-0">
             <div class="hidden md:flex items-center justify-between gap-2 mb-2">
-              ${statusBadgeHTML(effectiveStatus)}
+              <div class="flex items-center gap-2 flex-wrap">
+                ${statusBadgeHTML(effectiveStatus)}
+                ${formatBadgeTag}
+              </div>
               ${statusBadgeTag}
             </div>
             <h3 class="font-bold text-[#191b22] text-lg md:text-xl line-clamp-1 group-hover:text-[#1755ba] transition-colors duration-200 mb-2 cursor-pointer event-card-preview" data-event-id="${eventId}" title="${eventTitle}">${eventTitle}</h3>
@@ -240,11 +277,21 @@ function renderEvents() {
                 <span class="material-symbols-outlined text-[18px] text-[#1755ba] shrink-0">calendar_today</span>
                 <span class="truncate">${eventDate}</span>
               </div>
-              ${event.location ? `
+              ${isOnline ? `
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600 shrink-0">videocam</span>
+                <span class="truncate font-medium text-emerald-700">${t('my_events.online_event_label', 'Sự kiện trực tuyến (Google Meet / Zoom)')}</span>
+                ${event.meetingUrl ? `
+                  <a href="${event.meetingUrl}" target="_blank" rel="noopener noreferrer" class="ml-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all">
+                    <span>${t('my_events.join_meeting', 'Vào phòng')}</span>
+                    <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+                  </a>
+                ` : ''}
+              </div>` : (event.location ? `
               <div class="flex items-center gap-2 min-w-0">
                 <span class="material-symbols-outlined text-[18px] text-[#1755ba] shrink-0">location_on</span>
                 <span class="truncate" title="${event.location}">${event.location}</span>
-              </div>` : ''}
+              </div>` : '')}
               ${checkInInfo ? `<div class="flex items-center gap-2 min-w-0">${checkInInfo}</div>` : ''}
             </div>
           </div>
@@ -336,6 +383,63 @@ function renderEvents() {
       openRateModal(eventId, eventTitle, { unlockCert: true });
     });
   });
+
+  // PIN Check-in clicks
+  document.querySelectorAll(".pin-checkin-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const eventId = btn.dataset.eventId;
+      const eventTitle = btn.dataset.eventTitle;
+      openPinModal(eventId, eventTitle);
+    });
+  });
+}
+
+// ─── Online PIN Check-in Modal ───
+
+let currentPinEventId = null;
+
+function openPinModal(eventId, eventTitle) {
+  currentPinEventId = eventId;
+  const modal = document.getElementById("pin-modal");
+  const eventName = document.getElementById("pin-modal-event-name");
+  const input = document.getElementById("pin-input");
+  const errorMsg = document.getElementById("pin-error-msg");
+  if (eventName) eventName.textContent = eventTitle || "Event";
+  if (input) {
+    input.value = "";
+    input.disabled = false;
+  }
+  if (errorMsg) {
+    errorMsg.textContent = "";
+    errorMsg.classList.add("hidden");
+  }
+
+  if (modal) {
+    modal.hidden = false;
+    requestAnimationFrame(() => {
+      modal.classList.remove("opacity-0", "pointer-events-none");
+      const content = document.getElementById("pin-modal-content");
+      content?.classList.remove("scale-95");
+      content?.classList.add("scale-100");
+    });
+    setTimeout(() => input?.focus(), 150);
+  }
+}
+
+function closePinModal() {
+  const modal = document.getElementById("pin-modal");
+  if (!modal) return;
+  const content = document.getElementById("pin-modal-content");
+  modal.classList.add("opacity-0", "pointer-events-none");
+  content?.classList.remove("scale-100");
+  content?.classList.add("scale-95");
+  setTimeout(() => {
+    if (modal.classList.contains("opacity-0")) {
+      modal.hidden = true;
+    }
+  }, 300);
+  currentPinEventId = null;
 }
 
 // ─── Rate Modal ───
@@ -567,12 +671,82 @@ function initModals() {
     if (e.target === qrModal) closeQrModal();
   });
 
+  // Online PIN check-in modal
+  const pinModal = document.getElementById("pin-modal");
+  document.getElementById("close-pin-modal")?.addEventListener("click", closePinModal);
+  pinModal?.addEventListener("click", (e) => {
+    if (e.target === pinModal) closePinModal();
+  });
+
+  const pinForm = document.getElementById("pin-checkin-form");
+  pinForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!currentPinEventId) return;
+
+    const input = document.getElementById("pin-input");
+    const code = (input?.value || "").trim();
+    const errorMsg = document.getElementById("pin-error-msg");
+    const submitBtn = document.getElementById("submit-pin-btn");
+
+    if (!code || code.length < 4) {
+      if (errorMsg) {
+        errorMsg.textContent = t("my_events.invalid_pin_format", {}, "Vui lòng nhập mã PIN hợp lệ (4-6 chữ số)");
+        errorMsg.classList.remove("hidden");
+      }
+      return;
+    }
+
+    try {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">sync</span> <span>${t("common.processing", {}, "Đang xử lý...")}</span>`;
+      if (errorMsg) errorMsg.classList.add("hidden");
+
+      const res = await verifyOnlineCheckin(currentPinEventId, code);
+      showToast(res.message || t("my_events.checkin_success", {}, "Điểm danh trực tuyến thành công! 🎉"), "success");
+      closePinModal();
+
+      // Update ticket in local array immediately
+      const targetTkt = allTickets.find(t => String(t.event?._id) === String(currentPinEventId));
+      if (targetTkt) {
+        targetTkt.ticketStatus = 'checked_in';
+        targetTkt.checkIn = {
+          status: 'present',
+          checkedInAt: new Date().toISOString()
+        };
+      }
+      renderEvents();
+
+      // Background re-fetch to ensure sync with server
+      try {
+        const fresh = await getMyTickets();
+        if (fresh && fresh.tickets) {
+          allTickets = fresh.tickets.filter(t => t && t.event && (t.event._id || t.event.title));
+          renderEvents();
+        }
+      } catch (e) {
+        console.warn("Silent ticket refresh failed:", e);
+      }
+    } catch (err) {
+      console.error("PIN checkin error:", err);
+      if (errorMsg) {
+        errorMsg.textContent = err.message || t("my_events.pin_checkin_failed", {}, "Điểm danh không thành công. Vui lòng kiểm tra lại mã PIN.");
+        errorMsg.classList.remove("hidden");
+      } else {
+        showToast(err.message || t("my_events.pin_checkin_failed", {}, "Điểm danh thất bại"), "error");
+      }
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<span class="material-symbols-outlined text-[18px]">verified</span> <span>${t("my_events.confirm_checkin", {}, "Xác nhận điểm danh")}</span>`;
+    }
+  });
+
   // Global Escape key listener
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       closeRateModal();
       closeCertModal();
       closeQrModal();
+      closePinModal();
     }
   });
 }
@@ -701,6 +875,14 @@ function setupFilterTabs() {
   document.getElementById("tab-upcoming")?.addEventListener("click", () => setFilter('upcoming'));
   document.getElementById("tab-checked-in")?.addEventListener("click", () => setFilter('checked_in'));
   document.getElementById("tab-expired")?.addEventListener("click", () => setFilter('expired'));
+
+  const formatSelect = document.getElementById("ticketFormatSelect");
+  if (formatSelect) {
+    formatSelect.addEventListener("change", (e) => {
+      currentFormat = e.target.value || 'all';
+      renderEvents();
+    });
+  }
 }
 
 function checkAndHighlightTicket() {

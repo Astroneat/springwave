@@ -482,7 +482,11 @@
     "selected_address": "Selected Address:",
     "confirm_location": "Confirm Location",
     "location_permission_denied": "Location permission was not granted. Search for an address instead.",
-    "location_error": "We could not get your location. Check your connection and try again."
+    "location_error": "We could not get your location. Check your connection and try again.",
+    "format": "Event Format",
+    "format_all": "All Formats",
+    "format_online": "Online",
+    "format_offline": "In-Person (Offline)"
   },
   "auth": {
     "show": "Show",
@@ -1416,7 +1420,14 @@
     "title_placeholder": "e.g., Sunset Yoga on the Beach",
     "desc_placeholder": "Provide a detailed overview of what participants can expect...",
     "locate_me": "Use my location",
-    "select_org": "Select an organization..."
+    "select_org": "Select an organization...",
+    "event_format": "Event Format",
+    "format_offline": "In-Person (Offline)",
+    "format_online": "Online",
+    "online_meeting_settings": "Online Meeting Settings",
+    "meeting_platform": "Meeting Platform",
+    "meeting_url": "Meeting URL / Link",
+    "meeting_url_hint": "This URL is only visible to registered participants."
   },
   "admin": {
     "title": "Event Management — SpringWave",
@@ -2350,7 +2361,22 @@
     "parse_excel_failed": "Failed to parse Excel file",
     "export_lib_loading": "Export library is loading, please try again in a moment.",
     "avatar_updated_success": "Avatar updated successfully!",
-    "upload_failed": "Upload failed"
+    "upload_failed": "Upload failed",
+    "online_checkin_btn": "Online Check-in Gate (PIN)",
+    "online_checkin_title": "Online Check-In Console",
+    "online_checkin_subtitle": "6-digit PIN code verification for online attendees",
+    "current_event": "Selected Event",
+    "gate_status_open": "Open",
+    "gate_status_closed": "Closed",
+    "gate_is_closed": "Check-in gate is currently closed",
+    "gate_closed_desc": "Opening the gate will generate a random 6-digit PIN. Attendees enter this PIN on their ticket page to mark attendance.",
+    "session_duration": "Session Duration",
+    "open_gate_btn": "Open Gate & Generate PIN",
+    "active_pin": "Live Online Check-in PIN",
+    "copy_pin": "Copy PIN",
+    "project_pin_tip": "Present this PIN on your presentation slides or in Zoom/Google Meet chat. Participants visit My Tickets to verify.",
+    "close_gate_btn": "Close Check-in Gate",
+    "close_gate_confirm": "Are you sure you want to close the online check-in gate early? Attendees will no longer be able to use this PIN."
   },
   "admin_universities": {
     "title": "University Management",
@@ -2795,7 +2821,22 @@
     "qr_modal_title": "Ticket QR Code",
     "failed_load": "Failed to load events. Please try again later.",
     "no_events_yet": "No events yet",
-    "no_events_yet_desc": "Participate in an event to get started."
+    "no_events_yet_desc": "Participate in an event to get started.",
+    "format_online": "Online",
+    "format_offline": "In-Person",
+    "pin_checkin_btn": "Online PIN Check-in",
+    "online_event_label": "Online Event",
+    "join_meeting": "Join Meeting",
+    "pin_modal_title": "Online Check-In",
+    "pin_modal_desc": "Enter the 6-digit PIN code provided by the organizer on Zoom / Google Meet to verify your attendance.",
+    "confirm_checkin": "Verify Check-in",
+    "checkin_success": "Online check-in successful!",
+    "invalid_pin_format": "Please enter a valid 6-digit PIN code",
+    "pin_checkin_failed": "Online check-in failed. Please verify the PIN.",
+    "format_filter_all": "All Formats",
+    "format_filter_online": "Online",
+    "format_filter_offline": "In-Person (Offline)",
+    "no_events_desc_format": "No tickets match the selected format."
   },
   "org_profile": {
     "tab_all": "All",

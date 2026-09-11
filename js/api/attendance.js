@@ -39,3 +39,16 @@ export function deleteExternalParticipant(eventId, attendanceId) {
 export function removeParticipant(eventId, targetId) {
   return del(`/attendance/events/${eventId}/participants/${targetId}`);
 }
+
+export function toggleOnlineCheckin(eventId, data) {
+  return post(`/attendance/events/${eventId}/online-checkin/toggle`, data);
+}
+
+export function getOnlineCheckinStatus(eventId) {
+  return get(`/attendance/events/${eventId}/online-checkin/status`);
+}
+
+export function verifyOnlineCheckin(eventId, code) {
+  return post(`/attendance/events/${eventId}/online-checkin/verify`, { code });
+}
+

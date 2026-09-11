@@ -657,26 +657,44 @@ textarea {
 ========================= */
 
 .lang-switcher-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.375rem 0.5rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(35, 73, 155, 0.2);
-  background: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  @apply cursor-pointer hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-full relative transition-all duration-300;
+  font-family: var(--font-headline-md), "Inter", sans-serif;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
 }
+
 .lang-switcher-btn:hover {
-  background: rgba(35, 73, 155, 0.05);
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
+
 .lang-switcher-btn:active {
-  transform: scale(0.95);
+  transform: translateY(0) scale(0.96);
 }
+
+.lang-switcher-btn:hover .lang-icon-box {
+  transform: rotate(15deg) scale(1.05);
+}
+
+.lang-icon-box {
+  @apply w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center relative overflow-hidden shrink-0 ring-1 ring-primary/20 transition-transform duration-300;
+  line-height: 1;
+}
+
 .lang-switcher-btn .lang-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-family: var(--font-headline-md), "Inter", sans-serif;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #1c274c;
+  letter-spacing: 0.03em;
+  padding-right: 0.4rem;
+  user-select: none;
+  line-height: 1;
 }
 
 .chatbot-widget {
@@ -10115,6 +10133,7 @@ textarea {
   width: 280px;
   min-width: 280px;
   max-width: 280px;
+  min-height: 340px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

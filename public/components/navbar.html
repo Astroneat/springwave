@@ -26,9 +26,11 @@
     <!-- RIGHT ACTION BUTTONS -->
     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
       <!-- LANG SWITCHER -->
-      <button class="lang-switcher-btn bg-white/40 hover:bg-white/70 border border-white/20 px-3.5 py-1.5 rounded-full hidden md:flex items-center gap-1.5 transition cursor-pointer" id="langSwitcher" title="Switch language">
-        <span class="material-symbols-outlined text-[#1c274c] text-lg">language</span>
-        <span class="lang-label text-xs font-extrabold text-[#1c274c]" id="langLabel">EN</span>
+      <button class="lang-switcher-btn" id="langSwitcher" title="Switch language" aria-label="Switch language">
+        <div class="lang-icon-box" aria-hidden="true">
+          <span class="material-symbols-outlined text-[16px]">language</span>
+        </div>
+        <span class="lang-label" id="langLabel">EN</span>
       </button>
 
       <!-- MOBILE SEARCH ICON (KÍNH LÚP - SHOWN ON SCROLL IN RESPONSIVE / LOCATED TO THE LEFT OF BELL ICON) -->

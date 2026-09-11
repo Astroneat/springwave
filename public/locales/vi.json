@@ -482,7 +482,11 @@
     "selected_address": "Địa chỉ đã chọn:",
     "confirm_location": "Xác nhận vị trí",
     "location_permission_denied": "Quyền truy cập vị trí bị từ chối. Vui lòng tìm kiếm theo địa chỉ.",
-    "location_error": "Không thể lấy vị trí hiện tại. Vui lòng kiểm tra kết nối mạng và thử lại."
+    "location_error": "Không thể lấy vị trí hiện tại. Vui lòng kiểm tra kết nối mạng và thử lại.",
+    "format": "Hình thức sự kiện",
+    "format_all": "Tất cả hình thức",
+    "format_online": "Trực tuyến (Online)",
+    "format_offline": "Trực tiếp (Offline)"
   },
   "auth": {
     "show": "Hiện",
@@ -1416,7 +1420,14 @@
     "update_event": "Cập nhật sự kiện",
     "hosting_as": "Tổ chức với tư cách {{name}}",
     "event_linked_to_org": "Sự kiện đã liên kết với tổ chức",
-    "select_org": "Chọn một tổ chức..."
+    "select_org": "Chọn một tổ chức...",
+    "event_format": "Hình thức tổ chức",
+    "format_offline": "Trực tiếp (Offline)",
+    "format_online": "Trực tuyến (Online)",
+    "online_meeting_settings": "Cấu hình phòng họp trực tuyến",
+    "meeting_platform": "Nền tảng họp",
+    "meeting_url": "Link phòng họp (Meeting URL)",
+    "meeting_url_hint": "Đường link này chỉ hiển thị cho người tham gia sau khi đăng ký thành công."
   },
   "admin": {
     "title": "Quản lý sự kiện — SpringWave",
@@ -2350,7 +2361,22 @@
     "parse_excel_failed": "Xử lý tệp Excel thất bại",
     "export_lib_loading": "Thư viện xuất file đang tải, vui lòng thử lại sau giây lát.",
     "avatar_updated_success": "Cập nhật ảnh đại diện thành công!",
-    "upload_failed": "Tải lên thất bại"
+    "upload_failed": "Tải lên thất bại",
+    "online_checkin_btn": "Cổng Điểm Danh Online (PIN)",
+    "online_checkin_title": "Cổng Điểm Danh Trực Tuyến",
+    "online_checkin_subtitle": "Mã PIN 6 số điểm danh cho người tham dự Online",
+    "current_event": "Sự kiện đang chọn",
+    "gate_status_open": "Đang mở",
+    "gate_status_closed": "Đang đóng",
+    "gate_is_closed": "Cổng điểm danh hiện đang đóng",
+    "gate_closed_desc": "Khi mở cổng, hệ thống sẽ tạo mã PIN ngẫu nhiên 6 chữ số. Sinh viên nhập mã này trên trang vé của họ để được ghi nhận điểm danh.",
+    "session_duration": "Thời hạn mở cổng",
+    "open_gate_btn": "Mở Cổng & Tạo Mã PIN",
+    "active_pin": "Mã PIN Điểm Danh Đang Mở",
+    "copy_pin": "Sao chép mã PIN",
+    "project_pin_tip": "Chiếu mã PIN này trên slide hoặc chia sẻ trong khung chat Zoom / Google Meet. Người tham dự sẽ mở trang Vé của tôi và nhấn Điểm Danh Online (PIN).",
+    "close_gate_btn": "Đóng Cổng Điểm Danh Ngay",
+    "close_gate_confirm": "Bạn có chắc chắn muốn đóng cổng điểm danh sớm không? Người tham gia sẽ không thể dùng mã này nữa."
   },
   "admin_universities": {
     "title": "Quản lý Trường Đại học",
@@ -2795,7 +2821,22 @@
     "qr_modal_title": "Mã QR vé tham gia",
     "failed_load": "Không thể tải danh sách sự kiện. Vui lòng thử lại sau.",
     "no_events_yet": "Chưa có sự kiện nào",
-    "no_events_yet_desc": "Tham gia một sự kiện để bắt đầu."
+    "no_events_yet_desc": "Tham gia một sự kiện để bắt đầu.",
+    "format_online": "Trực tuyến",
+    "format_offline": "Trực tiếp",
+    "pin_checkin_btn": "Điểm danh Online (PIN)",
+    "online_event_label": "Sự kiện trực tuyến",
+    "join_meeting": "Tham gia phòng họp",
+    "pin_modal_title": "Điểm danh trực tuyến",
+    "pin_modal_desc": "Nhập mã PIN gồm 6 chữ số do ban tổ chức cung cấp để xác nhận bạn đã tham gia buổi sinh hoạt.",
+    "confirm_checkin": "Xác nhận điểm danh",
+    "checkin_success": "Điểm danh trực tuyến thành công!",
+    "invalid_pin_format": "Vui lòng nhập mã PIN hợp lệ (6 chữ số)",
+    "pin_checkin_failed": "Điểm danh không thành công. Vui lòng kiểm tra lại mã PIN.",
+    "format_filter_all": "Tất cả hình thức (All)",
+    "format_filter_online": "Trực tuyến (Online)",
+    "format_filter_offline": "Trực tiếp (Offline)",
+    "no_events_desc_format": "Không có vé nào phù hợp với hình thức đã chọn."
   },
   "org_profile": {
     "tab_all": "Tất cả",

@@ -16,13 +16,13 @@ import { canPerformAction, markActionPerformed } from "../lib/throttle.js";
 import { sanitizeHtml, escapeHtml, escapeAttr } from "../lib/sanitize.js";
 import { fetchContent, formatDate, capitalize, toLocalISODate, checkVerificationGuard, isToday, isPastDate, isUpcomingDate, getEventStatus } from "../lib/utils.js";
 import { triggerBadgeCelebration } from "../components/badgeCelebration.js";
-import { showExploreLoading, hideExploreLoading, bindLoadingLanguage, EXPLORE_SKELETON_OPTIONS } from "../lib/exploreLoading.js";
+import { showExploreLoading, hideExploreLoading, bindLoadingLanguage, EXPLORE_SKELETON_OPTIONS, buildSkeletonCard } from "../lib/exploreLoading.js";
 import { getMyUniversity, getUniversities } from "../api/universities.js";
 import { showLoginPrompt } from "../components/authModal.js";
 import { showEventRegisteredToast } from "../components/toast.js";
 
 let allActivities = [];
-let masterActivitiesList = [];
+let masterActivitiesList = null;
 let currentFilteredActivities = [];
 let currentPage = 1;
 const pageSize = 20;
@@ -31,6 +31,7 @@ let currentSort = "newest";
 let currentStatus = "upcoming";
 let currentMyUniOnly = false;
 let currentCertificateOnly = false;
+let currentFormat = "all";
 let myUniversity = null;
 let currentRecommendations = [];
 let cachedTemplate = null;
@@ -168,12 +169,18 @@ async function getCardTemplate() {
     if (!templateFetchPromise) {
         templateFetchPromise = (async () => {
             try {
-                const templateHTML = await fetchContent("./components/cards.html");
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(templateHTML, "text/html");
-                cachedTemplate = doc.querySelector(".card");
+                const templateHTML = await fetchContent("/components/cards.html");
+                if (templateHTML) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(templateHTML, "text/html");
+                    cachedTemplate = doc.querySelector(".card");
+                }
             } catch (err) {
                 console.error("Failed to fetch card template:", err);
+            } finally {
+                if (!cachedTemplate) {
+                    templateFetchPromise = null;
+                }
             }
             return cachedTemplate;
         })();
@@ -273,6 +280,14 @@ function createCardElement(activity, options = {}) {
         topLeftBadges.appendChild(certBadge);
     }
 
+    const isOnlineEvent = activity.format === 'online' || (!activity.format && ((activity.location || '').toLowerCase().includes('online') || (activity.location || '').toLowerCase().includes('zoom') || (activity.location || '').toLowerCase().includes('meet') || (!activity.location && activity.isNonPartner)));
+    if (isOnlineEvent) {
+        const onlineBadge = document.createElement("div");
+        onlineBadge.className = "bg-emerald-50 text-emerald-800 border border-emerald-300/90 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs";
+        onlineBadge.innerHTML = `<i class="fa-solid fa-video text-emerald-600 text-xs"></i><span>${t("explore.format_online", {}, "Trực tuyến")}</span>`;
+        topLeftBadges.appendChild(onlineBadge);
+    }
+
     if (topLeftBadges.children.length > 0) {
         card.appendChild(topLeftBadges);
     }
@@ -332,6 +347,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const cardsContainer = document.getElementById("cards-container");
     if (cardsContainer && cardsContainer.children.length === 0) {
         showExploreLoading(cardsContainer);
+    }
+
+    const recSection = document.getElementById("recommendations-section");
+    const recContainer = document.getElementById("recommendations-container");
+    if (recSection) {
+        recSection.style.display = "block";
+    }
+    if (recContainer && !recContainer.querySelector(".card") && recContainer.children.length === 0) {
+        recContainer.innerHTML = Array.from({ length: 5 }, (_, i) => buildSkeletonCard(i)).join("");
     }
 
     const params = new URLSearchParams(window.location.search);
@@ -511,31 +535,12 @@ async function initExplore() {
     }
 }
 
-function buildRecommendationSkeletonCard(i = 0) {
-    const delay = i * 80;
-    return `
-        <div class="explore-skeleton-card" style="animation-delay:${delay}ms">
-            <div class="explore-skeleton-block explore-skeleton-image"></div>
-            <div class="explore-skeleton-body">
-                <div class="explore-skeleton-block explore-skeleton-title"></div>
-                <div class="explore-skeleton-block explore-skeleton-title short"></div>
-                <div class="explore-skeleton-block explore-skeleton-line wide"></div>
-                <div class="explore-skeleton-block explore-skeleton-line"></div>
-                <div class="explore-skeleton-block explore-skeleton-pill"></div>
-                <div class="explore-skeleton-footer">
-                    <div class="explore-skeleton-block explore-skeleton-button"></div>
-                    <div class="explore-skeleton-block explore-skeleton-star"></div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
 async function renderRecommendations(recommended) {
     const section = document.getElementById("recommendations-section");
     const container = document.getElementById("recommendations-container");
     if (!section || !container) return;
     if (!recommended || recommended.length === 0) {
+        if (masterActivitiesList === null) return; // Keep skeletons while loading
         section.style.display = "none";
         container.innerHTML = "";
         return;
@@ -564,35 +569,74 @@ async function loadRecommendations() {
     const container = document.getElementById("recommendations-container");
     if (!section || !container) return;
 
-    if (!isAuthenticated()) {
-        section.style.display = "none";
-        return;
+    // Always keep section visible with skeleton placeholders while loading
+    section.style.display = "block";
+    if (!container.querySelector(".card") && container.children.length === 0) {
+        container.innerHTML = Array.from({ length: 5 }, (_, i) => buildSkeletonCard(i)).join("");
     }
 
-    // Immediately display section with shimmering skeleton cards
-    section.style.display = "block";
-    container.innerHTML = Array.from({ length: 4 }, (_, i) => buildRecommendationSkeletonCard(i)).join("");
-
     try {
-        const [data] = await Promise.all([
-            getRecommendations(),
-            getCardTemplate()
-        ]);
+        let recommended = [];
 
-        const rawRecommended = data?.events || data?.recommendations || (Array.isArray(data) ? data : []);
-        let recommended = rawRecommended.filter(a => getEventStatus(a) === 'registration_open');
-        if (recommended.length === 0) {
-            recommended = rawRecommended.filter(a => getEventStatus(a) !== 'ended');
+        if (isAuthenticated()) {
+            try {
+                const [data] = await Promise.all([
+                    getRecommendations(),
+                    getCardTemplate()
+                ]);
+
+                const rawRecommended = data?.events || data?.recommendations || (Array.isArray(data) ? data : []);
+                recommended = rawRecommended.filter(a => getEventStatus(a) === 'registration_open');
+                if (recommended.length === 0) {
+                    recommended = rawRecommended.filter(a => getEventStatus(a) !== 'ended');
+                }
+                if (recommended.length === 0 && rawRecommended.length > 0) {
+                    recommended = rawRecommended;
+                }
+            } catch (err) {
+                console.warn("[Recommendations] AI recommendations fetch error, using activities fallback:", err);
+            }
         }
-        if (recommended.length === 0 && rawRecommended.length > 0) {
-            recommended = rawRecommended;
+
+        // Fallback to top active activities if guest or AI recommendations are empty/failed
+        if (recommended.length === 0) {
+            await getCardTemplate();
+            let fallbackList = (masterActivitiesList && masterActivitiesList.length > 0) ? masterActivitiesList : [];
+            if (fallbackList.length === 0) {
+                try {
+                    const res = await getActivities();
+                    fallbackList = res.activities || res || [];
+                } catch (e) {
+                    console.warn("[Recommendations] Failed to fetch fallback activities:", e);
+                }
+            }
+            recommended = fallbackList.filter(a => getEventStatus(a) === 'registration_open').slice(0, 8);
+            if (recommended.length === 0) {
+                recommended = fallbackList.filter(a => getEventStatus(a) !== 'ended').slice(0, 8);
+            }
+            if (recommended.length === 0 && fallbackList.length > 0) {
+                recommended = fallbackList.slice(0, 8);
+            }
         }
 
         currentRecommendations = recommended;
 
-        if (recommended.length === 0 || !cachedTemplate) {
+        if (recommended.length === 0) {
+            if (masterActivitiesList === null) {
+                // Main activities still loading in loadCards(), keep skeletons visible
+                return;
+            }
             section.style.display = "none";
             container.innerHTML = "";
+            return;
+        }
+
+        if (!cachedTemplate) {
+            await getCardTemplate();
+        }
+
+        if (!cachedTemplate) {
+            // Still loading card template, keep skeletons visible
             return;
         }
 
@@ -605,6 +649,10 @@ async function loadRecommendations() {
         await renderRecommendations(recommended);
     } catch (e) {
         console.error("Failed to load recommendations:", e);
+        if (masterActivitiesList === null) {
+            // Keep skeletons while loading
+            return;
+        }
         section.style.display = "none";
         container.innerHTML = "";
     }
@@ -887,8 +935,21 @@ async function loadCards() {
             }
         }
 
+        const formatParam = urlParams.get("format");
+        if (formatParam && ["all", "online", "offline"].includes(formatParam.toLowerCase())) {
+            currentFormat = formatParam.toLowerCase();
+            const formatSelect = document.getElementById("formatSelect");
+            if (formatSelect) formatSelect.value = currentFormat;
+        }
+
         masterActivitiesList = activities;
         allActivities = activities;
+
+        // If recommendations container is still in skeleton state or empty, populate with active events
+        const recContainer = document.getElementById("recommendations-container");
+        if (recContainer && (!currentRecommendations || currentRecommendations.length === 0 || !recContainer.querySelector(".card"))) {
+            loadRecommendations().catch(e => console.warn("Retry loadRecommendations from loadCards failed:", e));
+        }
 
         // Sync certificate badges on recommendation cards in case recommendations rendered first
         document.querySelectorAll("#recommendations-container .card").forEach(card => {
@@ -951,6 +1012,20 @@ async function applyFiltersAndSort() {
 
     if (currentCertificateOnly) {
         filtered = filtered.filter(a => a.hasCertificate === true || a.hasCertificate === 'true');
+    }
+
+    if (currentFormat === "online") {
+        filtered = filtered.filter(a => {
+            if (a.format) return a.format === 'online';
+            const loc = (a.location || '').toLowerCase();
+            return loc.includes('online') || loc.includes('zoom') || loc.includes('meet') || (!a.location && a.isNonPartner);
+        });
+    } else if (currentFormat === "offline") {
+        filtered = filtered.filter(a => {
+            if (a.format) return a.format === 'offline';
+            const loc = (a.location || '').toLowerCase();
+            return !loc.includes('online') && !loc.includes('zoom') && !loc.includes('meet') && (!!a.location || !a.isNonPartner);
+        });
     }
 
     if (currentMyUniOnly && myUniversity) {
@@ -1018,6 +1093,7 @@ function updateFilterBadge() {
     if (currentSort && currentSort !== "newest") count++;
     if (currentCertificateOnly) count++;
     if (currentMyUniOnly) count++;
+    if (currentFormat && currentFormat !== "all") count++;
     if (window.__searchDates?.startDate || window.__searchDates?.endDate) count++;
 
     if (count > 0) {
@@ -1180,6 +1256,18 @@ function initSidebar() {
             document.getElementById("certificateSection")?.classList.remove("active-amber");
         }
 
+        currentFormat = "all";
+        const formatSelect = document.getElementById("formatSelect");
+        if (formatSelect) {
+            formatSelect.value = "all";
+        }
+
+        await applyFiltersAndSort();
+    });
+
+    const formatSelect = document.getElementById("formatSelect");
+    formatSelect?.addEventListener("change", async (e) => {
+        currentFormat = e.target.value || "all";
         await applyFiltersAndSort();
     });
 
