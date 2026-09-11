@@ -1410,9 +1410,39 @@ function renderAIMatchContent(container, result, isVi) {
 
     const majorVal = breakdown.majorFit ?? 60;
     const mbtiVal = breakdown.personalityFit ?? breakdown.surveyFit ?? 60;
-    const goalVal = breakdown.goalFit ?? breakdown.activityFit ?? 60;
+    const competencyVal = breakdown.competencyFit ?? breakdown.competency ?? breakdown.goalFit ?? breakdown.activityFit ?? 70;
 
-    const breakdownHTML = (breakdown.majorFit || breakdown.personalityFit || breakdown.surveyFit || breakdown.goalFit || breakdown.activityFit) ? `
+    let zpdBadge = '';
+    if (competencyVal >= 75) {
+        zpdBadge = `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                <span>${isVi ? 'Vừa sức & Bứt phá' : 'Optimal Fit & Growth'}</span>
+            </span>`;
+    } else if (competencyVal >= 55) {
+        zpdBadge = `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-xs">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                <span>${isVi ? 'Thách thức nâng cao (Cần tự học thêm)' : 'Advanced Challenge (Self-study advised)'}</span>
+            </span>`;
+    } else {
+        zpdBadge = `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-xs">
+                <i class="fa-solid fa-fire text-rose-600"></i>
+                <span>${isVi ? 'Yêu cầu chuyên môn cao' : 'High Skill Required'}</span>
+            </span>`;
+    }
+
+    const hasAnyBreakdown = Boolean(
+        breakdown.majorFit != null ||
+        breakdown.personalityFit != null ||
+        breakdown.surveyFit != null ||
+        breakdown.competencyFit != null ||
+        breakdown.goalFit != null ||
+        breakdown.activityFit != null
+    );
+
+    const breakdownHTML = hasAnyBreakdown ? `
         <div class="ai-match-breakdown-grid mb-3">
             <div class="ai-breakdown-item">
                 <span class="ai-breakdown-label"><i class="fa-solid fa-graduation-cap text-blue-500"></i> ${isVi ? 'Chuyên ngành' : 'Major'}</span>
@@ -1423,8 +1453,8 @@ function renderAIMatchContent(container, result, isVi) {
                 <span class="ai-breakdown-value">${mbtiVal}%</span>
             </div>
             <div class="ai-breakdown-item">
-                <span class="ai-breakdown-label"><i class="fa-solid fa-bullseye text-emerald-500"></i> ${isVi ? 'Mục tiêu' : 'Goal'}</span>
-                <span class="ai-breakdown-value">${goalVal}%</span>
+                <span class="ai-breakdown-label"><i class="fa-solid fa-chart-line text-amber-500"></i> ${isVi ? 'Năng lực' : 'Competency'}</span>
+                <span class="ai-breakdown-value font-bold ${competencyVal < 55 ? 'text-rose-600' : (competencyVal < 75 ? 'text-amber-600' : 'text-emerald-600')}">${competencyVal}%</span>
             </div>
         </div>
     ` : '';
@@ -1441,8 +1471,17 @@ function renderAIMatchContent(container, result, isVi) {
             </div>
             
             <!-- Progress Bar -->
-            <div class="w-full bg-slate-200/80 rounded-full h-2.5 mb-3 overflow-hidden p-0.5">
+            <div class="w-full bg-slate-200/80 rounded-full h-2.5 mb-2.5 overflow-hidden p-0.5">
                 <div class="h-full rounded-full transition-all duration-700 ease-out" style="width: ${pct}%; background-color: ${progressBg};"></div>
+            </div>
+
+            <!-- ZPD Competency Level Indicator -->
+            <div class="flex items-center justify-between gap-2 mb-3 bg-slate-50/80 px-2.5 py-1.5 rounded-lg border border-slate-200/70">
+                <span class="text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
+                    <i class="fa-solid fa-gauge-high text-amber-500"></i>
+                    ${isVi ? 'Đánh giá ZPD (Vùng phát triển):' : 'ZPD Growth Assessment:'}
+                </span>
+                ${zpdBadge}
             </div>
 
             ${breakdownHTML}
@@ -1551,7 +1590,7 @@ function initAIMatchButton(container, activityID) {
                         <div class="h-full bg-primary rounded-full animate-pulse" style="width: 70%;"></div>
                     </div>
                     <p class="text-[11px] text-slate-500">
-                        ${t("ai_recommend.evaluating_match", isVi ? "Đang so khớp chuyên ngành, tính cách MBTI và mục tiêu phát triển..." : "Evaluating major, MBTI personality, and career goals...")}
+                        ${t("ai_recommend.evaluating_match", isVi ? "Đang đánh giá năng lực ZPD, chuyên ngành và tính cách MBTI..." : "Evaluating competency fit (ZPD), major, and MBTI profile...")}
                     </p>
                 </div>
             `;
