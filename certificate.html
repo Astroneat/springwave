@@ -164,6 +164,20 @@
       display: block !important;
       background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.25) 60%, rgba(15, 23, 42, 0.1) 100%) !important;
     }
+    @media print {
+      body.is-revoked #certificate-node {
+        display: none !important;
+      }
+      body.is-revoked #cert-container::after {
+        content: "CHỨNG CHỈ NÀY ĐÃ BỊ BAN TỔ CHỨC THU HỒI VÀ KHÔNG CÒN GIÁ TRỊ PHÁP LÝ.";
+        display: block !important;
+        color: #dc2626 !important;
+        font-size: 20pt !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        padding: 60px 20px !important;
+      }
+    }
   </style>
 </head>
 <body class="bg-[#f0f4fc] min-h-screen font-body-md text-slate-800 antialiased flex flex-col">
@@ -285,6 +299,14 @@
 
           <!-- Dynamic Custom Canva Overlay (When certificateConfig is configured) -->
           <div id="cert-custom-overlay" class="hidden absolute inset-0 z-20 pointer-events-none"></div>
+
+          <!-- Revoked VOID Stamp Overlay -->
+          <div id="cert-revoked-stamp" class="hidden absolute inset-0 z-30 flex items-center justify-center pointer-events-none select-none">
+            <div class="border-[8px] sm:border-[10px] border-red-600/90 text-red-600/90 font-black text-5xl sm:text-7xl lg:text-8xl tracking-[0.16em] px-8 sm:px-12 py-4 sm:py-6 uppercase rotate-[-20deg] shadow-2xl rounded-3xl backdrop-blur-[2px] bg-red-50/25 text-center">
+              <div>REVOKED</div>
+              <div class="text-xl sm:text-3xl tracking-[0.25em] mt-1 sm:mt-2 text-red-700/95 font-bold font-sans">ĐÃ THU HỒI</div>
+            </div>
+          </div>
 
           <!-- Classic Hardcoded Certificate Body -->
           <div id="cert-classic-body" class="relative z-10 flex flex-col justify-between h-full">

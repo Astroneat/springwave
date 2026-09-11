@@ -44,6 +44,9 @@ function enrichTicketsWithActivities(tickets, actMap) {
         if (full.expiredCheckinMinutes !== undefined && t.event.expiredCheckinMinutes === undefined) {
           t.event.expiredCheckinMinutes = full.expiredCheckinMinutes;
         }
+        if (full.hasCertificate !== undefined) {
+          t.event.hasCertificate = full.hasCertificate;
+        }
       }
     }
     return t;
@@ -220,9 +223,10 @@ function renderEvents() {
     }
 
     const canRate = canRateEvent(tkt);
-    const hasCertificate = !!tkt.certificate;
-    const hasReview = !!tkt.review;
-    const isCertUnlocked = hasCertificate && hasReview && !!tkt.certificate?.certificateCode;
+    const hasCertificate = Boolean(tkt.certificate);
+    const hasReview = Boolean(tkt.review);
+    const isCertRevoked = Boolean(tkt.certificate?.isRevoked || tkt.certificate?.status === 'revoked');
+    const isCertUnlocked = hasCertificate && hasReview && !isCertRevoked && Boolean(tkt.certificate?.certificateCode);
     const eventId = event._id || '';
     const eventTitle = event.title || 'Unknown Event';
     const safeTitle = eventTitle.replace(/'/g, "\\'");
@@ -234,31 +238,41 @@ function renderEvents() {
       // PIN check-in button is rendered on the right stub
     } else {
       if (canRate) {
+        const rateBtnText = (hasCertificate && !isCertRevoked)
+          ? t('my_events.rate_to_achieve_cert', 'Đánh giá để nhận chứng nhận')
+          : t('my_events.rate_event', 'Rate Event');
         actionButtons += `
           <button class="rate-event-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1755ba] bg-[#1755ba]/10 hover:bg-[#1755ba]/25 transition-all cursor-pointer inline-flex items-center gap-1.5" data-event-id="${eventId}" data-event-title="${safeTitle}">
             <i class="fa-regular fa-star"></i>
-            <span>${t('my_events.rate_event', 'Rate Event')}</span>
+            <span>${rateBtnText}</span>
           </button>`;
       } else if (hasReview) {
         actionButtons += `
           <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50">
             <i class="fa-solid fa-star text-amber-500"></i> ${tkt.review.rating}/5
           </span>`;
-      }
-      if (hasCertificate) {
-        if (isCertUnlocked) {
-          actionButtons += `
-            <button class="view-cert-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-all cursor-pointer inline-flex items-center gap-1.5" data-cert-code="${tkt.certificate.certificateCode}" data-event-title="${safeTitle}" data-event-id="${eventId}">
-              <i class="fa-solid fa-award"></i>
-              <span>${t('my_events.certificate', 'Certificate')}</span>
-            </button>`;
-        } else {
-          actionButtons += `
-            <button class="locked-cert-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-800 bg-amber-50/90 hover:bg-amber-100 border border-amber-200/80 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-sm" data-event-id="${eventId}" data-event-title="${safeTitle}" title="${t('my_events.rate_first_to_unlock_tooltip', 'Please rate this event to receive your certificate')}">
-              <i class="fa-solid fa-lock text-amber-600 text-[11px]"></i>
-              <span>${t('my_events.certificate', 'Certificate')}</span>
-              <span class="text-[10px] font-bold text-amber-700 bg-amber-200/70 px-1.5 py-0.5 rounded">${t('my_events.rate_first', 'Rate to receive')}</span>
-            </button>`;
+        if (hasCertificate) {
+          if (isCertRevoked) {
+            const rawReason = tkt.certificate.revocationReason || t('my_events.revoked_default_reason', 'Thu hồi bởi Ban tổ chức');
+            const safeReason = rawReason.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const revokedDate = tkt.certificate.revokedAt ? formatDate(tkt.certificate.revokedAt) : '';
+            actionButtons += `
+              <button class="revoked-cert-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100/80 border border-rose-200 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
+                      data-cert-code="${tkt.certificate.certificateCode || ''}"
+                      data-event-title="${safeTitle}"
+                      data-event-id="${eventId}"
+                      data-revoked-at="${revokedDate}"
+                      data-revocation-reason="${safeReason}">
+                <i class="fa-solid fa-ban text-rose-600 text-[11px]"></i>
+                <span>${t('my_events.cert_revoked_btn', 'Chứng nhận đã bị thu hồi')}</span>
+              </button>`;
+          } else if (isCertUnlocked) {
+            actionButtons += `
+              <button class="view-cert-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-all cursor-pointer inline-flex items-center gap-1.5 border border-emerald-200" data-cert-code="${tkt.certificate.certificateCode}" data-event-title="${safeTitle}" data-event-id="${eventId}">
+                <i class="fa-solid fa-award"></i>
+                <span>${t('my_events.certificate', 'Certificate')}</span>
+              </button>`;
+          }
         }
       }
     }
@@ -287,6 +301,27 @@ function renderEvents() {
       formatBadgeTag = `<span class="inline-flex items-center justify-center h-[26px] text-xs font-semibold text-[#1755ba] bg-blue-50 px-3 rounded-full border border-blue-200/80 shadow-2xs leading-none">${t('my_events.format_offline', 'Trực tiếp')}</span>`;
     }
 
+    const eventHasCert = Boolean(
+      event.hasCertificate === true || 
+      event.hasCertificate === 'true' || 
+      tkt.certificate
+    );
+
+    let certBadgeTag = '';
+    if (isCertRevoked) {
+      certBadgeTag = `
+        <span class="inline-flex items-center gap-1.5 h-[26px] px-2.5 rounded-lg text-xs font-bold text-rose-900 bg-rose-50 border border-rose-300/90 shadow-2xs leading-none">
+          <i class="fa-solid fa-ban text-rose-600 text-xs"></i>
+          <span>${t('my_events.badge_revoked', 'Đã thu hồi')}</span>
+        </span>`;
+    } else if (eventHasCert) {
+      certBadgeTag = `
+        <span class="inline-flex items-center gap-1.5 h-[26px] px-2.5 rounded-lg text-xs font-bold text-amber-900 bg-amber-50 border border-amber-300/90 shadow-2xs leading-none">
+          <i class="fa-solid fa-award text-amber-600 text-xs"></i>
+          <span>${t('explore.certificate_badge') || 'Certificate'}</span>
+        </span>`;
+    }
+
     const showQR = effectiveStatus === 'active' && !isOnline && !!tkt.qrImageUrl;
 
     return `
@@ -299,6 +334,7 @@ function renderEvents() {
           <div class="absolute top-3 left-3 md:hidden flex items-center gap-1.5 flex-wrap">
             ${statusBadgeHTML(effectiveStatus)}
             ${formatBadgeTag}
+            ${certBadgeTag}
           </div>
         </div>
 
@@ -308,6 +344,7 @@ function renderEvents() {
               <div class="flex items-center gap-2 flex-wrap">
                 ${statusBadgeHTML(effectiveStatus)}
                 ${formatBadgeTag}
+                ${certBadgeTag}
               </div>
               ${statusBadgeTag}
             </div>
@@ -429,6 +466,17 @@ function renderEvents() {
       const eventTitle = btn.dataset.eventTitle;
       const eventId = btn.dataset.eventId;
       openCertModal(certCode, eventTitle, eventId);
+    });
+  });
+
+  // Revoked Certificate buttons
+  document.querySelectorAll(".revoked-cert-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const certCode = btn.dataset.certCode || '';
+      const eventTitle = btn.dataset.eventTitle || 'Event';
+      const reason = btn.dataset.revocationReason || '';
+      const date = btn.dataset.revokedAt || '';
+      openRevokedModal(certCode, eventTitle, reason, date);
     });
   });
 
@@ -590,6 +638,48 @@ function closeCertModal() {
   }, 300);
 }
 
+// ─── Revoked Certificate Modal ───
+
+function openRevokedModal(certCode, eventTitle, reason, date) {
+  const nameEl = document.getElementById("revoked-modal-event-name");
+  const codeEl = document.getElementById("revoked-modal-code");
+  const reasonEl = document.getElementById("revoked-modal-reason");
+  const dateEl = document.getElementById("revoked-modal-date");
+
+  if (nameEl) nameEl.textContent = eventTitle || "Event";
+  if (codeEl) codeEl.textContent = certCode || "N/A";
+  if (reasonEl) reasonEl.textContent = reason || t('my_events.revoked_default_reason', 'Thu hồi bởi Ban tổ chức');
+  if (dateEl) {
+    dateEl.textContent = date 
+      ? t('my_events.revoked_at_label', `Thu hồi lúc: ${date}`).replace('{{date}}', date)
+      : '';
+  }
+
+  const modal = document.getElementById("revoked-cert-modal");
+  const content = modal?.querySelector(".bg-white");
+  if (!modal || !content) return;
+  modal.hidden = false;
+  requestAnimationFrame(() => {
+    modal.classList.remove("opacity-0", "pointer-events-none");
+    content.classList.remove("scale-95");
+    content.classList.add("scale-100");
+  });
+}
+
+function closeRevokedModal() {
+  const modal = document.getElementById("revoked-cert-modal");
+  const content = modal?.querySelector(".bg-white");
+  if (!modal || !content) return;
+  modal.classList.add("opacity-0", "pointer-events-none");
+  content.classList.remove("scale-100");
+  content.classList.add("scale-95");
+  setTimeout(() => {
+    if (modal.classList.contains("opacity-0")) {
+      modal.hidden = true;
+    }
+  }, 300);
+}
+
 // ─── QR Zoom Modal ───
 
 function openQrModal(imageUrl, eventTitle, qrCodeText) {
@@ -724,6 +814,14 @@ function initModals() {
   document.getElementById("close-cert-modal").addEventListener("click", closeCertModal);
   certModal.addEventListener("click", (e) => {
     if (e.target === certModal) closeCertModal();
+  });
+
+  // Revoked certificate modal
+  const revokedModal = document.getElementById("revoked-cert-modal");
+  document.getElementById("close-revoked-modal")?.addEventListener("click", closeRevokedModal);
+  document.getElementById("revoked-modal-close-btn")?.addEventListener("click", closeRevokedModal);
+  revokedModal?.addEventListener("click", (e) => {
+    if (e.target === revokedModal) closeRevokedModal();
   });
 
   // QR zoom modal

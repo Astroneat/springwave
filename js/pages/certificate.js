@@ -735,21 +735,38 @@ async function setupCertificateDOM(cert, status) {
   const revokedStamp = document.getElementById("cert-revoked-stamp");
   const downloadPdfBtn = document.getElementById("download-pdf-btn");
   const downloadPngBtn = document.getElementById("download-png-btn");
+  const shareCommunityBtn = document.getElementById("share-community-btn");
 
   if (isRevoked) {
+    document.body.classList.add("is-revoked");
     if (revokedBanner) revokedBanner.classList.remove("hidden");
     if (revokedStamp) revokedStamp.classList.remove("hidden");
     if (downloadPdfBtn) {
       downloadPdfBtn.disabled = true;
-      downloadPdfBtn.classList.add("opacity-50", "cursor-not-allowed");
+      downloadPdfBtn.classList.add("hidden");
     }
     if (downloadPngBtn) {
       downloadPngBtn.disabled = true;
-      downloadPngBtn.classList.add("opacity-50", "cursor-not-allowed");
+      downloadPngBtn.classList.add("hidden");
+    }
+    if (shareCommunityBtn) {
+      shareCommunityBtn.classList.add("hidden");
     }
   } else {
+    document.body.classList.remove("is-revoked");
     if (revokedBanner) revokedBanner.classList.add("hidden");
     if (revokedStamp) revokedStamp.classList.add("hidden");
+    if (downloadPdfBtn) {
+      downloadPdfBtn.disabled = false;
+      downloadPdfBtn.classList.remove("hidden");
+    }
+    if (downloadPngBtn) {
+      downloadPngBtn.disabled = false;
+      downloadPngBtn.classList.remove("hidden");
+    }
+    if (shareCommunityBtn) {
+      shareCommunityBtn.classList.remove("hidden");
+    }
   }
 
 }
@@ -1254,7 +1271,11 @@ function initActionButtons() {
 
   // Download PNG
   document.getElementById("download-png-btn")?.addEventListener("click", async () => {
-    if (!currentCertData || currentCertStatus === 'revoked') return;
+    if (!currentCertData) return;
+    if (currentCertStatus === 'revoked' || currentCertData.status === 'revoked') {
+      alert(t("certificate_view.cannot_download_revoked", "Chứng chỉ này đã bị Ban tổ chức thu hồi và không thể tải xuống."));
+      return;
+    }
     const btn = document.getElementById("download-png-btn");
     const originalText = btn.innerHTML;
     btn.disabled = true;
@@ -1282,7 +1303,11 @@ function initActionButtons() {
 
   // Download PDF with Embedded Metadata
   document.getElementById("download-pdf-btn")?.addEventListener("click", async () => {
-    if (!currentCertData || currentCertStatus === 'revoked') return;
+    if (!currentCertData) return;
+    if (currentCertStatus === 'revoked' || currentCertData.status === 'revoked') {
+      alert(t("certificate_view.cannot_download_revoked", "Chứng chỉ này đã bị Ban tổ chức thu hồi và không thể tải xuống."));
+      return;
+    }
     const btn = document.getElementById("download-pdf-btn");
     const originalText = btn.innerHTML;
     btn.disabled = true;

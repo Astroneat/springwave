@@ -4,7 +4,7 @@ import { t, getLang, applyTranslation, getCategoryName } from "../lib/i18n.js";
 import { isAuthenticated, getUser } from "../lib/session.js";
 import { initChatbot } from "../components/chatbot.js";
 import { loadNavbar } from "../components/navbar.js";
-import { fetchContent, formatDate, capitalize } from "../lib/utils.js";
+import { fetchContent, formatDate, capitalize, isOnlineEvent } from "../lib/utils.js";
 import { get, post, put, del, uploadFormData } from "../api/client.js";
 import { getMyOrganizations, getAllOrganizations, updateOrganization, deleteOrganization, getOrgActivities, getManagers, addManager, removeManager, transferOwnership, uploadOrgAvatar } from "../api/organizations.js";
 import { getAttendance, getAttendanceStats, markAttendance, scanAttendance, initAttendance, importExcelAttendance, addParticipantsBatch, updateExternalParticipant, deleteExternalParticipant, removeParticipant, toggleOnlineCheckin, getOnlineCheckinStatus } from "../api/attendance.js";
@@ -1262,7 +1262,7 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
 
       <div class="event-select-dialog-footer">
         <span class="text-xs text-[#64748b] font-medium" id="${hiddenInputId}-dialog-count">Showing ${events.length} event(s)</span>
-        <button type="button" class="event-select-dialog-cancel px-4 py-2 rounded-xl border border-[#e2e2eb] bg-white hover:bg-[#f8f9fc] text-[#64748b] text-xs font-semibold cursor-pointer transition-colors">Cancel</button>
+        <button type="button" class="event-select-dialog-choose px-5 py-2 rounded-xl bg-primary text-white hover:bg-primary/90 text-xs font-semibold cursor-pointer shadow-xs transition-colors">${t('common.choose', 'Choose')}</button>
       </div>
     </div>
   `;
@@ -1273,12 +1273,42 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
   const searchClearBtn = dialog.querySelector(".event-select-search-clear");
   const filterPills = dialog.querySelectorAll(".event-select-pill");
   const closeBtn = dialog.querySelector(".event-select-dialog-close");
-  const cancelBtn = dialog.querySelector(".event-select-dialog-cancel");
+  const chooseBtn = dialog.querySelector(".event-select-dialog-choose");
   const backdrop = dialog.querySelector(".event-select-backdrop");
   const countEl = dialog.querySelector(`#${hiddenInputId}-dialog-count`);
 
   let activeFilter = "all";
   let activeQuery = "";
+  let tempSelectedId = input.value;
+
+  function _updateSelectedCard(newSelectedId) {
+    tempSelectedId = newSelectedId;
+    const cards = listEl.querySelectorAll(".event-select-card");
+    cards.forEach(c => {
+      const cardId = c.dataset.eventId !== undefined ? c.dataset.eventId : "";
+      const isThisSelected = (cardId === (tempSelectedId || ""));
+      c.classList.toggle("event-select-card-selected", isThisSelected);
+      const radioContainer = c.querySelector(".event-select-radio-container");
+      if (radioContainer) {
+        radioContainer.innerHTML = isThisSelected
+          ? '<div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-xs"><span class="material-symbols-outlined text-[16px] font-bold">check</span></div>'
+          : '<div class="w-6 h-6 rounded-full border-2 border-slate-200"></div>';
+      }
+    });
+  }
+
+  function _confirmSelection() {
+    if (tempSelectedId) {
+      const ev = events.find(e => e._id === tempSelectedId) || null;
+      _selectEventItem(ev);
+    } else if (allowAllOption) {
+      _selectEventItem(null);
+    } else if (events.length > 0) {
+      _selectEventItem(events[0]);
+    } else {
+      closeDialog();
+    }
+  }
 
   function _filterEventsList() {
     let list = events;
@@ -1316,6 +1346,10 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
 
     // If org has 0 events total
     if (events.length === 0) {
+      if (chooseBtn) {
+        chooseBtn.disabled = true;
+        chooseBtn.classList.add("opacity-50", "cursor-not-allowed");
+      }
       listEl.innerHTML = `
         <div class="event-select-empty">
           <i class="fa-regular fa-calendar-xmark text-4xl text-slate-300 mb-1"></i>
@@ -1327,6 +1361,11 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
         </div>
       `;
       return;
+    }
+
+    if (chooseBtn) {
+      chooseBtn.disabled = false;
+      chooseBtn.classList.remove("opacity-50", "cursor-not-allowed");
     }
 
     // If query returned 0 matches
@@ -1356,8 +1395,9 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
 
     // If allowAllOption is true and activeFilter is all without query
     if (allowAllOption && activeFilter === "all" && !activeQuery) {
-      const isAllSelected = !input.value;
+      const isAllSelected = !tempSelectedId;
       const allCard = document.createElement("div");
+      allCard.dataset.eventId = "";
       allCard.className = `event-select-card ${isAllSelected ? "event-select-card-selected" : ""}`;
       allCard.innerHTML = `
         <div class="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center text-primary text-2xl shrink-0 border border-blue-200/60 shadow-2xs">
@@ -1370,20 +1410,24 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
           </div>
           <p class="text-xs text-[#64748b] mt-1">Show combined metrics and reviews for all ${events.length} events</p>
         </div>
-        <div class="shrink-0 ml-2">
+        <div class="event-select-radio-container shrink-0 ml-2">
           ${isAllSelected
           ? '<div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-xs"><span class="material-symbols-outlined text-[16px] font-bold">check</span></div>'
           : '<div class="w-6 h-6 rounded-full border-2 border-slate-200"></div>'}
         </div>
       `;
       allCard.addEventListener("click", () => {
-        _selectEventItem(null);
+        _updateSelectedCard("");
+      });
+      allCard.addEventListener("dblclick", () => {
+        _updateSelectedCard("");
+        _confirmSelection();
       });
       fragment.appendChild(allCard);
     }
 
     filtered.forEach(e => {
-      const isSelected = input.value === e._id;
+      const isSelected = tempSelectedId === e._id;
       const isExpired = isEventExpired(e.heldDate);
       const isUpcoming = e.heldDate && new Date(e.heldDate) >= new Date();
       const thumbUrl = _resolveThumbnailUrl(e.thumbnail);
@@ -1407,6 +1451,7 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
       }
 
       const card = document.createElement("div");
+      card.dataset.eventId = e._id;
       card.className = `event-select-card ${isSelected ? "event-select-card-selected" : ""}`;
       card.innerHTML = `
         <div class="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200/80 relative shadow-2xs">
@@ -1428,7 +1473,7 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
             ${e.hasAttendance ? '<span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/60 text-[10px] font-semibold"><i class="fa-solid fa-qrcode text-[9px] mr-1"></i>Check-in</span>' : ''}
           </div>
         </div>
-        <div class="shrink-0 ml-2">
+        <div class="event-select-radio-container shrink-0 ml-2">
           ${isSelected
           ? '<div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-xs"><span class="material-symbols-outlined text-[16px] font-bold">check</span></div>'
           : '<div class="w-6 h-6 rounded-full border-2 border-slate-200"></div>'}
@@ -1436,7 +1481,12 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
       `;
 
       card.addEventListener("click", () => {
-        _selectEventItem(e);
+        _updateSelectedCard(e._id);
+      });
+
+      card.addEventListener("dblclick", () => {
+        _updateSelectedCard(e._id);
+        _confirmSelection();
       });
 
       fragment.appendChild(card);
@@ -1458,6 +1508,7 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
     dialog.classList.remove("hidden");
     triggerBtn.setAttribute("aria-expanded", "true");
     document.body.style.overflow = "hidden";
+    tempSelectedId = input.value;
     activeFilter = "all";
     activeQuery = "";
     searchInput.value = "";
@@ -1479,7 +1530,7 @@ function renderEventSelectDialog(wrapperId, hiddenInputId, events, placeholder, 
   });
 
   closeBtn?.addEventListener("click", closeDialog);
-  cancelBtn?.addEventListener("click", closeDialog);
+  chooseBtn?.addEventListener("click", _confirmSelection);
   backdrop?.addEventListener("click", closeDialog);
 
   searchInput?.addEventListener("input", (e) => {
@@ -3156,6 +3207,10 @@ function initAttendanceEventSelect() {
         loadAttendance(e.target.value);
       } else {
         document.getElementById("attendance-table-body").innerHTML = "";
+        const scanQrBtn = document.getElementById("scan-qr-btn");
+        const openOnlineCheckinBtn = document.getElementById("open-online-checkin-modal-btn");
+        if (scanQrBtn) scanQrBtn.classList.add("hidden");
+        if (openOnlineCheckinBtn) openOnlineCheckinBtn.classList.add("hidden");
         const empty = document.getElementById("attendance-empty");
         if (empty) {
           empty.classList.remove("hidden");
@@ -3379,7 +3434,8 @@ async function loadAttendance(eventId) {
       getAttendanceStats(eventId).catch(() => ({ stats: { totalParticipants: 0, present: 0, absent: 0 } })),
       get(`/events/${eventId}`).catch(() => ({ event: {} })),
     ]);
-    const event = eventData.event || {};
+    const cachedEv = currentEvents.find(e => (e._id || e.id) === eventId) || {};
+    const event = { ...cachedEv, ...(eventData.event || {}) };
     const eventDate = event.heldDateEnd || event.heldDate;
     let isPastEvent = false;
     if (eventDate) {
@@ -3392,7 +3448,18 @@ async function loadAttendance(eventId) {
     rebuildAttendanceCache(eventId, records, event, isPastEvent);
 
     const scanQrBtn = document.getElementById("scan-qr-btn");
+    const openOnlineCheckinBtn = document.getElementById("open-online-checkin-modal-btn");
     const initBtn = document.getElementById("init-attendance-btn");
+
+    const isOnline = isOnlineEvent(event);
+    if (isOnline) {
+      if (scanQrBtn) scanQrBtn.classList.add("hidden");
+      if (openOnlineCheckinBtn) openOnlineCheckinBtn.classList.remove("hidden");
+    } else {
+      if (scanQrBtn) scanQrBtn.classList.remove("hidden");
+      if (openOnlineCheckinBtn) openOnlineCheckinBtn.classList.add("hidden");
+    }
+
     if (scanQrBtn) {
       if (isPastEvent) {
         scanQrBtn.disabled = true;
@@ -3404,6 +3471,19 @@ async function loadAttendance(eventId) {
         scanQrBtn.classList.remove("opacity-50", "cursor-not-allowed");
         scanQrBtn.classList.add("cursor-pointer");
         scanQrBtn.title = "";
+      }
+    }
+    if (openOnlineCheckinBtn) {
+      if (isPastEvent) {
+        openOnlineCheckinBtn.disabled = true;
+        openOnlineCheckinBtn.classList.add("opacity-50", "cursor-not-allowed");
+        openOnlineCheckinBtn.classList.remove("cursor-pointer");
+        openOnlineCheckinBtn.title = "Cannot open check-in gate for a past event";
+      } else {
+        openOnlineCheckinBtn.disabled = false;
+        openOnlineCheckinBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        openOnlineCheckinBtn.classList.add("cursor-pointer");
+        openOnlineCheckinBtn.title = "";
       }
     }
     if (initBtn) {
@@ -4314,6 +4394,7 @@ function initOnlineCheckinHostModal() {
   const openStateEl = document.getElementById("online-host-open-state");
   const openBtn = document.getElementById("online-host-open-btn");
   const closeGateBtn = document.getElementById("online-host-close-btn");
+  const regenBtn = document.getElementById("online-host-regen-btn");
   const durationSelect = document.getElementById("online-host-duration");
   const pinDisplayEl = document.getElementById("online-host-pin-display");
   const copyBtn = document.getElementById("online-host-copy-btn");
@@ -4339,7 +4420,7 @@ function initOnlineCheckinHostModal() {
     function update() {
       const remainingMs = new Date(expiresAt).getTime() - Date.now();
       if (remainingMs <= 0) {
-        countdownEl.textContent = "00:00 (Hết hạn)";
+        countdownEl.textContent = `00:00 (${t("org_dashboard.expired_label", "Hết hạn")})`;
         stopCountdown();
         renderState({ isOpen: false });
         return;
@@ -4362,7 +4443,8 @@ function initOnlineCheckinHostModal() {
       openStateEl?.classList.remove("hidden");
       if (statusBadgeEl) {
         statusBadgeEl.textContent = t("org_dashboard.gate_status_open", "Đang mở");
-        statusBadgeEl.className = "px-3 py-1 rounded-full text-xs font-bold shrink-0 bg-emerald-100 text-emerald-700 border border-emerald-300";
+        statusBadgeEl.dataset.i18n = "org_dashboard.gate_status_open";
+        statusBadgeEl.className = "px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 bg-emerald-50 text-emerald-700 border border-emerald-200";
       }
       if (pinDisplayEl) {
         pinDisplayEl.textContent = onlineCheckin.code || "------";
@@ -4374,13 +4456,14 @@ function initOnlineCheckinHostModal() {
       closedStateEl?.classList.remove("hidden");
       if (statusBadgeEl) {
         statusBadgeEl.textContent = t("org_dashboard.gate_status_closed", "Đang đóng");
-        statusBadgeEl.className = "px-3 py-1 rounded-full text-xs font-bold shrink-0 bg-slate-100 text-slate-600 border border-slate-200";
+        statusBadgeEl.dataset.i18n = "org_dashboard.gate_status_closed";
+        statusBadgeEl.className = "px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 bg-slate-100 text-slate-600 border border-slate-200";
       }
     }
   }
 
   async function openModal() {
-    const eventId = document.getElementById("attendance-event-select")?.value;
+    const eventId = document.getElementById("attendance-event-select")?.value || attendanceCache?.eventId;
     if (!eventId) {
       alert(t("org_dashboard.select_event_first", "Select an event first"));
       return;
@@ -4396,16 +4479,47 @@ function initOnlineCheckinHostModal() {
     overlay.classList.add("active");
     document.body.style.overflow = "hidden";
 
-    // Show initial closed state while loading
-    renderState({ isOpen: false });
+    // Show loading state directly in the open gate view
+    closedStateEl?.classList.add("hidden");
+    openStateEl?.classList.remove("hidden");
+    if (pinDisplayEl) {
+      pinDisplayEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-2xl text-slate-400"></i>`;
+    }
+    if (statusBadgeEl) {
+      statusBadgeEl.textContent = t("common.loading", "Đang tải...");
+      statusBadgeEl.dataset.i18n = "common.loading";
+      statusBadgeEl.className = "px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 bg-slate-100 text-slate-600 border border-slate-200";
+    }
+    if (countdownEl) {
+      countdownEl.textContent = "--:--";
+    }
 
     try {
+      // 1. Check if gate is currently active with a valid PIN
       const res = await getOnlineCheckinStatus(eventId);
-      if (res && res.onlineCheckin) {
+      const isCurrentlyOpen = Boolean(
+        res?.onlineCheckin?.isOpen &&
+        res?.onlineCheckin?.code &&
+        res?.onlineCheckin?.expiresAt &&
+        (new Date() < new Date(res.onlineCheckin.expiresAt))
+      );
+
+      if (isCurrentlyOpen) {
         renderState(res.onlineCheckin);
+      } else {
+        // Gate is not active or expired: automatically create a new PIN code immediately!
+        const durationMinutes = parseInt(durationSelect?.value || "15", 10);
+        const openRes = await toggleOnlineCheckin(eventId, { isOpen: true, durationMinutes });
+        if (openRes && openRes.onlineCheckin) {
+          renderState(openRes.onlineCheckin);
+        } else {
+          renderState({ isOpen: false });
+        }
       }
     } catch (err) {
-      console.error("Failed to load online checkin status:", err);
+      console.error("Failed to load or generate online checkin:", err);
+      renderState({ isOpen: false });
+      alert(err.message || t("org_dashboard.init_gate_failed", "Khởi tạo cổng điểm danh thất bại"));
     }
   }
 
@@ -4420,19 +4534,39 @@ function initOnlineCheckinHostModal() {
   backdrop?.addEventListener("click", closeModal);
   closeBtn?.addEventListener("click", closeModal);
 
+  // Button to regenerate / create a new PIN while the gate is open
+  regenBtn?.addEventListener("click", async () => {
+    if (!currentActiveEventId) return;
+    const durationMinutes = parseInt(durationSelect?.value || "15", 10);
+    const originalContent = regenBtn.innerHTML;
+    try {
+      regenBtn.disabled = true;
+      regenBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>${t("org_dashboard.generating_pin", "Đang tạo mã...")}</span>`;
+      const res = await toggleOnlineCheckin(currentActiveEventId, { isOpen: true, durationMinutes });
+      if (res && res.onlineCheckin) {
+        renderState(res.onlineCheckin);
+      }
+    } catch (err) {
+      alert(err.message || t("org_dashboard.regen_pin_failed", "Không thể tạo mã PIN mới"));
+    } finally {
+      regenBtn.disabled = false;
+      regenBtn.innerHTML = originalContent;
+    }
+  });
+
   openBtn?.addEventListener("click", async () => {
     if (!currentActiveEventId) return;
     const durationMinutes = parseInt(durationSelect?.value || "15", 10);
     const originalText = openBtn.innerHTML;
     try {
       openBtn.disabled = true;
-      openBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Đang khởi tạo...</span>`;
+      openBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>${t("org_dashboard.opening_gate", "Đang mở cổng...")}</span>`;
       const res = await toggleOnlineCheckin(currentActiveEventId, { isOpen: true, durationMinutes });
       if (res && res.onlineCheckin) {
         renderState(res.onlineCheckin);
       }
     } catch (err) {
-      alert(err.message || "Failed to open online check-in gate");
+      alert(err.message || t("org_dashboard.open_gate_failed", "Mở cổng điểm danh thất bại"));
     } finally {
       openBtn.disabled = false;
       openBtn.innerHTML = originalText;
@@ -4452,13 +4586,13 @@ function initOnlineCheckinHostModal() {
     const originalText = closeGateBtn.innerHTML;
     try {
       closeGateBtn.disabled = true;
-      closeGateBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Đang đóng...</span>`;
+      closeGateBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>${t("org_dashboard.closing_gate", "Đang đóng...")}</span>`;
       const res = await toggleOnlineCheckin(currentActiveEventId, { isOpen: false });
       if (res && res.onlineCheckin) {
         renderState(res.onlineCheckin);
       }
     } catch (err) {
-      alert(err.message || "Failed to close online check-in gate");
+      alert(err.message || t("org_dashboard.close_gate_failed", "Đóng cổng điểm danh thất bại"));
     } finally {
       closeGateBtn.disabled = false;
       closeGateBtn.innerHTML = originalText;
@@ -4467,18 +4601,28 @@ function initOnlineCheckinHostModal() {
 
   copyBtn?.addEventListener("click", async () => {
     const code = pinDisplayEl?.textContent?.trim();
-    if (!code || code === "------") return;
+    if (!code || code === "------" || code.includes("<")) return;
     try {
       await navigator.clipboard.writeText(code);
       if (copyTextEl) {
-        const prev = copyTextEl.textContent;
         copyTextEl.textContent = t("common.copied", "Đã sao chép!");
         setTimeout(() => {
-          copyTextEl.textContent = prev;
+          copyTextEl.textContent = t("org_dashboard.copy_pin", "Sao chép mã PIN");
         }, 2000);
       }
     } catch (e) {
       console.error("Clipboard copy failed:", e);
+    }
+  });
+
+  window.addEventListener("language-changed", () => {
+    if (!overlay.hasAttribute("hidden") && currentActiveEventId) {
+      const isCurrentlyOpen = !openStateEl?.classList.contains("hidden");
+      if (statusBadgeEl) {
+        statusBadgeEl.textContent = isCurrentlyOpen
+          ? t("org_dashboard.gate_status_open", "Đang mở")
+          : t("org_dashboard.gate_status_closed", "Đang đóng");
+      }
     }
   });
 }
@@ -6666,7 +6810,15 @@ function initIssueCerts() {
     const reasonInput = document.getElementById("revoke-cert-reason");
     const certId = idInput?.value;
     const eventId = idInput?.dataset?.eventId;
-    const reason = reasonInput?.value?.trim() || "Revoked by organizer";
+    const reason = reasonInput?.value?.trim() || "";
+
+    if (!reason) {
+      alert(t("org_dashboard.cert_designer.reason_required", "Vui lòng nhập lý do thu hồi chứng nhận"));
+      reasonInput?.focus();
+      reasonInput?.classList.add("!border-red-500");
+      return;
+    }
+    reasonInput?.classList.remove("!border-red-500");
 
     if (!certId) return;
     const btn = document.getElementById("revoke-cert-confirm-btn");

@@ -239,3 +239,19 @@ export function getEventStatus(event) {
     return 'registration_open';
 }
 
+/**
+ * Checks whether an event is formatted as online
+ * @param {Object} event
+ * @returns {boolean}
+ */
+export function isOnlineEvent(event) {
+    if (!event) return false;
+    if (event.format === 'online') return true;
+    if (event.format === 'offline') return false;
+    const loc = String(event.location || '').trim().toLowerCase();
+    if (loc === 'online' || loc.includes('online') || loc.includes('zoom') || loc.includes('meet') || loc.includes('teams') || loc.includes('webex')) return true;
+    if (event.meetingUrl && String(event.meetingUrl).trim().length > 0) return true;
+    if (event.onlineCheckin && (event.onlineCheckin.isOpen || event.onlineCheckin.code)) return true;
+    return false;
+}
+
