@@ -48,6 +48,9 @@ function enrichTicketsWithActivities(tickets, actMap) {
         if (full.hasCertificate !== undefined) {
           t.event.hasCertificate = full.hasCertificate;
         }
+        if (full.isEnded !== undefined) {
+          t.event.isEnded = full.isEnded;
+        }
       }
     }
     return t;
@@ -65,6 +68,7 @@ function isInactive(t) {
 
 function isEventExpired(t) {
   const event = t.event || {};
+  if (event.isEnded) return true;
   if (!event.heldDate && !event.heldDateEnd) return false;
   const now = Date.now();
   if (event.heldDateEnd) {

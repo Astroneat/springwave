@@ -378,7 +378,9 @@ function switchSection(section) {
 // ─── Timeline Status & Metrics ───
 
 export function getEventTimelineStatus(event) {
-  if (!event || !event.heldDate) return "upcoming";
+  if (!event) return "upcoming";
+  if (event.isEnded) return "ended";
+  if (!event.heldDate) return "upcoming";
   const now = Date.now();
   const startTime = new Date(event.heldDate).getTime();
   if (isNaN(startTime)) return "upcoming";
@@ -629,6 +631,11 @@ function renderEventsTable() {
           <button class="edit-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center transition-all spring-ease ${editDisabled ? 'opacity-40 cursor-not-allowed' : 'text-[#1755ba] hover:bg-[#dae1ff] hover:text-primary'}" title="${editTitle}" ${editDisabled ? 'disabled' : ''}>
             <i class="fa-solid fa-pen text-sm"></i>
           </button>
+          ${!isEnded ? `
+          <button class="end-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-amber-600 hover:bg-amber-50 hover:border-amber-300 transition-all spring-ease" title="${t("org_dashboard.end_event_btn", {}, "Kết thúc sự kiện sớm")}">
+            <i class="fa-solid fa-flag-checkered text-sm"></i>
+          </button>
+          ` : ''}
           ${isOrgOwner() ? `
           <button class="delete-event-btn w-9 h-9 rounded-lg border border-[#e2e2eb] bg-white flex items-center justify-center text-[#ef4444] hover:bg-red-50 hover:border-red-200 transition-all spring-ease" title="Delete">
             <i class="fa-solid fa-trash-can text-sm"></i>
@@ -660,6 +667,14 @@ function renderEventsTable() {
     });
   });
 
+  tbody.querySelectorAll(".end-event-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const id = btn.closest("tr").dataset.id;
+      handleEndEvent(id);
+    });
+  });
+
   tbody.querySelectorAll(".delete-event-btn").forEach(btn => {
     btn.addEventListener("click", async e => {
       e.stopPropagation();
@@ -687,6 +702,50 @@ function renderEventsTable() {
   });
 }
 
+async function handleEndEvent(id) {
+  const event = currentEvents.find(ev => ev._id === id);
+  const confirmed = await showConfirmDialog({
+    titleKey: "org_dashboard.end_event_confirm_title",
+    messageKey: "org_dashboard.end_event_confirm_msg",
+    confirmTextKey: "org_dashboard.end_event_confirm_btn",
+    type: "warning",
+    params: { title: event?.title || "" }
+  });
+  if (!confirmed) return;
+
+  try {
+    const res = await post(`/events/${id}/end`);
+    showAlertDialog({
+      titleKey: "common.confirm_title",
+      messageKey: "org_dashboard.end_event_success",
+      type: "success"
+    });
+
+    const idx = currentEvents.findIndex(ev => ev._id === id);
+    if (idx !== -1) {
+      if (res?.event) {
+        currentEvents[idx] = { ...currentEvents[idx], ...res.event, isEnded: true, heldDateEnd: res.event.heldDateEnd };
+      } else {
+        currentEvents[idx].isEnded = true;
+        currentEvents[idx].heldDateEnd = new Date().toISOString();
+      }
+    }
+    updateEventsMetrics(currentEvents);
+    renderEventsTable();
+
+    const overlay = document.getElementById("event-detail-overlay");
+    if (overlay && !overlay.hasAttribute("hidden") && !overlay.classList.contains("hidden")) {
+      openEventDetailModal(id);
+    }
+  } catch (err) {
+    showAlertDialog({
+      titleKey: "common.error",
+      message: err.message || t("org_dashboard.end_event_failed", {}, "Không thể kết thúc sự kiện"),
+      type: "error"
+    });
+  }
+}
+
 // ─── Event Detail Modal ───
 
 async function openEventDetailModal(eventId) {
@@ -706,6 +765,8 @@ async function openEventDetailModal(eventId) {
   const heldDateEnd = event.heldDateEnd ? formatDate(event.heldDateEnd) : null;
   const deadlineFormatted = event.applicationDeadline ? formatDate(event.applicationDeadline) : null;
   const expired = isEventExpired(event.heldDate);
+  const timelineStatus = getEventTimelineStatus(event);
+  const isEnded = timelineStatus === "ended";
   const canEdit = canEditEvent(event.heldDate);
   const type = capitalize(event.type || "Event");
   const categoryName = getCategoryName(event.category || type);
@@ -744,6 +805,11 @@ async function openEventDetailModal(eventId) {
         <a href="/explore.html?id=${event._id}" target="_blank" class="px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/35 text-white backdrop-blur-md text-xs font-semibold flex items-center gap-1.5 border border-white/25 transition-all shadow-sm" title="View public page">
           <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i> <span class="hidden sm:inline">Public Page</span>
         </a>
+        ${!isEnded ? `
+        <button id="detail-modal-end-btn" class="px-3.5 py-1.5 rounded-xl bg-amber-600/90 hover:bg-amber-600 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md border border-white/20 transition-all cursor-pointer active:scale-95" title="${t("org_dashboard.end_event_btn", {}, "Kết thúc sự kiện sớm")}">
+          <i class="fa-solid fa-flag-checkered text-[11px]"></i> <span class="hidden sm:inline">${t("org_dashboard.end_event_btn", {}, "Kết thúc sự kiện")}</span>
+        </button>
+        ` : ''}
         <button id="detail-modal-edit-btn" class="px-3.5 py-1.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md border border-white/20 transition-all ${canEdit ? 'cursor-pointer active:scale-95' : 'opacity-50 cursor-not-allowed'}" ${canEdit ? '' : 'disabled'}>
           <i class="fa-solid fa-pen text-[11px]"></i> Edit
         </button>
@@ -758,7 +824,7 @@ async function openEventDetailModal(eventId) {
       ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Published</span>`
       : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Draft</span>`
     }
-        ${expired ? `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/50 text-rose-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider">Expired</span>` : ''}
+        ${isEnded ? `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-500/20 border border-slate-400/50 text-slate-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider">Ended</span>` : (expired ? `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/50 text-rose-300 backdrop-blur-md text-xs font-bold uppercase tracking-wider">Expired</span>` : '')}
         <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/15 border border-white/20 text-white backdrop-blur-md text-xs font-medium">${categoryName}</span>
       </div>
     </div>
@@ -958,6 +1024,13 @@ async function openEventDetailModal(eventId) {
   // Attach Event Handlers
   const closeBtn = document.getElementById("event-detail-close-btn");
   if (closeBtn) closeBtn.addEventListener("click", closeEventDetailModal);
+
+  const endBtn = document.getElementById("detail-modal-end-btn");
+  if (endBtn && !isEnded) {
+    endBtn.addEventListener("click", () => {
+      handleEndEvent(eventId);
+    });
+  }
 
   const editBtn = document.getElementById("detail-modal-edit-btn");
   if (editBtn && canEdit) {
