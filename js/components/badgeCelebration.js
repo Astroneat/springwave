@@ -1068,6 +1068,11 @@ export async function syncOfflineBadgeNotifications() {
       getMyCertificates()
     ]);
 
+    // If fetching contribution stats failed and we have no cached data, abort to avoid baselining with empty stats
+    if (contribResult.status !== "fulfilled" && !localStorage.getItem(contribStorageKey)) {
+      return;
+    }
+
     let c = {};
     if (contribResult.status === "fulfilled" && contribResult.value?.contribution) {
       c = contribResult.value.contribution;
@@ -1130,11 +1135,7 @@ export async function syncOfflineBadgeNotifications() {
     const currentBadges = [...new Set([...storedBadges, ...serverBadges, ...localBadges])];
 
     if (isFirstTime) {
-      for (const badgeKey of currentBadges) {
-        const badgeDef = BADGE_DEFINITIONS.find((b) => b.key === badgeKey);
-        const badgeLabel = badgeDef ? badgeDef.label : badgeKey.replace(/_/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase());
-        addBadgeNotification(badgeKey, badgeLabel);
-      }
+      // First time initializing on this device/session: establish baseline without spamming notifications for past accomplishments
       localStorage.setItem(badgeStorageKey, JSON.stringify(currentBadges));
     } else {
       const newBadges = currentBadges.filter((b) => !storedBadges.includes(b));
