@@ -60,7 +60,7 @@ document.addEventListener(
         await loadFooter();
         await initChatbot();
 
-        initializeHostActivityPage();
+        await initializeHostActivityPage();
     }
 );
 
@@ -118,7 +118,7 @@ async function loadFooter() {
    HOST ACTIVITY PAGE
 ========================= */
 
-function initializeHostActivityPage() {
+async function initializeHostActivityPage() {
     const params = new URLSearchParams(window.location.search);
     const orgId = params.get("org");
     const editId = params.get("edit");
@@ -136,7 +136,7 @@ function initializeHostActivityPage() {
     initEventModeSelector();
     initCheckinRulesToggle();
     initCertificateOptionsToggle();
-    initOrgSelector(orgId);
+    await initOrgSelector(orgId);
     initMapPicker();
     initFormSubmit(orgId, () => {
         if (editId) {
@@ -147,7 +147,7 @@ function initializeHostActivityPage() {
     });
 
     if (editId) {
-        initEditMode(editId);
+        await initEditMode(editId);
     } else {
         initTurnstile();
     }

@@ -10,6 +10,8 @@ import { t } from "../lib/i18n.js";
 
 const MAX_FILES = 10;
 let turnstileWidgetId = null;
+let activeMapPicker = null;
+let activeDatePickers = null;
 
 export function initThumbnailPreview() {
     const thumbnailInput = document.getElementById("thumbnail-upload");
@@ -260,7 +262,8 @@ export function initMapPicker() {
 
     map.on("load", () => { map.resize(); });
 
-    return { map, marker, setMarker, reverseGeocode };
+    activeMapPicker = { map, get marker() { return marker; }, setMarker, reverseGeocode };
+    return activeMapPicker;
 }
 
 export function initCheckinRulesToggle() {
@@ -395,7 +398,8 @@ export function initDateValidation() {
     loadSchoolList();
     initTimePicker();
 
-    return { heldDate, applicationDeadline, heldDateEnd };
+    activeDatePickers = { heldDate, applicationDeadline, heldDateEnd };
+    return activeDatePickers;
 }
 
 import { getUniversities } from "../api/universities.js";
@@ -462,12 +466,29 @@ function createDatePicker(config) {
         }
     }
 
+    function setDate(d) {
+        if (!d) {
+            selectedDate = null;
+            if (hiddenInput) hiddenInput.value = "";
+            input.value = "";
+            return;
+        }
+        const dateObj = (d instanceof Date) ? d : new Date(d);
+        if (isNaN(dateObj.getTime())) return;
+        selectedDate = dateObj;
+        currentMonth = dateObj.getMonth();
+        currentYear = dateObj.getFullYear();
+        manualTyping = false;
+        updateDisplay();
+    }
+
     const api = {
         clear() {
             selectedDate = null;
             if (hiddenInput) hiddenInput.value = "";
             updateDisplay();
         },
+        setDate,
         get onSelect() { return onSelect; },
         set onSelect(fn) { onSelect = fn; },
         get selectedDate() { return selectedDate; }
@@ -546,6 +567,16 @@ function createDatePicker(config) {
 
     function openDropdown() {
         const today = new Date();
+        if (!selectedDate) {
+            const rawVal = input.value.trim();
+            if (rawVal) {
+                const parsed = parseDate(rawVal);
+                if (parsed) selectedDate = parsed;
+            } else if (hiddenInput?.value) {
+                const parsed = new Date(hiddenInput.value);
+                if (!isNaN(parsed.getTime())) selectedDate = parsed;
+            }
+        }
         if (!selectedDate) { currentMonth = today.getMonth(); currentYear = today.getFullYear(); }
         else { currentMonth = selectedDate.getMonth(); currentYear = selectedDate.getFullYear(); }
         renderCalendar();
@@ -691,13 +722,15 @@ export async function initEditMode(eventId) {
     sessionStorage.setItem(EDIT_EVENT_ID_KEY, eventId);
     applyEditModeHeading();
 
+    const form = document.getElementById("activity-form");
+    if (!form) return;
+
     const titleEl = document.getElementById("title");
     const descEl = document.getElementById("description");
     const locationEl = document.getElementById("location");
     const locationLatEl = document.getElementById("locationLat");
     const locationLngEl = document.getElementById("locationLng");
     const hostNameEl = document.getElementById("hostName");
-    const heldDateInput = document.getElementById("heldDate");
     const registrationLinkEl = document.getElementById("registrationLink");
     const hasCertificateEl = document.getElementById("hasCertificate");
     const hasAttendanceEl = document.getElementById("hasAttendance");
@@ -706,12 +739,14 @@ export async function initEditMode(eventId) {
     const expiredMinEl = document.getElementById("expiredCheckinMinutes");
     const thumbPreview = document.getElementById("thumbnail-preview");
     const thumbPlaceholder = document.getElementById("thumbnail-placeholder");
+    const turnstileContainer = document.getElementById("turnstile-container");
+    if (turnstileContainer) turnstileContainer.style.display = "none";
 
     if (titleEl) titleEl.value = event.title || '';
     if (descEl) descEl.value = event.description || '';
     if (locationEl) locationEl.value = event.location || '';
-    if (locationLatEl && event.locationLat) locationLatEl.value = event.locationLat;
-    if (locationLngEl && event.locationLng) locationLngEl.value = event.locationLng;
+    if (locationLatEl && event.locationLat !== undefined && event.locationLat !== null) locationLatEl.value = event.locationLat;
+    if (locationLngEl && event.locationLng !== undefined && event.locationLng !== null) locationLngEl.value = event.locationLng;
     if (hostNameEl) hostNameEl.value = event.hostName || event.createdByName || '';
     if (registrationLinkEl) registrationLinkEl.value = event.registrationLink || '';
     const slotsEl = document.getElementById("slots");
@@ -736,17 +771,43 @@ export async function initEditMode(eventId) {
       if (thumbPlaceholder) thumbPlaceholder.style.display = "none";
     }
 
+    // Map pin
+    if (event.locationLat && event.locationLng) {
+      const lat = parseFloat(event.locationLat);
+      const lng = parseFloat(event.locationLng);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        const updatePin = () => {
+          if (activeMapPicker?.setMarker) {
+            activeMapPicker.setMarker(lng, lat);
+            activeMapPicker.map?.flyTo({ center: [lng, lat], zoom: 15 });
+            const markerLabel = document.getElementById("mapMarkerLabel");
+            if (markerLabel && event.location) {
+              markerLabel.textContent = event.location;
+              markerLabel.classList.add("filled");
+            }
+          }
+        };
+        updatePin();
+        setTimeout(updatePin, 300);
+      }
+    }
+
+    // Dates & Times
     if (event.heldDate) {
       const d = new Date(event.heldDate);
-      if (!isNaN(d)) {
-        const isoDate = toLocalISODate(d);
-        if (heldDateInput) heldDateInput.value = isoDate;
-        const dateInput = document.getElementById("heldDateInput");
-        if (dateInput) {
-          const day = String(d.getDate()).padStart(2, '0');
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const year = d.getFullYear();
-          dateInput.value = `${day}/${month}/${year}`;
+      if (!isNaN(d.getTime())) {
+        if (activeDatePickers?.heldDate?.setDate) {
+          activeDatePickers.heldDate.setDate(d);
+        } else {
+          const heldDateInput = document.getElementById("heldDate");
+          if (heldDateInput) heldDateInput.value = toLocalISODate(d);
+          const dateInput = document.getElementById("heldDateInput");
+          if (dateInput) {
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            dateInput.value = `${day}/${month}/${year}`;
+          }
         }
         const hourEl = document.getElementById("heldHour");
         const minEl = document.getElementById("heldMinute");
@@ -757,9 +818,20 @@ export async function initEditMode(eventId) {
 
     if (event.heldDateEnd) {
       const d = new Date(event.heldDateEnd);
-      if (!isNaN(d)) {
-        const endDateInput = document.getElementById("heldDateEnd");
-        if (endDateInput) endDateInput.value = toLocalISODate(d);
+      if (!isNaN(d.getTime())) {
+        if (activeDatePickers?.heldDateEnd?.setDate) {
+          activeDatePickers.heldDateEnd.setDate(d);
+        } else {
+          const endDateInput = document.getElementById("heldDateEnd");
+          if (endDateInput) endDateInput.value = toLocalISODate(d);
+          const dateInput = document.getElementById("heldDateEndInput");
+          if (dateInput) {
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            dateInput.value = `${day}/${month}/${year}`;
+          }
+        }
         const endHourEl = document.getElementById("endHour");
         const endMinEl = document.getElementById("endMinute");
         if (endHourEl) endHourEl.value = String(d.getHours()).padStart(2, '0');
@@ -769,9 +841,20 @@ export async function initEditMode(eventId) {
 
     if (event.applicationDeadline) {
       const d = new Date(event.applicationDeadline);
-      if (!isNaN(d)) {
-        const deadlineInput = document.getElementById("applicationDeadline");
-        if (deadlineInput) deadlineInput.value = toLocalISODate(d);
+      if (!isNaN(d.getTime())) {
+        if (activeDatePickers?.applicationDeadline?.setDate) {
+          activeDatePickers.applicationDeadline.setDate(d);
+        } else {
+          const deadlineInput = document.getElementById("applicationDeadline");
+          if (deadlineInput) deadlineInput.value = toLocalISODate(d);
+          const dateInput = document.getElementById("applicationDeadlineInput");
+          if (dateInput) {
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            dateInput.value = `${day}/${month}/${year}`;
+          }
+        }
         const deadlineHourEl = document.getElementById("deadlineHour");
         const deadlineMinEl = document.getElementById("deadlineMinute");
         if (deadlineHourEl) deadlineHourEl.value = String(d.getHours()).padStart(2, '0');
@@ -779,6 +862,7 @@ export async function initEditMode(eventId) {
       }
     }
 
+    // Certificates
     if (hasCertificateEl) {
       hasCertificateEl.checked = event.hasCertificate === true || event.hasCertificate === 'true';
       const certBgOptions = document.getElementById("cert-bg-options");
@@ -794,40 +878,81 @@ export async function initEditMode(eventId) {
         }
       }
     }
+
+    // Attendance & Rules
     if (hasAttendanceEl) hasAttendanceEl.checked = event.hasAttendance === true || event.hasAttendance === 'true';
-    if (event.lateCheckinMinutes > 0 || event.expiredCheckinMinutes > 0) {
-      if (enableCheckinRulesEl) enableCheckinRulesEl.checked = true;
+    const hasRules = (Number(event.lateCheckinMinutes) > 0 || Number(event.expiredCheckinMinutes) > 0);
+    if (enableCheckinRulesEl) {
+      enableCheckinRulesEl.checked = hasRules;
       const rulesFields = document.getElementById("checkin-rules-fields");
-      if (rulesFields) rulesFields.classList.remove("hidden");
+      if (rulesFields) rulesFields.classList.toggle("hidden", !hasRules);
       if (lateMinEl) lateMinEl.value = event.lateCheckinMinutes || 0;
       if (expiredMinEl) expiredMinEl.value = event.expiredCheckinMinutes || 0;
     }
 
+    // Organization
     if (event.organization) {
-      const orgIdInput = document.getElementById("org-id-value");
-      const orgNameInput = document.getElementById("org-name-display");
-      if (orgIdInput && typeof orgIdInput.value !== 'undefined') {
-        orgIdInput.value = event.organization._id || event.organization;
-        if (orgNameInput) orgNameInput.value = event.organization.name || 'Organization';
+      const orgId = typeof event.organization === 'object' ? (event.organization._id || event.organization.id) : event.organization;
+      const orgName = typeof event.organization === 'object' ? (event.organization.name || '') : '';
+      let orgIdInput = document.getElementById("org-id-value");
+      let orgNameInput = document.getElementById("org-name-display");
+      const container = document.getElementById("org-selector-content");
+      const hint = document.getElementById("org-field-hint");
+
+      if (orgIdInput) {
+        orgIdInput.value = orgId;
+        if (orgIdInput.tagName === 'SELECT') {
+          orgIdInput.dispatchEvent(new Event('change'));
+        }
+      } else if (container) {
+        container.innerHTML = `
+          <input type="text" class="input" id="org-name-display" value="${orgName || event.hostName || ''}" placeholder="Organization name" readonly />
+          <input type="hidden" id="org-id-value" value="${orgId}" />
+        `;
+        orgIdInput = document.getElementById("org-id-value");
+        orgNameInput = document.getElementById("org-name-display");
       }
+      if (orgNameInput && orgName) orgNameInput.value = orgName;
+      if (hint && orgName) hint.textContent = t("host.hosting_as", { name: orgName }) || `Hosting as ${orgName}`;
     }
 
+    // Activity Type
     if (event.type) {
-      const editForm = document.getElementById("activity-form");
-      if (editForm) {
-        const typeRadio = editForm.querySelector(`input[name="type"][value="${event.type}"]`);
-        if (typeRadio) typeRadio.checked = true;
+      const typeVal = String(event.type).trim();
+      const typeRadio = form.querySelector(`input[name="type"][value="${typeVal}"]`) ||
+                        Array.from(form.querySelectorAll('input[name="type"]')).find(r => r.value.toLowerCase() === typeVal.toLowerCase());
+      if (typeRadio) {
+        typeRadio.checked = true;
+        typeRadio.dispatchEvent(new Event("change"));
       }
     }
 
+    // Non-Partner Mode
+    const nonPartnerRadio = form.querySelector('input[name="isNonPartnerMode"][value="true"]');
+    const partnerRadio = form.querySelector('input[name="isNonPartnerMode"][value="false"]');
     if (event.isNonPartner) {
-      const nonPartnerRadio = document.getElementById("mode-non-partner");
       if (nonPartnerRadio) {
         nonPartnerRadio.checked = true;
         nonPartnerRadio.dispatchEvent(new Event("change"));
       }
       const npHost = document.getElementById("nonPartnerHostName");
       if (npHost) npHost.value = event.hostName || '';
+      if (registrationLinkEl) registrationLinkEl.value = event.registrationLink || '';
+    } else {
+      if (partnerRadio) {
+        partnerRadio.checked = true;
+        partnerRadio.dispatchEvent(new Event("change"));
+      }
+    }
+
+    // Existing Attachment Links
+    if (Array.isArray(event.attachments) && event.attachments.length > 0) {
+      const existingLinks = event.attachments
+        .filter(att => att.activityAttachLink && /^https?:\/\//i.test(att.activityAttachLink))
+        .map(att => ({ url: att.activityAttachLink, description: att.description || '' }));
+      if (existingLinks.length > 0) {
+        setAttachmentLinks(existingLinks);
+      }
     }
 
     const statusMsg = document.getElementById("status-msg");
@@ -842,6 +967,7 @@ export async function initEditMode(eventId) {
     console.error('Failed to load event for editing:', err);
   }
 }
+
 
 let categoriesCache = null;
 
@@ -949,15 +1075,16 @@ export function initFormSubmit(orgId, onSuccess) {
     const params = new URLSearchParams(window.location.search);
     const editId = params.get("edit");
     if (editId) {
-      setTimeout(() => initEditMode(editId), 500);
-    } else {
+      sessionStorage.setItem(EDIT_EVENT_ID_KEY, editId);
+    } else if (!sessionStorage.getItem(EDIT_EVENT_ID_KEY)) {
       sessionStorage.removeItem(EDIT_EVENT_ID_KEY);
     }
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const isEdit = !!sessionStorage.getItem(EDIT_EVENT_ID_KEY);
+        const editEventId = sessionStorage.getItem(EDIT_EVENT_ID_KEY) || (new URLSearchParams(window.location.search)).get("edit");
+        const isEdit = !!editEventId;
 
         const check = canPerformAction(isEdit ? 'updateEvent' : 'createEvent');
         if (!check.allowed) {
@@ -1072,6 +1199,9 @@ export function initFormSubmit(orgId, onSuccess) {
             const expiredMin = parseInt(document.getElementById("expiredCheckinMinutes")?.value, 10) || 0;
             formData.append("lateCheckinMinutes", String(lateMin));
             formData.append("expiredCheckinMinutes", String(expiredMin));
+        } else {
+            formData.append("lateCheckinMinutes", "0");
+            formData.append("expiredCheckinMinutes", "0");
         }
         const lat = document.getElementById("locationLat")?.value;
         const lng = document.getElementById("locationLng")?.value;
@@ -1104,7 +1234,7 @@ export function initFormSubmit(orgId, onSuccess) {
 
         try {
             const result = isEdit
-              ? await updateActivity(sessionStorage.getItem(EDIT_EVENT_ID_KEY), formData)
+              ? await updateActivity(editEventId, formData)
               : await createActivity(formData);
             sessionStorage.removeItem(EDIT_EVENT_ID_KEY);
             setStatus(isEdit ? "Activity updated successfully!" : "Activity created successfully!", false, statusMsg);
@@ -1153,14 +1283,23 @@ export function initTurnstile() {
     });
 }
 
+export function setAttachmentLinks(newLinks) {
+    window.__attachmentLinks = Array.isArray(newLinks) ? [...newLinks] : [];
+    if (typeof window.__renderAttachmentLinks === 'function') {
+        window.__renderAttachmentLinks();
+    }
+}
+
 export function initAttachmentLinks() {
     const btn = document.getElementById("addAttachmentLinkBtn");
     const container = document.getElementById("attachmentLinksContainer");
     const list = document.getElementById("attachmentLinksList");
     if (!btn || !container || !list) return;
-    const links = [];
+    let links = Array.isArray(window.__attachmentLinks) ? window.__attachmentLinks : [];
+    window.__attachmentLinks = links;
 
     function render() {
+        links = Array.isArray(window.__attachmentLinks) ? window.__attachmentLinks : [];
         list.innerHTML = links.map((link, i) =>
             `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#ecedfa] text-[#191b22] text-sm">
                 <span class="material-symbols-outlined text-[14px]">link</span>
@@ -1177,6 +1316,8 @@ export function initAttachmentLinks() {
             });
         });
     }
+    window.__renderAttachmentLinks = render;
+    render();
 
     btn.addEventListener("click", () => {
         const row = document.createElement("div");

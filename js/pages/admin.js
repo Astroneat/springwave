@@ -729,7 +729,7 @@ export async function openEventModal(eventId = null) {
     initEventModeSelector();
     initCheckinRulesToggle();
     initCertificateOptionsToggle();
-    initOrgSelector();
+    await initOrgSelector();
     initTurnstile();
 
     setTimeout(() => {
